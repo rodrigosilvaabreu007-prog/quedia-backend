@@ -1,35 +1,18 @@
-# Multi-stage build
-FROM node:18-alpine AS builder
+FROM node:18
 
 WORKDIR /app
 
-# Copiar package files
+# Copia package.json
 COPY backend/package*.json ./
 
-# Instalar dependências
-RUN npm ci --only=production
+# Instala dependências
+RUN npm install
 
-# Stage final
-FROM node:18-alpine
+# Copia o resto do backend
+COPY backend ./backend
 
-WORKDIR /app
+# Expõe a porta (Cloud Run usa variável, mas ok deixar 3000)
+EXPOSE 3000
 
-# Copiar node_modules do builder
-COPY --from=builder /app/node_modules ./node_modules
-
-# Copiar aplicação
-COPY backend/src ./src
-COPY backend/.env* ./
-
-# Criar diretórios necessários
-RUN mkdir -p /app/logs
-
-# Expor porta
-EXPOSE 8080
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8080', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
-
-# Comando para iniciar (usar Firestore por padrão)
-CMD ["node", "src/server-firestore.js"]
+# Inicia o servidor correto
+CMD ["node", "backend/src/server.js"]

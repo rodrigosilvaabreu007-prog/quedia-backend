@@ -26,11 +26,10 @@ app.get('/', (req, res) => {
 const routes = require('./routes-sql');
 app.use('/api', routes);
 
-// Configuração da porta
+// 🚀 CONFIG CORRETA PRO CLOUD RUN
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || 'localhost';
 
-app.listen(PORT, HOST, () => {
-  console.log(`✓ Servidor rodando em http://${HOST}:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✓ Servidor rodando na porta ${PORT}`);
   console.log(`✓ Ambiente: ${process.env.NODE_ENV || 'development'}`);
 });
