@@ -4,7 +4,7 @@ const API_URL = (() => {
   
   // Para desenvolvimento local
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://localhost:3000/api';
+    return 'https://quedia-api-649702844549.southamerica-east1.run.app/api';
   }
   
   // Para produção (será configurado via variável de ambiente)

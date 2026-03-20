@@ -23,8 +23,8 @@ async function testarCadastro() {
   const email = 'teste' + Math.random().toString(36).substring(7) + '@example.com';
   
   try {
-    console.log('Enviando POST para http://localhost:3000/api/cadastro');
-    const resp = await fetch('http://localhost:3000/api/cadastro', {
+    console.log('Enviando POST para https://quedia-api-649702844549.southamerica-east1.run.app/api/cadastro');
+    const resp = await fetch('https://quedia-api-649702844549.southamerica-east1.run.app/api/cadastro', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

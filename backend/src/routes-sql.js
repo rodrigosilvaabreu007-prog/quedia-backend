@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const dbSql = require('./db-sql');
+const nodemailer = require('nodemailer'); // Movido para o topo para evitar erros de runtime
 
 // Rota de verificação de email
 router.get('/verificar-email', (req, res) => {
@@ -22,6 +23,7 @@ router.post('/cadastro', async (req, res) => {
   try {
     console.log('📝 Cadastro recebido:', { email: req.body.email, nome: req.body.nome });
     const { nome, email, senha, estado, cidade, preferencias } = req.body;
+    
     if (!nome || !email || !senha) {
       return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
     }
@@ -188,8 +190,6 @@ router.get('/eventos/:id/interesse', (req, res) => {
 // Rota para obter usuário por ID
 router.get('/usuarios/:id', (req, res) => {
   try {
-    // Esta rota seria implementada consultando o banco
-    // Por enquanto, retorna erro (não implementada ainda)
     res.status(404).json({ erro: 'Usuário não encontrado' });
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao obter usuário', detalhes: err.message });
@@ -239,12 +239,17 @@ router.delete('/usuarios/:id', (req, res) => {
   }
 });
 
-// Rota de contato
+// Rota de contato (CORRIGIDA)
 router.post('/contato', async (req, res) => {
   const { nome, email, mensagem } = req.body;
+
+  // Verificação de segurança para não quebrar o Cloud Run se as envs não existirem
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn('⚠️ Credenciais de e-mail não configuradas no servidor.');
+    return res.status(503).json({ erro: 'Serviço de e-mail temporariamente indisponível.' });
+  }
+
   try {
-    const nodemailer = require('nodemailer');
-    // Configuração do transporte
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -252,14 +257,17 @@ router.post('/contato', async (req, res) => {
         pass: process.env.EMAIL_PASS
       }
     });
+
     await transporter.sendMail({
       from: email,
       to: process.env.EMAIL_USER,
       subject: `Contato EventHub de ${nome}`,
-      text: mensagem
+      text: `Mensagem enviada por: ${nome} (${email})\n\nConteúdo:\n${mensagem}`
     });
+
     res.json({ mensagem: 'Mensagem enviada com sucesso!' });
   } catch (err) {
+    console.error('❌ Erro no envio de e-mail:', err.message);
     res.status(400).json({ erro: 'Erro ao enviar mensagem', detalhes: err.message });
   }
 });
