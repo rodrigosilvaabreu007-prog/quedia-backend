@@ -1,201 +1,142 @@
-// Função para atualizar cidades quando estado muda (EVENTO)
-function atualizarCidadesEvento() {
-  const estado = document.getElementById('evento-estado').value;
-  const cidadeSelect = document.getElementById('evento-cidade');
-  
-  if (!estado) {
-    cidadeSelect.innerHTML = '<option value="">Selecione primeiro um estado</option>';
-    cidadeSelect.disabled = true;
-    return;
-  }
-  
-  const cidades = obterCidades(estado);
-  cidadeSelect.innerHTML = '<option value="">Selecione uma cidade</option>';
-  
-  cidades.forEach(cidade => {
-    const option = document.createElement('option');
-    option.value = cidade;
-    option.textContent = cidade;
-    cidadeSelect.appendChild(option);
-  });
-  
-  cidadeSelect.disabled = false;
-}
+// --- FUNÇÕES DE INTERFACE ---
+window.togglePreco = function() {
+    const gratuitoSim = document.getElementById('gratuito-sim');
+    const campoPrecoContainer = document.getElementById('container-preco');
+    const inputPreco = document.getElementById('preco');
 
-// Preencher dropdowns ao carregar
-document.addEventListener('DOMContentLoaded', () => {
-  // Preencher estados
-  const estadoSelect = document.getElementById('evento-estado');
-  if (estadoSelect) {
-    const estados = obterEstados();
-    estados.forEach(estado => {
-      const option = document.createElement('option');
-      option.value = estado.sigla;
-      option.textContent = estado.nome;
-      estadoSelect.appendChild(option);
-    });
-  }
-  
-  // Criar seletor de categoria/subcategoria dinâmico
-  const categoriasContainer = document.getElementById('categorias-evento');
-  if (categoriasContainer) {
-    // Criar container
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 12px;';
-    
-    // Label para subcategorias
-    const subcategoriaLabel = document.createElement('label');
-    subcategoriaLabel.textContent = 'Subcategoria(s) (selecione quantas quiser):';
-    subcategoriaLabel.style.cssText = 'display: block; margin-bottom: 8px; color: #aaa; font-size: 12px;';
-    
-    // Container de subcategorias
-    const colDireita = document.createElement('div');
-    colDireita.id = 'subcategorias-evento';
-    colDireita.style.cssText = 'display: flex; flex-direction: column; gap: 16px; margin-top: 8px; align-items: flex-start;';
-    
-    // Criar checkboxes para todas as subcategorias, agrupadas por categoria
-    obterCategoriasPrincipais().forEach(cat => {
-      // Header da categoria
-      const headerCategoria = document.createElement('div');
-      headerCategoria.style.cssText = 'font-weight: 600; color: var(--text-primary, #00bfff); margin-top: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;';
-      headerCategoria.textContent = cat;
-      colDireita.appendChild(headerCategoria);
-      
-      const subcategorias = obterSubcategorias(cat);
-      subcategorias.forEach(subcategoria => {
-        const div2 = document.createElement('div');
-        div2.style.cssText = 'display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: start; margin-left: 12px;';
-        
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.name = 'evento-subcategoria';
-        checkbox.value = subcategoria;
-        checkbox.id = `evento-pref-${subcategoria.replace(/\s+/g, '-')}`;
-        checkbox.style.cursor = 'pointer';
-        checkbox.style.marginTop = '3px';
-        
-        const label = document.createElement('label');
-        label.htmlFor = checkbox.id;
-        label.textContent = subcategoria;
-        label.style.cssText = 'cursor: pointer; margin: 0; font-size: 13px; line-height: 1.2;';
-        
-        div2.appendChild(checkbox);
-        div2.appendChild(label);
-        colDireita.appendChild(div2);
-      });
-    });
-    
-    wrapper.appendChild(subcategoriaLabel);
-    wrapper.appendChild(colDireita);
-    categoriasContainer.appendChild(wrapper);
-  }
-});
-
-// Função para alternar visibilidade do campo de preço
-function togglePreco() {
-  const gratuito = document.getElementById('gratuito-sim').checked;
-  const labelPreco = document.getElementById('label-preco');
-  const inputPreco = document.getElementById('preco');
-  
-  if (gratuito) {
-    labelPreco.style.display = 'none';
-    inputPreco.required = false;
-    inputPreco.value = '';
-  } else {
-    labelPreco.style.display = 'block';
-    inputPreco.required = true;
-  }
-}
-
-// Função para mostrar preview das imagens selecionadas
-function mostrarPreviewImagens() {
-  const input = document.getElementById('imagens');
-  const preview = document.getElementById('preview-imagens');
-  preview.innerHTML = '';
-  
-  if (input.files.length === 0) return;
-  
-  Array.from(input.files).forEach((file, index) => {
-    if (!file.type.startsWith('image/')) {
-      alert(`Arquivo "${file.name}" não é uma imagem válida`);
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert(`Arquivo "${file.name}" ultrapassa 5MB`);
-      return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const div = document.createElement('div');
-      div.style.cssText = 'margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;';
-      div.innerHTML = `
-        <img src="${e.target.result}" style="width: 100%; max-width: 200px; border-radius: 8px; margin-bottom: 8px;">
-        <p style="margin: 0; font-size: 0.9rem; opacity: 0.8;">${file.name} (${(file.size / 1024).toFixed(2)}KB)</p>
-      `;
-      preview.appendChild(div);
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-// Lógica de cadastro de evento
-const form = document.getElementById('cadastro-evento');
-const mensagem = document.getElementById('mensagem-evento');
-
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const token = localStorage.getItem('eventhub-token');
-  const usuario = JSON.parse(localStorage.getItem('eventhub-usuario'));
-  if (!token || !usuario) {
-    window.location.href = 'login.html';
-    return;
-  }
-  
-  // Validar imagens
-  const imagemUrl = document.getElementById('imagem-url').value.trim();
-  const imagemInput = document.getElementById('imagens');
-  const temImagemUrl = imagemUrl.length > 0;
-  const temImagemUpload = imagemInput.files.length > 0;
-  
-  if (!temImagemUrl && !temImagemUpload) {
-    mensagem.textContent = 'Adicione pelo menos uma imagem (URL ou upload)';
-    return;
-  }
-  
-  const dados = Object.fromEntries(new FormData(form));
-  dados.gratuito = document.getElementById('gratuito-sim').checked;
-  if (dados.gratuito) dados.preco = 0;
-  dados.organizador_id = usuario.id;
-  dados.imagem = imagemUrl || dados.imagem_url;
-  delete dados.imagem_url;
-  
-  // Coletar subcategorias selecionadas
-  const subcategorias = Array.from(document.querySelectorAll('input[name="evento-subcategoria"]:checked')).map(cb => cb.value);
-  if (subcategorias.length === 0) {
-    mensagem.textContent = 'Selecione pelo menos uma subcategoria';
-    return;
-  }
-  dados.subcategorias = subcategorias;
-  dados.categoria = document.getElementById('categoria-principal').value;
-
-  try {
-    const resposta = await fetch(API_URL + '/eventos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dados)
-    });
-    const resultado = await resposta.json();
-    if (resposta.ok) {
-      mensagem.textContent = 'Evento cadastrado com sucesso!';
-      setTimeout(() => window.location.href = 'index.html', 1500);
-      form.reset();
+    if (gratuitoSim && gratuitoSim.checked) {
+        if (campoPrecoContainer) campoPrecoContainer.style.display = 'none';
+        if (inputPreco) { inputPreco.required = false; inputPreco.value = '0'; }
     } else {
-      mensagem.textContent = resultado.erro || 'Erro ao cadastrar evento.';
+        if (campoPrecoContainer) campoPrecoContainer.style.display = 'block';
+        if (inputPreco) { inputPreco.required = true; inputPreco.value = ''; }
     }
-  } catch (err) {
-    console.error('Erro:', err);
-    mensagem.textContent = 'Erro ao conectar com o servidor. Tente novamente.';
-  }
+};
+
+window.mostrarPreviewImagens = function() {
+    const input = document.getElementById('imagens');
+    const preview = document.getElementById('preview-imagens');
+    if (!preview || !input) return;
+    preview.innerHTML = '';
+    if (input.files) {
+        Array.from(input.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 5px; margin: 5px; border: 1px solid #00bfff;';
+                preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+};
+
+window.atualizarCidadesEvento = function() {
+    const estadoSelect = document.getElementById('evento-estado');
+    const cidadeSelect = document.getElementById('evento-cidade');
+    if (!estadoSelect || !cidadeSelect) return;
+    const estado = estadoSelect.value;
+    
+    // Verifica se a função existe no outro arquivo
+    const obterCidades = window.obterCidades || (typeof obterCidades !== 'undefined' ? obterCidades : null);
+    
+    if (!estado || !obterCidades) {
+        cidadeSelect.innerHTML = '<option value="">Selecione primeiro um estado</option>';
+        cidadeSelect.disabled = true;
+        return;
+    }
+    const cidades = obterCidades(estado);
+    cidadeSelect.innerHTML = '<option value="">Selecione uma cidade</option>';
+    cidades.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c; opt.textContent = c;
+        cidadeSelect.appendChild(opt);
+    });
+    cidadeSelect.disabled = false;
+};
+
+// --- INICIALIZAÇÃO (Onde as categorias aparecem) ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Pequeno delay para garantir que categorias.js e estados.js carregaram
+    setTimeout(() => {
+        // Carregar Estados
+        const estadoSelect = document.getElementById('evento-estado');
+        const funcEstados = window.obterEstados || (typeof obterEstados !== 'undefined' ? obterEstados : null);
+        if (estadoSelect && funcEstados) {
+            funcEstados().forEach(e => {
+                const opt = document.createElement('option');
+                opt.value = e.sigla; opt.textContent = e.nome;
+                estadoSelect.appendChild(opt);
+            });
+        }
+
+        // Carregar Categorias
+        const container = document.getElementById('categorias-evento');
+        const funcCat = window.obterCategoriasPrincipais || (typeof obterCategoriasPrincipais !== 'undefined' ? obterCategoriasPrincipais : null);
+        const funcSub = window.obterSubcategorias || (typeof obterSubcategorias !== 'undefined' ? obterSubcategorias : null);
+
+        if (container && funcCat && funcSub) {
+            container.innerHTML = ''; // Limpa o "carregando"
+            funcCat().forEach(cat => {
+                const h = document.createElement('div');
+                h.style.cssText = 'font-weight: bold; color: #00bfff; margin-top: 10px; font-size: 14px;';
+                h.textContent = cat;
+                container.appendChild(h);
+
+                funcSub(cat).forEach(sub => {
+                    const div = document.createElement('div');
+                    div.style.margin = '5px 0 5px 15px';
+                    div.innerHTML = `
+                        <input type="checkbox" name="evento-subcategoria" value="${sub}" id="cat-${sub}">
+                        <label for="cat-${sub}" style="font-size: 13px;">${sub}</label>
+                    `;
+                    container.appendChild(div);
+                });
+            });
+        } else {
+            console.error("Arquivos de categorias ou estados não foram encontrados!");
+        }
+    }, 200); // 200ms de folga pro navegador respirar
 });
 
+// Lógica de envio (Submit)
+const form = document.getElementById('cadastro-evento');
+if (form) {
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById('mensagem-evento');
+        const token = localStorage.getItem('eventhub-token');
+        if (!token) { alert("Logue novamente!"); return; }
+
+        const formData = new FormData(form);
+        const dados = Object.fromEntries(formData);
+        
+        // Pega as subcategorias marcadas
+        const subs = Array.from(document.querySelectorAll('input[name="evento-subcategoria"]:checked')).map(cb => cb.value);
+        if (subs.length === 0) {
+            msg.textContent = "Selecione ao menos uma categoria!";
+            msg.style.color = "orange";
+            return;
+        }
+
+        dados.subcategorias = subs;
+        dados.categoria = subs[0];
+        dados.gratuito = document.getElementById('gratuito-sim').checked;
+        dados.preco = dados.gratuito ? 0 : Number(dados.preco);
+
+        try {
+            const res = await fetch(`/api/eventos`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(dados)
+            });
+            if (res.ok) {
+                msg.textContent = "Sucesso!";
+                setTimeout(() => window.location.href = 'index.html', 1500);
+            } else {
+                msg.textContent = "Erro no cadastro.";
+            }
+        } catch (err) { console.error(err); }
+    });
+}

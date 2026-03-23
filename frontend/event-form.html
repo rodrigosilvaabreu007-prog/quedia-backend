@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cadastrar Evento - EventHub</title>
   <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="theme.css">
 </head>
 <body>
   <canvas id="particles-bg"></canvas>
   <div class="container">
     <header>
       <nav class="menu">
-          <span class="logo-provisoria">EH</span>
+        <span class="logo-provisoria">EH</span>
         <a href="index.html">Início</a>
         <a href="event-form.html">Cadastrar Evento</a>
         <a href="sobre.html">Sobre</a>
@@ -28,13 +28,17 @@
         <label>Nome do evento<input type="text" name="nome" required></label>
         <label>Descrição<textarea name="descricao" required></textarea></label>
         
-        <label>Estado<select name="estado" id="evento-estado" required onchange="atualizarCidadesEvento()">
-          <option value="">Selecione um estado</option>
-        </select></label>
+        <label>Estado
+          <select name="estado" id="evento-estado" required onchange="window.atualizarCidadesEvento()">
+            <option value="">Selecione um estado</option>
+          </select>
+        </label>
         
-        <label>Cidade<select name="cidade" id="evento-cidade" required>
-          <option value="">Selecione primeiro um estado</option>
-        </select></label>
+        <label>Cidade
+          <select name="cidade" id="evento-cidade" required disabled>
+            <option value="">Selecione primeiro um estado</option>
+          </select>
+        </label>
         
         <label>Endereço<input type="text" name="endereco" required></label>
         <label>Data<input type="date" name="data" required></label>
@@ -47,23 +51,29 @@
         <fieldset style="border: 1px solid rgba(255,255,255,0.2); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
           <legend>Evento gratuito?</legend>
           <label style="display: inline-block; margin-right: 24px;">
-            <input type="radio" name="gratuito" value="sim" id="gratuito-sim" onchange="togglePreco()" required> Sim
+            <input type="radio" name="gratuito" value="sim" id="gratuito-sim" onchange="window.togglePreco()" checked required> Sim
           </label>
           <label style="display: inline-block;">
-            <input type="radio" name="gratuito" value="nao" id="gratuito-nao" onchange="togglePreco()"> Não
+            <input type="radio" name="gratuito" value="nao" id="gratuito-nao" onchange="window.togglePreco()"> Não
           </label>
         </fieldset>
         
-        <label id="label-preco" style="display: none;">Preço (R$)<input type="number" name="preco" min="0" step="0.01" id="preco"></label>
+        <div id="container-preco" style="display: none; margin-bottom: 16px;">
+          <label>Preço (R$)
+            <input type="number" name="preco" min="0" step="0.01" id="preco">
+          </label>
+        </div>
         
         <fieldset style="border: 1px solid rgba(255,255,255,0.2); padding: 16px; border-radius: 8px; margin-bottom: 16px;">
           <legend>Imagens do evento (obrigatório ao menos uma)</legend>
-          <label>URL da imagem<input type="url" name="imagem_url" id="imagem-url" placeholder="ex: https://exemplo.com/imagem.jpg"></label>
+          <label>URL da imagem
+            <input type="url" name="imagem_url" id="imagem-url" placeholder="ex: https://exemplo.com/imagem.jpg">
+          </label>
           <label>Ou fazer upload de imagens
-            <input type="file" name="imagens" id="imagens" multiple accept="image/*" onchange="mostrarPreviewImagens()">
+            <input type="file" name="imagens" id="imagens" multiple accept="image/*" onchange="window.mostrarPreviewImagens()">
             <small style="display: block; opacity: 0.7; margin-top: 8px;">Aceita: JPG, PNG, WebP, GIF. Máximo 5MB por arquivo</small>
           </label>
-          <div id="preview-imagens" style="margin-top: 16px;"></div>
+          <div id="preview-imagens" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px;"></div>
         </fieldset>
         
         <button type="submit">Cadastrar Evento</button>
@@ -72,16 +82,15 @@
     </main>
   </div>
 
-  <!-- Ícone de perfil fixo -->
   <div id="icone-perfil" onclick="irParaPerfil()" title="Meu Perfil">
     <img id="icone-perfil-img" src="" alt="Foto do Perfil">
   </div>
 
   <script src="particles.js"></script>
-    <script src="theme.js"></script>
-    <script src="estados-cidades.js"></script>
-    <script src="categorias.js"></script>
-    <script src="event-form.js"></script>
-    <script src="global.js"></script>
+  <script src="theme.js"></script>
+  <script src="estados-cidades.js"></script>
+  <script src="categorias.js"></script>
+  <script src="global.js"></script>
+  <script src="event-form.js"></script>
 </body>
 </html>

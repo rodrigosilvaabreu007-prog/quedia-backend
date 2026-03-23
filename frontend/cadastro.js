@@ -10,7 +10,8 @@ function toggleSenha(inputId) {
 
 // Função para validar email
 function validarEmail() {
-  const email = document.getElementById('email').value.trim();
+  const emailInput = document.getElementById('email');
+  const email = emailInput.value.trim();
   const erroDiv = document.getElementById('email-erro');
   
   if (email.length === 0) {
@@ -26,10 +27,8 @@ function validarEmail() {
     return;
   }
   
-  erroDiv.textContent = '';
-  
-  // CORREÇÃO 1: Adicionado /api/verificar-email (ou a rota que você usa no backend)
-  fetch(`${API_URL}/verificar-email?email=${encodeURIComponent(email)}`)
+  // ✅ Usando a rota correta de verificação
+  fetch(`/api/verificar-email?email=${encodeURIComponent(email)}`)
     .then(res => res.json())
     .then(data => {
       if (data.existe) {
@@ -40,10 +39,7 @@ function validarEmail() {
         erroDiv.textContent = '';
       }
     })
-    .catch(err => {
-      console.error('Erro ao verificar email:', err);
-      // erroDiv.textContent = 'Erro ao validar'; // Opcional
-    });
+    .catch(err => console.error('Erro ao verificar email:', err));
 }
 
 // Função para atualizar cidades quando estado muda
@@ -57,7 +53,8 @@ function atualizarCidades() {
     return;
   }
   
-  const cidades = obterCidades(estado);
+  // Assumindo que obterCidades vem do estados-cidades.js
+  const cidades = typeof obterCidades === 'function' ? obterCidades(estado) : [];
   cidadeSelect.innerHTML = '<option value="">Selecione uma cidade</option>';
   
   cidades.forEach(cidade => {
@@ -73,7 +70,7 @@ function atualizarCidades() {
 // Inicializar página
 document.addEventListener('DOMContentLoaded', () => {
   const estadoSelect = document.getElementById('estado');
-  if (estadoSelect) {
+  if (estadoSelect && typeof obterEstados === 'function') {
     const estados = obterEstados();
     estados.forEach(estado => {
       const option = document.createElement('option');
@@ -84,28 +81,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   const containerPreferencias = document.getElementById('preferencias-categorias');
-  if (containerPreferencias) {
-    const categoriasDiv = document.createElement('div');
-    categoriasDiv.style.cssText = 'display: grid; grid-template-columns: 1fr; gap: 16px;';
-    
-    const subcategoriaLabel = document.createElement('label');
-    subcategoriaLabel.textContent = 'Subcategoria(s) (selecione quantas quiser):';
-    subcategoriaLabel.style.cssText = 'display: block; margin-bottom: 8px; color: #aaa; font-size: 12px;';
-    
+  if (containerPreferencias && typeof obterCategoriasPrincipais === 'function') {
     const subcategoriaContainer = document.createElement('div');
-    subcategoriaContainer.id = 'preferencia-subcategorias';
-    subcategoriaContainer.style.cssText = 'display: flex; flex-direction: column; gap: 16px; margin-top: 8px; align-items: flex-start;';
+    subcategoriaContainer.style.cssText = 'display: flex; flex-direction: column; gap: 10px; margin-top: 8px;';
     
     obterCategoriasPrincipais().forEach(cat => {
-      const headerCategoria = document.createElement('div');
-      headerCategoria.style.cssText = 'font-weight: 600; color: var(--text-primary, #00bfff); margin-top: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;';
-      headerCategoria.textContent = cat;
-      subcategoriaContainer.appendChild(headerCategoria);
+      const header = document.createElement('div');
+      header.style.cssText = 'font-weight: bold; color: var(--cor-principal, #00bfff); font-size: 12px; margin-top: 10px;';
+      header.textContent = cat;
+      subcategoriaContainer.appendChild(header);
       
       const subcategorias = obterSubcategorias(cat);
       subcategorias.forEach(sub => {
-        const div2 = document.createElement('div');
-        div2.style.cssText = 'display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: start; margin-left: 12px;';
+        const div = document.createElement('div');
+        div.style.cssText = 'display: flex; gap: 8px; align-items: center; margin-left: 10px;';
         
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -116,21 +105,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const label = document.createElement('label');
         label.htmlFor = checkbox.id;
         label.textContent = sub;
-        label.style.cssText = 'cursor: pointer; margin: 0; font-size: 13px; line-height: 1.2;';
+        label.style.fontSize = '13px';
         
-        div2.appendChild(checkbox);
-        div2.appendChild(label);
-        subcategoriaContainer.appendChild(div2);
+        div.appendChild(checkbox);
+        div.appendChild(label);
+        subcategoriaContainer.appendChild(div);
       });
     });
-    
-    categoriasDiv.appendChild(subcategoriaLabel);
-    categoriasDiv.appendChild(subcategoriaContainer);
-    containerPreferencias.appendChild(categoriasDiv);
+    containerPreferencias.appendChild(subcategoriaContainer);
   }
 });
 
-// Cadastro de usuário
+// ✅ CADASTRO DE USUÁRIO CORRIGIDO
 const form = document.getElementById('cadastro-form');
 const mensagem = document.getElementById('mensagem-cadastro');
 
@@ -142,14 +128,17 @@ if (form) {
     const senha = document.getElementById('senha').value;
     const confirmarSenha = document.getElementById('confirmar-senha').value;
     
+    // Validação básica antes de enviar
     const erroDiv = document.getElementById('email-erro');
-    if (erroDiv && erroDiv.style.display !== 'none' && erroDiv.textContent) {
-      mensagem.textContent = 'Email inválido, tente novamente';
+    if (erroDiv && erroDiv.style.display !== 'none') {
+      mensagem.textContent = 'Corrija o erro no email antes de prosseguir.';
+      mensagem.style.color = '#ff4444';
       return;
     }
     
     if (senha !== confirmarSenha) {
       mensagem.textContent = 'As senhas não coincidem.';
+      mensagem.style.color = '#ff4444';
       return;
     }
     
@@ -158,41 +147,33 @@ if (form) {
       email: email,
       senha: senha,
       estado: document.getElementById('estado').value,
-      cidade: document.getElementById('cidade').value
+      cidade: document.getElementById('cidade').value,
+      preferencias: Array.from(document.querySelectorAll('input[name="preferencia-subcategoria"]:checked')).map(cb => cb.value)
     };
     
-    const checkboxesSelecionados = document.querySelectorAll('input[name="preferencia-subcategoria"]:checked');
-    dados.preferencias = Array.from(checkboxesSelecionados).map(cb => cb.value);
-    
     try {
-      // CORREÇÃO 2: Adicionado /usuarios e usando a variável API_URL do global.js
-      const resposta = await fetch(`${API_URL}/usuarios`, { 
+      // ✅ ALTERAÇÃO CRUCIAL: Rota alterada de /usuarios para /cadastro
+      const resposta = await fetch(`/api/cadastro`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dados)
       });
       
-      const textoResposta = await resposta.text(); // Pegamos como texto primeiro para evitar erro de JSON
-      let resultado;
-      try {
-          resultado = JSON.parse(textoResposta);
-      } catch(e) {
-          throw new Error("Resposta do servidor não é um JSON válido");
-      }
+      const resultado = await resposta.json();
 
       if (resposta.ok) {
-        mensagem.textContent = 'Cadastro realizado com sucesso!';
+        mensagem.textContent = 'Cadastro realizado com sucesso! Redirecionando...';
         mensagem.style.color = '#00ff00';
         setTimeout(() => {
           window.location.href = 'login.html';
-        }, 1500);
+        }, 2000);
       } else {
         mensagem.textContent = resultado.erro || 'Erro ao cadastrar.';
         mensagem.style.color = '#ff4444';
       }
     } catch (err) {
-      console.error('Erro:', err);
-      mensagem.textContent = 'Erro ao conectar com o servidor. Tente novamente.';
+      console.error('Erro no fetch:', err);
+      mensagem.textContent = 'Erro ao conectar com o servidor. Verifique sua conexão.';
       mensagem.style.color = '#ff4444';
     }
   });

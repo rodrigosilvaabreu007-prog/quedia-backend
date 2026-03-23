@@ -6,7 +6,7 @@ form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const dados = Object.fromEntries(new FormData(form));
   try {
-    const resposta = await fetch(API_URL + '/contato', {
+    const resposta = await fetch('/api/contato', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dados)

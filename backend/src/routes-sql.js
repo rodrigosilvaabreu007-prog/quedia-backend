@@ -1,275 +1,196 @@
+const Evento = require('./models/Evento');
+
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const dbSql = require('./db-sql');
-const nodemailer = require('nodemailer'); // Movido para o topo para evitar erros de runtime
+const nodemailer = require('nodemailer');
 
-// Rota de verificação de email
-router.get('/verificar-email', (req, res) => {
-  try {
-    const email = req.query.email;
-    if (!email) {
-      return res.status(400).json({ erro: 'Email é obrigatório' });
+// 🔍 Rota de verificação de email
+router.get('/verificar-email', async (req, res) => {
+    try {
+        const { email } = req.query;
+        if (!email) return res.status(400).json({ erro: 'Email é obrigatório' });
+        
+        const existe = await dbSql.verificarEmailExistente(email);
+        res.json({ existe });
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao verificar email', detalhes: err.message });
     }
-    const existe = dbSql.verificarEmailExistente(email);
-    res.json({ existe });
-  } catch (err) {
-    res.status(400).json({ erro: 'Erro ao verificar email', detalhes: err.message });
-  }
 });
 
-// Rota de cadastro
+// 📝 Rota de cadastro
 router.post('/cadastro', async (req, res) => {
-  try {
-    console.log('📝 Cadastro recebido:', { email: req.body.email, nome: req.body.nome });
-    const { nome, email, senha, estado, cidade, preferencias } = req.body;
-    
-    if (!nome || !email || !senha) {
-      return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
-    }
+    try {
+        const { nome, email, senha, estado, cidade, preferencias } = req.body;
+        if (!nome || !email || !senha) {
+            return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
+        }
 
-    const id = await dbSql.registrarUsuario({
-      nome,
-      email,
-      senha,
-      estado: estado || 'Não informado',
-      cidade: cidade || 'Não informado',
-      preferencias
-    });
+        const id = await dbSql.registrarUsuario({
+            nome, email, senha,
+            estado: estado || 'Não informado',
+            cidade: cidade || 'Não informado',
+            preferencias
+        });
 
-    console.log('✓ Usuário cadastrado com sucesso! ID:', id);
-    res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso!', id });
-  } catch (err) {
-    console.error('❌ Erro ao cadastrar:', err.message);
-    if (err.message.includes('Email já cadastrado')) {
-      return res.status(400).json({ erro: 'Email já cadastrado' });
+        res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso!', id });
+    } catch (err) {
+        if (err.message.includes('Email já cadastrado')) {
+            return res.status(400).json({ erro: 'Email já cadastrado' });
+        }
+        res.status(500).json({ erro: 'Erro ao cadastrar usuário', detalhes: err.message });
     }
-    res.status(400).json({ erro: 'Erro ao cadastrar usuário', detalhes: err.message });
-  }
 });
 
-// Rota de login
+// 🔑 Rota de login
 router.post('/login', async (req, res) => {
-  try {
-    const { email, senha } = req.body;
-    console.log('🔐 Tentativa de login:', email);
+    try {
+        const { email, senha } = req.body;
+        const usuario = await dbSql.autenticarUsuario(email, senha);
+        
+        if (!usuario) {
+            return res.status(401).json({ erro: 'Email ou senha inválidos' });
+        }
 
-    const usuario = await dbSql.autenticarUsuario(email, senha);
-    if (!usuario) {
-      return res.status(401).json({ erro: 'Email ou senha inválidos' });
+        const token = jwt.sign(
+            { id: usuario.id, tipo: usuario.tipo },
+            process.env.JWT_SECRET || 'chave_mestra_eventhub',
+            { expiresIn: '24h' }
+        );
+        
+        res.json({ usuario, token });
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao autenticar', detalhes: err.message });
     }
-
-    const token = jwt.sign(
-      { id: usuario.id, tipo: usuario.tipo },
-      process.env.JWT_SECRET || 'secret',
-      { expiresIn: '2h' }
-    );
-    
-    res.json({
-      usuario: {
-        id: usuario.id,
-        nome: usuario.nome,
-        email: usuario.email,
-        cidade: usuario.cidade,
-        estado: usuario.estado,
-        preferencias: usuario.preferencias || []
-      },
-      token
-    });
-  } catch (err) {
-    console.error('❌ Erro ao autenticar:', err.message);
-    res.status(400).json({ erro: 'Erro ao autenticar', detalhes: err.message });
-  }
 });
 
-// Rota para listar eventos
-router.get('/eventos', (req, res) => {
-  try {
-    const organizador_id = req.query.organizador_id;
-    let eventos;
-    
-    if (organizador_id) {
-      eventos = dbSql.obterEventosPorOrganizador(parseInt(organizador_id));
-    } else {
-      eventos = dbSql.listarEventos();
+// 📅 Rota para listar eventos
+router.get('/eventos', async (req, res) => {
+    try {
+        const { organizador_id } = req.query;
+        let eventos;
+        
+        // Valida se o organizador_id é um número válido antes de consultar
+        if (organizador_id && !isNaN(organizador_id)) {
+            eventos = await dbSql.obterEventosPorOrganizador(parseInt(organizador_id));
+        } else {
+            eventos = await dbSql.listarEventos();
+        }
+        
+        res.json(eventos || []);
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao listar eventos', detalhes: err.message });
     }
-    
-    res.json(eventos);
-  } catch (err) {
-    res.status(400).json({ erro: 'Erro ao listar eventos', detalhes: err.message });
-  }
 });
 
-// Rota para cadastrar evento
+// ➕ Rota para cadastrar evento
 router.post('/eventos', async (req, res) => {
-  try {
-    const { nome, descricao, estado, cidade, endereco, data, horario, gratuito, preco, organizador_id, categoria, subcategorias, imagem } = req.body;
-    if (!nome || !descricao || !cidade || !categoria) {
-      return res.status(400).json({ erro: 'Campos obrigatórios faltando' });
+    try {
+        const evento = new Evento({
+            ...req.body,
+            organizador_id: parseInt(req.body.organizador_id) || 1,
+            preco: parseFloat(req.body.preco) || 0,
+            gratuito: req.body.gratuito === 'true' || req.body.gratuito === true
+        });
+
+        await evento.save();
+
+        res.status(201).json({ 
+            mensagem: 'Evento cadastrado com sucesso!', 
+            id: evento._id 
+        });
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao cadastrar evento' });
     }
-
-    const id = dbSql.cadastrarEvento({
-      nome,
-      descricao,
-      estado: estado || 'Não informado',
-      cidade,
-      endereco: endereco || '',
-      data,
-      horario,
-      gratuito: gratuito === 'on' || gratuito === true,
-      preco: Number(preco) || 0,
-      organizador_id: organizador_id || 1,
-      categoria,
-      subcategorias,
-      imagem
-    });
-
-    res.status(201).json({ mensagem: 'Evento cadastrado com sucesso!', id });
-  } catch (err) {
-    console.error('❌ Erro ao cadastrar evento:', err.message);
-    res.status(400).json({ erro: 'Erro ao cadastrar evento', detalhes: err.message });
-  }
 });
 
-// Rota para atualizar evento
-router.put('/eventos/:id', (req, res) => {
-  try {
-    const evento = dbSql.obterEvento(parseInt(req.params.id));
-    if (!evento) {
-      return res.status(404).json({ erro: 'Evento não encontrado' });
+// 🔄 Rota para atualizar evento
+router.put('/eventos/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) return res.status(400).json({ erro: 'ID inválido' });
+
+        await dbSql.atualizarEvento(id, req.body);
+        res.json({ mensagem: 'Evento atualizado com sucesso!' });
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao atualizar evento', detalhes: err.message });
     }
-
-    dbSql.atualizarEvento(parseInt(req.params.id), req.body);
-    res.json({ mensagem: 'Evento atualizado com sucesso!' });
-  } catch (err) {
-    res.status(400).json({ erro: 'Erro ao atualizar evento', detalhes: err.message });
-  }
 });
 
-// Rota para deletar evento
-router.delete('/eventos/:id', (req, res) => {
-  try {
-    const evento = dbSql.obterEvento(parseInt(req.params.id));
-    if (!evento) {
-      return res.status(404).json({ erro: 'Evento não encontrado' });
+// 🗑️ Rota para deletar evento
+router.delete('/eventos/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) return res.status(400).json({ erro: 'ID inválido' });
+
+        await dbSql.deletarEvento(id);
+        res.json({ mensagem: 'Evento deletado com sucesso!' });
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao deletar evento', detalhes: err.message });
     }
-
-    dbSql.deletarEvento(parseInt(req.params.id));
-    res.json({ mensagem: 'Evento deletado com sucesso!' });
-  } catch (err) {
-    res.status(400).json({ erro: 'Erro ao deletar evento', detalhes: err.message });
-  }
 });
 
-// Rota para marcar interesse
-router.post('/eventos/:id/interesse', (req, res) => {
-  try {
-    const evento_id = parseInt(req.params.id);
-    const usuario_id = req.body.usuario_id || 1;
+// ❤️ Marcar interesse
+router.post('/eventos/:id/interesse', async (req, res) => {
+    try {
+        const evento_id = parseInt(req.params.id);
+        const usuario_id = parseInt(req.body.usuario_id);
 
-    dbSql.marcarInteresse(usuario_id, evento_id);
-    const total = dbSql.contarInteressados(evento_id);
+        if (!usuario_id) return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
 
-    res.json({ mensagem: 'Interesse marcado', total });
-  } catch (err) {
-    res.status(400).json({ erro: 'Erro ao marcar interesse', detalhes: err.message });
-  }
-});
-
-// Rota para contar interesses
-router.get('/eventos/:id/interesse', (req, res) => {
-  try {
-    const evento_id = parseInt(req.params.id);
-    const total = dbSql.contarInteressados(evento_id);
-    res.json({ total });
-  } catch (err) {
-    res.status(400).json({ erro: 'Erro ao contar interesses', detalhes: err.message });
-  }
-});
-
-// Rota para obter usuário por ID
-router.get('/usuarios/:id', (req, res) => {
-  try {
-    res.status(404).json({ erro: 'Usuário não encontrado' });
-  } catch (err) {
-    res.status(400).json({ erro: 'Erro ao obter usuário', detalhes: err.message });
-  }
-});
-
-// Rota para atualizar usuário
-router.put('/usuarios/:id', (req, res) => {
-  try {
-    const usuario_id = parseInt(req.params.id);
-    const { nome, email, estado, cidade, preferencias } = req.body;
-    
-    const usuarioAtualizado = dbSql.atualizarUsuario(usuario_id, {
-      nome,
-      email,
-      estado,
-      cidade,
-      preferencias
-    });
-    
-    if (!usuarioAtualizado) {
-      return res.status(404).json({ erro: 'Usuário não encontrado' });
+        await dbSql.marcarInteresse(usuario_id, evento_id);
+        const total = await dbSql.contarInteressados(evento_id);
+        res.json({ total });
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao marcar interesse' });
     }
-    
-    res.json(usuarioAtualizado);
-  } catch (err) {
-    if (err.message.includes('Email já cadastrado')) {
-      return res.status(400).json({ erro: 'Email já cadastrado' });
-    }
-    res.status(400).json({ erro: 'Erro ao atualizar usuário', detalhes: err.message });
-  }
 });
 
-// Rota para deletar usuário
-router.delete('/usuarios/:id', (req, res) => {
-  try {
-    const usuario_id = parseInt(req.params.id);
-    const deletado = dbSql.deletarUsuario(usuario_id);
-    
-    if (!deletado) {
-      return res.status(404).json({ erro: 'Usuário não encontrado' });
+// 👤 Obter perfil do usuário
+router.get('/usuarios/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        // Ajustado para usar uma lógica de busca segura (simulando que seu db-sql tenha uma busca por ID)
+        const usuario = await dbSql.obterUsuarioId ? await dbSql.obterUsuarioId(id) : null;
+        
+        if (!usuario) return res.status(404).json({ erro: 'Usuário não encontrado' });
+        
+        // Remove a senha antes de enviar para o front por segurança
+        delete usuario.senha;
+        res.json(usuario);
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao buscar usuário' });
     }
-    
-    res.json({ mensagem: 'Usuário deletado com sucesso!' });
-  } catch (err) {
-    res.status(400).json({ erro: 'Erro ao deletar usuário', detalhes: err.message });
-  }
 });
 
-// Rota de contato (CORRIGIDA)
+// 📧 Rota de contato
 router.post('/contato', async (req, res) => {
-  const { nome, email, mensagem } = req.body;
+    const { nome, email, mensagem } = req.body;
+    
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        console.warn("⚠️ Serviço de e-mail não configurado nas variáveis de ambiente.");
+        return res.status(503).json({ erro: 'Serviço de e-mail temporariamente indisponível.' });
+    }
 
-  // Verificação de segurança para não quebrar o Cloud Run se as envs não existirem
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn('⚠️ Credenciais de e-mail não configuradas no servidor.');
-    return res.status(503).json({ erro: 'Serviço de e-mail temporariamente indisponível.' });
-  }
+    try {
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+        });
 
-  try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+        await transporter.sendMail({
+            from: email,
+            to: process.env.EMAIL_USER,
+            subject: `Contato EventHub de ${nome}`,
+            text: `Mensagem de: ${nome} (${email})\n\n${mensagem}`
+        });
 
-    await transporter.sendMail({
-      from: email,
-      to: process.env.EMAIL_USER,
-      subject: `Contato EventHub de ${nome}`,
-      text: `Mensagem enviada por: ${nome} (${email})\n\nConteúdo:\n${mensagem}`
-    });
-
-    res.json({ mensagem: 'Mensagem enviada com sucesso!' });
-  } catch (err) {
-    console.error('❌ Erro no envio de e-mail:', err.message);
-    res.status(400).json({ erro: 'Erro ao enviar mensagem', detalhes: err.message });
-  }
+        res.json({ mensagem: 'Mensagem enviada com sucesso!' });
+    } catch (err) {
+        console.error("Erro no Nodemailer:", err);
+        res.status(500).json({ erro: 'Erro ao enviar e-mail. Tente novamente mais tarde.' });
+    }
 });
 
 module.exports = router;
