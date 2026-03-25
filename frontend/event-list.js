@@ -3,7 +3,7 @@ async function carregarEventos() {
   const container = document.getElementById('event-cards');
   container.innerHTML = '';
   try {
-    const resposta = await fetch('/api/eventos');
+    const resposta = await fetch(`${window.API_URL}/eventos`);
     const eventos = await resposta.json();
     if (!Array.isArray(eventos)) return;
     eventos.forEach(evento => {
@@ -23,7 +23,7 @@ async function carregarEventos() {
       `;
       container.appendChild(card);
         // Buscar contador de interessados
-        fetch(`/api/interesses/${evento.id}`)
+        fetch(`${window.API_URL}/interesses/${evento.id}`)
           .then(res => res.json())
           .then(data => {
             document.getElementById(`interest-count-${evento.id}`).textContent = `${data.total} interessados`;
@@ -35,8 +35,9 @@ async function carregarEventos() {
         const eventoId = e.target.dataset.id;
         // Usuário fictício para teste
         const usuarioId = 1;
-        const resposta = await fetch(`/api/interesses/${eventoId}`, {
+        const resposta = await fetch(`${window.API_URL}/interesses/${eventoId}`, {
           method: 'POST',
+
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ usuario_id: usuarioId })
         });

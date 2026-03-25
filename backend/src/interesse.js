@@ -1,31 +1,38 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+const mongoose = require('mongoose');
 
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE
+// Definindo como é um "Interesse" no MongoDB
+const InteresseSchema = new mongoose.Schema({
+  usuario_id: { type: String, required: true },
+  evento_id: { type: String, required: true }
 });
 
-// Marcar interesse
+// Garante que o mesmo usuário não marque interesse duas vezes no mesmo evento
+InteresseSchema.index({ usuario_id: 1, evento_id: 1 }, { unique: true });
+
+const Interesse = mongoose.model('Interesse', InteresseSchema);
+
+// Marcar interesse (Lógica MongoDB)
 async function marcarInteresse(usuario_id, evento_id) {
-  const query = {
-    text: 'INSERT INTO interesses (usuario_id, evento_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-    values: [usuario_id, evento_id]
-  };
-  await pool.query(query);
+  try {
+    await Interesse.findOneAndUpdate(
+      { usuario_id, evento_id },
+      { usuario_id, evento_id },
+      { upsert: true, new: true }
+    );
+  } catch (err) {
+    console.error("Erro ao marcar interesse:", err.message);
+  }
 }
 
-// Contador de interessados
+// Contador de interessados (Lógica MongoDB)
 async function contarInteressados(evento_id) {
-  const query = {
-    text: 'SELECT COUNT(*) FROM interesses WHERE evento_id = $1',
-    values: [evento_id]
-  };
-  const result = await pool.query(query);
-  return parseInt(result.rows[0].count);
+  try {
+    const total = await Interesse.countDocuments({ evento_id });
+    return total;
+  } catch (err) {
+    console.error("Erro ao contar interessados:", err.message);
+    return 0;
+  }
 }
 
 module.exports = {

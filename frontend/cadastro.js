@@ -11,12 +11,12 @@ function toggleSenha(inputId) {
 // Função para validar email
 function validarEmail() {
   const emailInput = document.getElementById('email');
+  if (!emailInput) return;
   const email = emailInput.value.trim();
   const erroDiv = document.getElementById('email-erro');
   
   if (email.length === 0) {
     erroDiv.style.display = 'none';
-    erroDiv.textContent = '';
     return;
   }
   
@@ -27,22 +27,22 @@ function validarEmail() {
     return;
   }
   
-  // ✅ Usando a rota correta de verificação
-  fetch(`/api/verificar-email?email=${encodeURIComponent(email)}`)
+  // ✅ Usando a rota que acabamos de criar no backend
+  fetch(`${window.API_URL}/verificar-email?email=${encodeURIComponent(email)}`)
     .then(res => res.json())
     .then(data => {
-      if (data.existe) {
+      // O backend agora retorna { disponivel: true }
+      if (data.disponivel === false) {
         erroDiv.textContent = 'Email já cadastrado';
         erroDiv.style.display = 'block';
       } else {
         erroDiv.style.display = 'none';
-        erroDiv.textContent = '';
       }
     })
     .catch(err => console.error('Erro ao verificar email:', err));
 }
 
-// Função para atualizar cidades quando estado muda
+// Função para atualizar cidades
 function atualizarCidades() {
   const estado = document.getElementById('estado').value;
   const cidadeSelect = document.getElementById('cidade');
@@ -53,7 +53,6 @@ function atualizarCidades() {
     return;
   }
   
-  // Assumindo que obterCidades vem do estados-cidades.js
   const cidades = typeof obterCidades === 'function' ? obterCidades(estado) : [];
   cidadeSelect.innerHTML = '<option value="">Selecione uma cidade</option>';
   
@@ -80,14 +79,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
+  // Gerar categorias de preferência
   const containerPreferencias = document.getElementById('preferencias-categorias');
   if (containerPreferencias && typeof obterCategoriasPrincipais === 'function') {
+    containerPreferencias.innerHTML = ''; // Limpa antes de gerar
     const subcategoriaContainer = document.createElement('div');
     subcategoriaContainer.style.cssText = 'display: flex; flex-direction: column; gap: 10px; margin-top: 8px;';
     
     obterCategoriasPrincipais().forEach(cat => {
       const header = document.createElement('div');
-      header.style.cssText = 'font-weight: bold; color: var(--cor-principal, #00bfff); font-size: 12px; margin-top: 10px;';
+      header.style.cssText = 'font-weight: bold; color: #00bfff; font-size: 12px; margin-top: 10px;';
       header.textContent = cat;
       subcategoriaContainer.appendChild(header);
       
@@ -95,20 +96,10 @@ document.addEventListener('DOMContentLoaded', () => {
       subcategorias.forEach(sub => {
         const div = document.createElement('div');
         div.style.cssText = 'display: flex; gap: 8px; align-items: center; margin-left: 10px;';
-        
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.name = 'preferencia-subcategoria';
-        checkbox.value = sub;
-        checkbox.id = `pref-${sub.replace(/\s+/g, '-')}`;
-        
-        const label = document.createElement('label');
-        label.htmlFor = checkbox.id;
-        label.textContent = sub;
-        label.style.fontSize = '13px';
-        
-        div.appendChild(checkbox);
-        div.appendChild(label);
+        div.innerHTML = `
+          <input type="checkbox" name="preferencia-subcategoria" value="${sub}" id="pref-${sub.replace(/\s+/g, '-')}">
+          <label for="pref-${sub.replace(/\s+/g, '-')}" style="font-size: 13px;">${sub}</label>
+        `;
         subcategoriaContainer.appendChild(div);
       });
     });
@@ -116,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ✅ CADASTRO DE USUÁRIO CORRIGIDO
+// ✅ CADASTRO DE USUÁRIO
 const form = document.getElementById('cadastro-form');
 const mensagem = document.getElementById('mensagem-cadastro');
 
@@ -127,33 +118,28 @@ if (form) {
     const email = document.getElementById('email').value.trim();
     const senha = document.getElementById('senha').value;
     const confirmarSenha = document.getElementById('confirmar-senha').value;
-    
-    // Validação básica antes de enviar
-    const erroDiv = document.getElementById('email-erro');
-    if (erroDiv && erroDiv.style.display !== 'none') {
-      mensagem.textContent = 'Corrija o erro no email antes de prosseguir.';
-      mensagem.style.color = '#ff4444';
-      return;
-    }
-    
+    const nomeInput = document.querySelector('input[name="nome"]');
+
     if (senha !== confirmarSenha) {
       mensagem.textContent = 'As senhas não coincidem.';
       mensagem.style.color = '#ff4444';
       return;
     }
     
+    // Montando os dados exatamente como o backend espera
     const dados = {
-      nome: document.querySelector('input[name="nome"]').value,
+      nome: nomeInput ? nomeInput.value : 'Usuário',
       email: email,
       senha: senha,
       estado: document.getElementById('estado').value,
       cidade: document.getElementById('cidade').value,
       preferencias: Array.from(document.querySelectorAll('input[name="preferencia-subcategoria"]:checked')).map(cb => cb.value)
     };
-    
+
+    console.log('📦 Enviando dados para o servidor:', dados);
+
     try {
-      // ✅ ALTERAÇÃO CRUCIAL: Rota alterada de /usuarios para /cadastro
-      const resposta = await fetch(`/api/cadastro`, { 
+      const resposta = await fetch(`${window.API_URL}/cadastro`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dados)
@@ -164,16 +150,15 @@ if (form) {
       if (resposta.ok) {
         mensagem.textContent = 'Cadastro realizado com sucesso! Redirecionando...';
         mensagem.style.color = '#00ff00';
-        setTimeout(() => {
-          window.location.href = 'login.html';
-        }, 2000);
+        setTimeout(() => { window.location.href = 'login.html'; }, 2000);
       } else {
+        console.error('❌ Erro do Servidor:', resultado);
         mensagem.textContent = resultado.erro || 'Erro ao cadastrar.';
         mensagem.style.color = '#ff4444';
       }
     } catch (err) {
-      console.error('Erro no fetch:', err);
-      mensagem.textContent = 'Erro ao conectar com o servidor. Verifique sua conexão.';
+      console.error('💥 Erro Crítico no Fetch:', err);
+      mensagem.textContent = 'Erro ao conectar com o servidor.';
       mensagem.style.color = '#ff4444';
     }
   });

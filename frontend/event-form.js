@@ -1,53 +1,77 @@
-// --- FUNÇÕES DE INTERFACE ---
-window.togglePreco = function() {
-    const gratuitoSim = document.getElementById('gratuito-sim');
-    const campoPrecoContainer = document.getElementById('container-preco');
-    const inputPreco = document.getElementById('preco');
+// --- 1. CATEGORIAS E ESTADOS ---
+const CATEGORIAS_FIXAS = {
+    "Show e Música": ["Sertanejo", "Rock", "Eletrônico", "Pagode", "Funk", "Gospel", "Outros"],
+    "Gastronomia": ["Festival", "Workshop", "Jantar", "Degustação", "Churrasco"],
+    "Esporte": ["Corrida", "Campeonato", "Aula Aberta", "Trilha", "Futebol", "Vôlei"],
+    "Cultura": ["Teatro", "Exposição", "Cinema", "Feira", "Dança", "Literatura"],
+    "Religioso": ["Culto", "Missa", "Congresso", "Retiro"],
+    "Outros": ["Networking", "Workshop", "Palestra", "Formatura", "Aniversário"]
+};
 
-    if (gratuitoSim && gratuitoSim.checked) {
-        if (campoPrecoContainer) campoPrecoContainer.style.display = 'none';
-        if (inputPreco) { inputPreco.required = false; inputPreco.value = '0'; }
-    } else {
-        if (campoPrecoContainer) campoPrecoContainer.style.display = 'block';
-        if (inputPreco) { inputPreco.required = true; inputPreco.value = ''; }
+const LISTA_ESTADOS = [
+    { sigla: 'AC', nome: 'Acre' }, { sigla: 'AL', nome: 'Alagoas' }, { sigla: 'AP', nome: 'Amapá' },
+    { sigla: 'AM', nome: 'Amazonas' }, { sigla: 'BA', nome: 'Bahia' }, { sigla: 'CE', nome: 'Ceará' },
+    { sigla: 'DF', nome: 'Distrito Federal' }, { sigla: 'ES', nome: 'Espírito Santo' }, { sigla: 'GO', nome: 'Goiás' },
+    { sigla: 'MA', nome: 'Maranhão' }, { sigla: 'MT', nome: 'Mato Grosso' }, { sigla: 'MS', nome: 'Mato Grosso do Sul' },
+    { sigla: 'MG', nome: 'Minas Gerais' }, { sigla: 'PA', nome: 'Pará' }, { sigla: 'PB', nome: 'Paraíba' },
+    { sigla: 'PR', nome: 'Paraná' }, { sigla: 'PE', nome: 'Pernambuco' }, { sigla: 'PI', nome: 'Piauí' },
+    { sigla: 'RJ', nome: 'Rio de Janeiro' }, { sigla: 'RN', nome: 'Rio Grande do Norte' }, { sigla: 'RS', nome: 'Rio Grande do Sul' },
+    { sigla: 'RO', nome: 'Rondônia' }, { sigla: 'RR', nome: 'Roraima' }, { sigla: 'SC', nome: 'Santa Catarina' },
+    { sigla: 'SP', nome: 'São Paulo' }, { sigla: 'SE', nome: 'Sergipe' }, { sigla: 'TO', nome: 'Tocantins' }
+];
+
+// --- 2. FUNÇÕES AUXILIARES (IBGE para cidades) ---
+window.obterCidades = async function(sigla) {
+    try {
+        const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${sigla}/municipios`);
+        const dados = await response.json();
+        return dados.map(m => m.nome).sort();
+    } catch (e) {
+        return ["Erro ao carregar cidades"];
+    }
+};
+
+window.togglePreco = function() {
+    const isGratuito = document.getElementById('gratuito-sim')?.checked;
+    const container = document.getElementById('container-preco');
+    const input = document.getElementById('preco');
+    if (container && input) {
+        container.style.display = isGratuito ? 'none' : 'block';
+        if (isGratuito) input.value = '0';
     }
 };
 
 window.mostrarPreviewImagens = function() {
     const input = document.getElementById('imagens');
     const preview = document.getElementById('preview-imagens');
-    if (!preview || !input) return;
+    if (!preview || !input?.files) return;
     preview.innerHTML = '';
-    if (input.files) {
-        Array.from(input.files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 5px; margin: 5px; border: 1px solid #00bfff;';
-                preview.appendChild(img);
-            };
-            reader.readAsDataURL(file);
-        });
-    }
+    Array.from(input.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.cssText = 'width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin: 5px; border: 2px solid #00bfff;';
+            preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
 };
 
-window.atualizarCidadesEvento = function() {
-    const estadoSelect = document.getElementById('evento-estado');
+window.atualizarCidadesEvento = async function() {
+    const estado = document.getElementById('evento-estado')?.value;
     const cidadeSelect = document.getElementById('evento-cidade');
-    if (!estadoSelect || !cidadeSelect) return;
-    const estado = estadoSelect.value;
-    
-    // Verifica se a função existe no outro arquivo
-    const obterCidades = window.obterCidades || (typeof obterCidades !== 'undefined' ? obterCidades : null);
-    
-    if (!estado || !obterCidades) {
-        cidadeSelect.innerHTML = '<option value="">Selecione primeiro um estado</option>';
+    if (!cidadeSelect) return;
+
+    if (!estado) {
+        cidadeSelect.innerHTML = '<option value="">Selecione o estado</option>';
         cidadeSelect.disabled = true;
         return;
     }
-    const cidades = obterCidades(estado);
-    cidadeSelect.innerHTML = '<option value="">Selecione uma cidade</option>';
+
+    cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
+    const cidades = await window.obterCidades(estado);
+    cidadeSelect.innerHTML = '<option value="">Selecione a cidade</option>';
     cidades.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c; opt.textContent = c;
@@ -56,87 +80,86 @@ window.atualizarCidadesEvento = function() {
     cidadeSelect.disabled = false;
 };
 
-// --- INICIALIZAÇÃO (Onde as categorias aparecem) ---
+// --- 3. INICIALIZAÇÃO ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Pequeno delay para garantir que categorias.js e estados.js carregaram
-    setTimeout(() => {
-        // Carregar Estados
-        const estadoSelect = document.getElementById('evento-estado');
-        const funcEstados = window.obterEstados || (typeof obterEstados !== 'undefined' ? obterEstados : null);
-        if (estadoSelect && funcEstados) {
-            funcEstados().forEach(e => {
-                const opt = document.createElement('option');
-                opt.value = e.sigla; opt.textContent = e.nome;
-                estadoSelect.appendChild(opt);
+    const estadoSelect = document.getElementById('evento-estado');
+    if (estadoSelect) {
+        estadoSelect.innerHTML = '<option value="">Selecione o estado</option>';
+        LISTA_ESTADOS.forEach(e => {
+            const opt = document.createElement('option');
+            opt.value = e.sigla; opt.textContent = e.nome;
+            estadoSelect.appendChild(opt);
+        });
+        estadoSelect.addEventListener('change', window.atualizarCidadesEvento);
+    }
+
+    const catContainer = document.getElementById('categorias-evento');
+    if (catContainer) {
+        catContainer.innerHTML = '';
+        Object.keys(CATEGORIAS_FIXAS).forEach(titulo => {
+            const h = document.createElement('div');
+            h.style.cssText = 'font-weight: bold; color: #00bfff; margin-top: 15px; font-size: 14px;';
+            h.textContent = titulo;
+            catContainer.appendChild(h);
+            CATEGORIAS_FIXAS[titulo].forEach(sub => {
+                const div = document.createElement('div');
+                div.style.margin = '5px 0 5px 15px';
+                div.innerHTML = `<input type="checkbox" name="evento-subcategoria" value="${sub}" id="cat-${sub}">
+                                <label for="cat-${sub}" style="font-size: 13px; cursor:pointer;">${sub}</label>`;
+                catContainer.appendChild(div);
             });
-        }
-
-        // Carregar Categorias
-        const container = document.getElementById('categorias-evento');
-        const funcCat = window.obterCategoriasPrincipais || (typeof obterCategoriasPrincipais !== 'undefined' ? obterCategoriasPrincipais : null);
-        const funcSub = window.obterSubcategorias || (typeof obterSubcategorias !== 'undefined' ? obterSubcategorias : null);
-
-        if (container && funcCat && funcSub) {
-            container.innerHTML = ''; // Limpa o "carregando"
-            funcCat().forEach(cat => {
-                const h = document.createElement('div');
-                h.style.cssText = 'font-weight: bold; color: #00bfff; margin-top: 10px; font-size: 14px;';
-                h.textContent = cat;
-                container.appendChild(h);
-
-                funcSub(cat).forEach(sub => {
-                    const div = document.createElement('div');
-                    div.style.margin = '5px 0 5px 15px';
-                    div.innerHTML = `
-                        <input type="checkbox" name="evento-subcategoria" value="${sub}" id="cat-${sub}">
-                        <label for="cat-${sub}" style="font-size: 13px;">${sub}</label>
-                    `;
-                    container.appendChild(div);
-                });
-            });
-        } else {
-            console.error("Arquivos de categorias ou estados não foram encontrados!");
-        }
-    }, 200); // 200ms de folga pro navegador respirar
+        });
+    }
 });
 
-// Lógica de envio (Submit)
+// --- 4. ENVIO PARA O BACKEND ---
 const form = document.getElementById('cadastro-evento');
 if (form) {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const msg = document.getElementById('mensagem-evento');
-        const token = localStorage.getItem('eventhub-token');
-        if (!token) { alert("Logue novamente!"); return; }
+        const token = localStorage.getItem('eventhub-token'); // Pegando o token correto do seu global.js
 
-        const formData = new FormData(form);
-        const dados = Object.fromEntries(formData);
+        const formData = new FormData();
         
-        // Pega as subcategorias marcadas
-        const subs = Array.from(document.querySelectorAll('input[name="evento-subcategoria"]:checked')).map(cb => cb.value);
-        if (subs.length === 0) {
-            msg.textContent = "Selecione ao menos uma categoria!";
-            msg.style.color = "orange";
-            return;
+        // Função segura para pegar valores e evitar erro de 'null'
+        const getVal = (id) => document.getElementById(id)?.value || "";
+
+        formData.append('nome', getVal('nome'));
+        formData.append('data', getVal('data'));
+        formData.append('cidade', getVal('evento-cidade'));
+        formData.append('estado', getVal('evento-estado'));
+        
+        // CORREÇÃO CRÍTICA: Tenta pegar por 'local' ou 'endereco'
+        const localVal = document.getElementById('local')?.value || document.getElementById('endereco')?.value || "";
+        formData.append('local', localVal); 
+
+        formData.append('preco', Number(getVal('preco')) || 0);
+        formData.append('gratuito', document.getElementById('gratuito-sim')?.checked || false);
+        formData.append('organizador_id', 1);
+
+        const inputFoto = document.getElementById('imagens');
+        if (inputFoto?.files.length > 0) {
+            formData.append('imagem', inputFoto.files[0]);
         }
 
-        dados.subcategorias = subs;
-        dados.categoria = subs[0];
-        dados.gratuito = document.getElementById('gratuito-sim').checked;
-        dados.preco = dados.gratuito ? 0 : Number(dados.preco);
-
         try {
-            const res = await fetch(`/api/eventos`, {
+            msg.textContent = "🚀 Cadastrando...";
+            const res = await fetch(`${window.API_URL}/eventos`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(dados)
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
             });
+
             if (res.ok) {
-                msg.textContent = "Sucesso!";
+                msg.textContent = "✅ Evento criado com sucesso!";
                 setTimeout(() => window.location.href = 'index.html', 1500);
             } else {
-                msg.textContent = "Erro no cadastro.";
+                const erro = await res.json();
+                msg.textContent = "❌ " + (erro.erro || "Verifique os dados.");
             }
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            msg.textContent = "❌ Erro de conexão com o servidor.";
+        }
     });
 }

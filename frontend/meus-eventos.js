@@ -19,7 +19,7 @@ async function carregarMeusEventos() {
     try {
         // 2. Faz a requisição filtrando pelo ID do organizador
         // Certifique-se que sua rota no backend aceita esse query param ou mude para a rota específica
-        const resposta = await fetch(`/api/eventos?organizador_id=${usuarioId}`, {
+        const resposta = await fetch(`${window.API_URL}/eventos?organizador_id=${usuarioId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -79,7 +79,7 @@ document.getElementById('meus-eventos-cards')?.addEventListener('click', async e
     if (e.target.classList.contains('delete-btn')) {
         if (confirm('Deseja realmente excluir este evento? Esta ação não pode ser desfeita.')) {
             try {
-                const res = await fetch(`/api/eventos/${eventoId}`, {
+                const res = await fetch(`${window.API_URL}/eventos/${eventoId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

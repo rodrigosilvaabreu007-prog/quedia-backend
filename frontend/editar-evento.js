@@ -8,7 +8,7 @@ const usuarioId = 1; // Usuário fictício para teste
 
 async function carregarEvento() {
   try {
-    const resposta = await fetch(`/api/eventos?organizador_id=${usuarioId}`);
+    const resposta = await fetch(`${window.API_URL}/eventos?organizador_id=${usuarioId}`);
     const eventos = await resposta.json();
     const evento = eventos.find(ev => ev.id == eventoId);
     if (!evento) {
@@ -39,7 +39,7 @@ form.addEventListener('submit', async e => {
   const dados = Object.fromEntries(new FormData(form));
   dados.gratuito = form.querySelector('[name=gratuito]').checked;
   try {
-    const resposta = await fetch(`/api/eventos/${eventoId}`, {
+    const resposta = await fetch(`${window.API_URL}/eventos/${eventoId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dados)

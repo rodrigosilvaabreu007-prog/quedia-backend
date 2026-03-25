@@ -15,7 +15,7 @@ if (form) {
     
     try {
       // ✅ CORREÇÃO: Usando window.API_URL para garantir que pegue o valor do global.js
-      const resposta = await fetch(`/api/login`, {
+      const resposta = await fetch(`${window.API_URL}/login`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json' 

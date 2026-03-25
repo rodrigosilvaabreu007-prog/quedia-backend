@@ -12,7 +12,7 @@ form.addEventListener('submit', async (e) => {
   if (dados.subcategoria) query.push(`subcategoria=${encodeURIComponent(dados.subcategoria)}`);
   if (dados.gratuito) query.push(`gratuito=true`);
   if (dados.preco_max) query.push(`preco_max=${encodeURIComponent(dados.preco_max)}`);
-  const url = '/api/eventos' + (query.length > 0 ? '?' + query.join('&') : '');
+  const url = `${window.API_URL}/eventos` + (query.length > 0 ? '?' + query.join('&') : '');
 
   try {
     const resposta = await fetch(url);
