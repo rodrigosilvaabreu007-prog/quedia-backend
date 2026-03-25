@@ -1,32 +1,33 @@
 const mongoose = require('mongoose');
 
-// Definindo o Schema
 const EventoSchema = new mongoose.Schema({
     nome: { type: String, required: true },
-    descricao: String,
-    cidade: String,
-    estado: String,
-    endereco: String,
-    data: String,
-    horario: String,
-    categoria: String,
-    subcategorias: [String],
+    descricao: { type: String, default: "" },
+    cidade: { type: String, default: "" },
+    estado: { type: String, default: "" },
+    local: { type: String, default: "" }, 
+    data: { type: String, default: "" },
+    horario: { type: String, default: "" },
+    categoria: { type: String, default: "Outros" },
+    subcategorias: { type: [String], default: [] },
     gratuito: { type: Boolean, default: false },
     preco: { type: Number, default: 0 },
-    imagens: [String], // Aqui ficarão os links do Cloudinary
-    organizador_id: mongoose.Schema.Types.ObjectId,
+    imagens: { type: [String], default: [] }, 
+    organizador_id: { type: String, default: "sistema" }, 
     criadoEm: { type: Date, default: Date.now }
 });
 
-// Evita erro de sobrescrever model se o Node reiniciar
 const Evento = mongoose.models.Evento || mongoose.model('Evento', EventoSchema);
 
 async function cadastrarEvento(dados) {
     try {
+        // Importante: O Mongoose precisa que a conexão esteja aberta.
+        // O save() usará a conexão global que abrimos no connectDB().
         const novoEvento = new Evento(dados);
         const salvo = await novoEvento.save();
         return salvo;
     } catch (err) {
+        console.error("Erro no save do Mongoose:", err.message);
         throw new Error("Erro ao salvar no MongoDB: " + err.message);
     }
 }
@@ -36,16 +37,12 @@ async function listarEventos(filtros = {}) {
         let query = {};
         if (filtros.cidade) query.cidade = filtros.cidade;
         if (filtros.categoria) query.categoria = filtros.categoria;
-        
-        // Retorna todos se não houver filtro
         return await Evento.find(query).sort({ data: 1 });
     } catch (err) {
         throw new Error("Erro ao buscar eventos: " + err.message);
     }
 }
 
-// Funções de Editar e Excluir permanecem iguais, 
-// apenas garanta que exportou o Evento se precisar em outros lugares
 module.exports = {
     cadastrarEvento,
     listarEventos,

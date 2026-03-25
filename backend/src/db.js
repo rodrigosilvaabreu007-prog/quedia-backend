@@ -1,35 +1,30 @@
-const { MongoClient } = require('mongodb');
-require('dotenv').config();
-
-// Sua string de conexão confirmada
-const uri = "mongodb+srv://quedia:WFxUmzAq8a8oeO3v@quedia.2w3rnxo.mongodb.net/quedia?retryWrites=true&w=majority";
-
-// Criamos o cliente fora da função para reaproveitar a conexão
-const client = new MongoClient(uri, {
-    connectTimeoutMS: 10000, // 10 segundos de limite para conectar
-    serverSelectionTimeoutMS: 10000
-});
-
-let db = null;
+const mongoose = require('mongoose');
 
 async function connectDB() {
-    try {
-        // Se já existir uma conexão ativa, retorna ela na hora
-        if (db) return db;
+  // Se já estiver conectado, não tenta de novo
+  if (mongoose.connection.readyState >= 1) {
+    return mongoose.connection.db;
+  }
 
-        console.log("Tentando conectar ao MongoDB Atlas...");
-        
-        await client.connect();
-        db = client.db('quedia'); // Nome do banco: quedia
-        
-        console.log("✅ Conectado ao MongoDB!");
-        return db;
-    } catch (err) {
-        console.error("❌ Erro na conexão com o banco:", err.message);
-        // Não deixamos o erro travar o servidor, retornamos null
-        db = null; 
-        return null;
-    }
+  const uri = process.env.MONGO_URI;
+  if (!uri) {
+    console.error("❌ ERRO: Variável MONGO_URI não definida!");
+    throw new Error("MONGO_URI is missing");
+  }
+
+  try {
+    // Configurações para evitar timeout no Cloud Run
+    await mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 10000, // 10 segundos para achar o banco
+      socketTimeoutMS: 45000,         // 45 segundos para operações longas
+    });
+
+    console.log("✅ Mongoose conectado com sucesso ao MongoDB!");
+    return mongoose.connection.db;
+  } catch (err) {
+    console.error("❌ Erro fatal na conexão Mongoose:", err.message);
+    throw err;
+  }
 }
 
 module.exports = connectDB;

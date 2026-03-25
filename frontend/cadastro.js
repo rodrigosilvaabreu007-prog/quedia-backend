@@ -1,17 +1,20 @@
+// ✅ URL DA API EM PRODUÇÃO (GOOGLE CLOUD RUN)
+window.API_URL = "https://backend-649702844549.southamerica-east1.run.app/api";
+
 // Função para mostrar/esconder senha
 function toggleSenha(inputId) {
   const input = document.getElementById(inputId);
-  if (input.type === 'password') {
-    input.type = 'text';
-  } else {
-    input.type = 'password';
-  }
+  if (!input) return;
+  input.type = input.type === 'password' ? 'text' : 'password';
 }
 
-// Função para validar email
+// ✅ VALIDAÇÃO DE EMAIL COM DEBOUNCE (Evita excesso de requisições)
+let timeoutEmail;
 function validarEmail() {
+  clearTimeout(timeoutEmail);
   const emailInput = document.getElementById('email');
   if (!emailInput) return;
+  
   const email = emailInput.value.trim();
   const erroDiv = document.getElementById('email-erro');
   
@@ -19,30 +22,32 @@ function validarEmail() {
     erroDiv.style.display = 'none';
     return;
   }
-  
+
+  // Regex básico de validação
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!regex.test(email)) {
     erroDiv.textContent = 'Email inválido';
     erroDiv.style.display = 'block';
     return;
   }
-  
-  // ✅ Usando a rota que acabamos de criar no backend
-  fetch(`${window.API_URL}/verificar-email?email=${encodeURIComponent(email)}`)
-    .then(res => res.json())
-    .then(data => {
-      // O backend agora retorna { disponivel: true }
-      if (data.disponivel === false) {
-        erroDiv.textContent = 'Email já cadastrado';
-        erroDiv.style.display = 'block';
-      } else {
-        erroDiv.style.display = 'none';
-      }
-    })
-    .catch(err => console.error('Erro ao verificar email:', err));
+
+  // Espera 500ms depois que o usuário para de digitar para consultar o banco
+  timeoutEmail = setTimeout(() => {
+    fetch(`${window.API_URL}/verificar-email?email=${encodeURIComponent(email)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.disponivel === false) {
+          erroDiv.textContent = 'Email já cadastrado';
+          erroDiv.style.display = 'block';
+        } else {
+          erroDiv.style.display = 'none';
+        }
+      })
+      .catch(err => console.error('Erro ao verificar email:', err));
+  }, 500);
 }
 
-// Função para atualizar cidades
+// Função para atualizar cidades dinamicamente
 function atualizarCidades() {
   const estado = document.getElementById('estado').value;
   const cidadeSelect = document.getElementById('cidade');
@@ -66,12 +71,12 @@ function atualizarCidades() {
   cidadeSelect.disabled = false;
 }
 
-// Inicializar página
+// Inicialização da página (Estados e Categorias)
 document.addEventListener('DOMContentLoaded', () => {
+  // Popula Estados
   const estadoSelect = document.getElementById('estado');
   if (estadoSelect && typeof obterEstados === 'function') {
-    const estados = obterEstados();
-    estados.forEach(estado => {
+    obterEstados().forEach(estado => {
       const option = document.createElement('option');
       option.value = estado.sigla;
       option.textContent = estado.nome;
@@ -79,10 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Gerar categorias de preferência
+  // Gera Categorias de Preferência
   const containerPreferencias = document.getElementById('preferencias-categorias');
   if (containerPreferencias && typeof obterCategoriasPrincipais === 'function') {
-    containerPreferencias.innerHTML = ''; // Limpa antes de gerar
+    containerPreferencias.innerHTML = ''; 
     const subcategoriaContainer = document.createElement('div');
     subcategoriaContainer.style.cssText = 'display: flex; flex-direction: column; gap: 10px; margin-top: 8px;';
     
@@ -107,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ✅ CADASTRO DE USUÁRIO
+// ✅ SUBMIT DO FORMULÁRIO DE CADASTRO
 const form = document.getElementById('cadastro-form');
 const mensagem = document.getElementById('mensagem-cadastro');
 
@@ -115,6 +120,10 @@ if (form) {
   form.addEventListener('submit', async e => {
     e.preventDefault();
     
+    // Feedback visual de carregando
+    const btnSubmit = form.querySelector('button[type="submit"]');
+    if (btnSubmit) btnSubmit.disabled = true;
+
     const email = document.getElementById('email').value.trim();
     const senha = document.getElementById('senha').value;
     const confirmarSenha = document.getElementById('confirmar-senha').value;
@@ -123,20 +132,18 @@ if (form) {
     if (senha !== confirmarSenha) {
       mensagem.textContent = 'As senhas não coincidem.';
       mensagem.style.color = '#ff4444';
+      if (btnSubmit) btnSubmit.disabled = false;
       return;
     }
     
-    // Montando os dados exatamente como o backend espera
     const dados = {
-      nome: nomeInput ? nomeInput.value : 'Usuário',
+      nome: nomeInput ? nomeInput.value.trim() : 'Usuário',
       email: email,
       senha: senha,
       estado: document.getElementById('estado').value,
       cidade: document.getElementById('cidade').value,
       preferencias: Array.from(document.querySelectorAll('input[name="preferencia-subcategoria"]:checked')).map(cb => cb.value)
     };
-
-    console.log('📦 Enviando dados para o servidor:', dados);
 
     try {
       const resposta = await fetch(`${window.API_URL}/cadastro`, { 
@@ -152,14 +159,15 @@ if (form) {
         mensagem.style.color = '#00ff00';
         setTimeout(() => { window.location.href = 'login.html'; }, 2000);
       } else {
-        console.error('❌ Erro do Servidor:', resultado);
         mensagem.textContent = resultado.erro || 'Erro ao cadastrar.';
         mensagem.style.color = '#ff4444';
+        if (btnSubmit) btnSubmit.disabled = false;
       }
     } catch (err) {
-      console.error('💥 Erro Crítico no Fetch:', err);
+      console.error('💥 Erro Crítico:', err);
       mensagem.textContent = 'Erro ao conectar com o servidor.';
       mensagem.style.color = '#ff4444';
+      if (btnSubmit) btnSubmit.disabled = false;
     }
   });
 }

@@ -6,38 +6,40 @@ const connectDB = require('./db');
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// --- MIDDLEWARES ---
+app.use(cors()); // Libera o acesso para o seu frontend
+app.use(express.json()); // Essencial para ler o JSON que o cadastro envia
+app.use(express.urlencoded({ extended: true })); 
 
-// Servir arquivos estáticos (segurança para legado)
-const uploadPath = path.join(__dirname, '..', 'uploads');
-app.use('/uploads', express.static(uploadPath));
+// --- ROTAS ---
+// Importa o arquivo routes.js que corrigimos
+const routes = require('./routes'); 
 
-// Importando as rotas
-const routes = require('./routes');
+// Define que TODAS as rotas do arquivo routes começam com /api
+// Ex: seu-site.com/api/cadastro
 app.use('/api', routes);
 
-// Rota de teste (Crucial para o Health Check do Google)
+// Rota de teste para ver se o servidor acordou
 app.get('/', (req, res) => {
-  res.status(200).send('API ONLINE');
+  res.status(200).send('🚀 API QUE DIA - ONLINE E OPERANTE');
 });
 
+// --- PORTA (CONFIGURAÇÃO PARA CLOUD RUN) ---
 const PORT = process.env.PORT || 8080;
 
-// ✅ O SEGREDO: Abrimos a porta IMEDIATAMENTE.
-// O Google Cloud Run verá que o app subiu em milissegundos.
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Servidor ouvindo na porta ${PORT}`);
+  console.log(`\n---------------------------------`);
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
   
-  // Conectamos ao banco logo após o servidor estar de pé
-  console.log("Iniciando conexão com o banco de dados em segundo plano...");
+  // Conecta no Banco de Dados
   connectDB().then(db => {
     if (db) {
-      console.log("✅ Banco de dados conectado com sucesso!");
+      console.log("✅ MongoDB Conectado com sucesso!");
     } else {
-      console.log("⚠️ Servidor rodando, mas banco falhou. Verifique as credenciais.");
+      console.log("⚠️  Atenção: Banco não conectou. Cheque o seu .env");
     }
   }).catch(err => {
-    console.error("❌ Erro na tentativa de conexão:", err);
+    console.error("❌ Erro ao conectar no banco:", err);
   });
+  console.log(`---------------------------------\n`);
 });
