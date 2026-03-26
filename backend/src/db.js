@@ -1,20 +1,20 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
-    // Se já estiver conectado, não faz nada
     if (mongoose.connection.readyState === 1) return;
 
     try {
-        console.log("⏳ Forçando conexão com MongoDB...");
+        console.log("⏳ Tentando conectar ao MongoDB...");
         await mongoose.connect(process.env.MONGO_URI, {
-            serverSelectionTimeoutMS: 15000, // Dá 15s pro Atlas responder
+            serverSelectionTimeoutMS: 5000, // Desiste em 5s se o IP estiver bloqueado
             socketTimeoutMS: 45000,
             family: 4 
         });
-        console.log("✅ Conexão estabelecida com sucesso!");
+        console.log("✅ MongoDB Conectado com Sucesso!");
     } catch (err) {
-        console.error("❌ Falha crítica na conexão:", err.message);
-        throw err;
+        console.error("❌ ERRO DE CONEXÃO NO BANCO:", err.message);
+        // Não deixa o app rodar "cego" sem banco
+        throw err; 
     }
 };
 
