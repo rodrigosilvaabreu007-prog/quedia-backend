@@ -3,18 +3,16 @@ const router = express.Router();
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const jwt = require('jsonwebtoken');
 const connectDB = require('./db'); 
 const { cadastrarEvento, listarEventos } = require('./eventos');
 
-// Configuração do Cloudinary (usando suas credenciais)
+// Configuração do Cloudinary
 cloudinary.config({
     cloud_name: 'dphg1u2i7',
     api_key: '727437553221359',
     api_secret: 'ZHFHP0BAGjldGes6Uz8Ur6RBEb0'
 });
 
-// Configuração do Storage para o Multer
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
@@ -25,54 +23,61 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage: storage });
 
-// Rota para Cadastrar Evento
-router.post('/eventos', upload.any(), async (req, res) => {
+// Middleware para garantir banco conectado em TODAS as rotas deste arquivo
+router.use(async (req, res, next) => {
     try {
-        // Garante conexão com o banco para evitar o erro de "buffering timed out"
         await connectDB();
-
-        let linksImagens = req.files ? req.files.map(f => f.path) : [];
-        let organizador_id = "sistema";
-        
-        // Verifica se há um token de usuário para vincular o evento
-        const authHeader = req.headers.authorization;
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            try {
-                const token = authHeader.split(' ')[1];
-                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'quedia_secret_123');
-                organizador_id = decoded.id;
-            } catch (e) {
-                console.log("Token não processado ou inválido");
-            }
-        }
-
-        // Monta o objeto final para o banco
-        const dadosEvento = {
-            ...req.body,
-            imagens: linksImagens,
-            organizador_id: String(organizador_id),
-            // Força a conversão de tipos para evitar erros de busca no frontend
-            preco: parseFloat(req.body.preco) || 0,
-            gratuito: req.body.gratuito === 'true' || req.body.gratuito === true
-        };
-
-        const novoEvento = await cadastrarEvento(dadosEvento);
-        res.status(201).json({ mensagem: 'Evento criado com sucesso!', evento: novoEvento });
+        next();
     } catch (err) {
-        console.error("Erro ao salvar evento:", err);
-        res.status(500).json({ erro: "Erro interno ao salvar no banco de dados." });
+        res.status(500).json({ erro: "Erro de conexão com o banco de dados" });
     }
 });
 
-// Rota para Listar Eventos
+router.post('/eventos', upload.any(), async (req, res) => {
+    try {
+        // Se chegou aqui, o middleware acima já garantiu o banco.
+        // O upload.any() já terminou de subir pro Cloudinary.
+
+        const linksImagens = req.files ? req.files.map(f => f.path) : [];
+        
+        // --- LIMPEZA DE DADOS "ANTI-ERRO 400" ---
+        // O parseFloat ou Number falha se a string vier com "R$" ou pontos decimais errados
+        let precoLimpo = 0;
+        if (req.body.preco) {
+            precoLimpo = Number(String(req.body.preco).replace('R$', '').replace(',', '.').trim()) || 0;
+        }
+
+        const dadosEvento = {
+            nome: req.body.nome || "Evento sem nome",
+            descricao: req.body.descricao || "",
+            cidade: req.body.cidade || "",
+            estado: req.body.estado || "",
+            local: req.body.local || "",
+            data: req.body.data || "",
+            horario: req.body.horario || "",
+            categoria: req.body.categoria || "Outros",
+            subcategorias: req.body.subcategorias || [],
+            imagens: linksImagens,
+            preco: precoLimpo,
+            gratuito: req.body.gratuito === 'true' || precoLimpo === 0,
+            organizador_id: req.body.organizador_id || "sistema"
+        };
+
+        const novoEvento = await cadastrarEvento(dadosEvento);
+        res.status(201).json({ mensagem: 'Evento criado!', evento: novoEvento });
+
+    } catch (err) {
+        console.error("Erro ao salvar:", err.message);
+        res.status(500).json({ erro: "Falha ao salvar evento: " + err.message });
+    }
+});
+
 router.get('/eventos', async (req, res) => {
     try {
-        await connectDB();
         const eventos = await listarEventos(req.query);
         res.json(eventos || []);
     } catch (err) {
-        console.error("Erro ao listar eventos:", err);
-        res.status(500).json({ erro: 'Erro ao buscar eventos no servidor.' });
+        res.status(500).json({ erro: 'Erro ao buscar eventos.' });
     }
 });
 
