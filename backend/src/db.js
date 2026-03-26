@@ -1,30 +1,34 @@
 const mongoose = require('mongoose');
 
-async function connectDB() {
-  // Se já estiver conectado, não tenta de novo
-  if (mongoose.connection.readyState >= 1) {
-    return mongoose.connection.db;
+const connectDB = async () => {
+  // Verifica se já está conectado (readyState 1 = conectado)
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
   }
 
   const uri = process.env.MONGO_URI;
+
   if (!uri) {
-    console.error("❌ ERRO: Variável MONGO_URI não definida!");
-    throw new Error("MONGO_URI is missing");
+    throw new Error("MONGO_URI não definida nas variáveis de ambiente!");
   }
 
   try {
-    // Configurações para evitar timeout no Cloud Run
+    console.log("⏳ Tentando conectar ao MongoDB Atlas...");
+
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 10000, // 10 segundos para achar o banco
-      socketTimeoutMS: 45000,         // 45 segundos para operações longas
+      serverSelectionTimeoutMS: 15000, // Aumentei para 15s pro Atlas respirar
+      socketTimeoutMS: 45000,
+      family: 4, // Mantém IPv4 que é mais estável no Google
+      heartbeatFrequencyMS: 10000, // Manda um "oi" pro banco a cada 10s pra não cair
     });
 
-    console.log("✅ Mongoose conectado com sucesso ao MongoDB!");
-    return mongoose.connection.db;
+    console.log("✅ MongoDB Conectado!");
+    return mongoose.connection;
   } catch (err) {
-    console.error("❌ Erro fatal na conexão Mongoose:", err.message);
+    console.error("❌ Erro de conexão:", err.message);
+    // Força o encerramento para o Cloud Run tentar de novo do zero
     throw err;
   }
-}
+};
 
 module.exports = connectDB;

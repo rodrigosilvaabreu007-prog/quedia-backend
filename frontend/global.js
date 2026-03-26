@@ -2,7 +2,6 @@
 const BASE_URL = "https://backend-649702844549.southamerica-east1.run.app";
 const API_URL = `${BASE_URL}/api`;
 
-// Torna as variáveis globais para todos os outros arquivos JS (como event-form.js e login.js)
 window.BASE_URL = BASE_URL;
 window.API_URL = API_URL;
 
@@ -16,7 +15,7 @@ function inicializarIconePerfil() {
     const iconePerfilImg = document.getElementById('icone-perfil-img');
     const iconePerfil = document.getElementById('icone-perfil');
 
-    // Se não houver os elementos na página atual (ex: algumas páginas podem não ter o ícone), sai da função
+    // Se não houver os elementos na página atual, sai da função
     if (!iconePerfil || !iconePerfilImg) return;
 
     if (token && usuario) {
@@ -30,7 +29,7 @@ function inicializarIconePerfil() {
                 iconePerfilImg.style.display = 'block';
                 iconePerfil.classList.add('has-image');
                 
-                // Se a imagem falhar ao carregar (link quebrado), esconde o elemento
+                // Se a imagem falhar ao carregar, limpa o ícone
                 iconePerfilImg.onerror = () => {
                     iconePerfilImg.style.display = 'none';
                     iconePerfil.classList.remove('has-image');
@@ -43,7 +42,7 @@ function inicializarIconePerfil() {
             console.error('Erro ao processar dados do usuário:', error);
         }
     } else {
-        // Se não estiver logado, garante que o ícone não apareça
+        // Se não estiver logado, esconde o ícone
         iconePerfilImg.style.display = 'none';
         iconePerfil.style.display = 'none'; 
     }
@@ -61,24 +60,29 @@ function fazerLogout() {
     window.location.href = 'index.html';
 }
 
-// Exporta as funções para o objeto window para garantir que o HTML as encontre
+// Exporta as funções para o objeto window
 window.irParaPerfil = irParaPerfil;
 window.fazerLogout = fazerLogout;
 window.inicializarIconePerfil = inicializarIconePerfil;
 
-// --- UTILITÁRIOS DE LOCALIZAÇÃO (Fallback caso a API do IBGE falhe) ---
+// --- UTILITÁRIOS DE LOCALIZAÇÃO (Fallback robusto para falhas de rede) ---
 
 const CIDADES_POR_ESTADO = {
-    "SP": ["São Paulo", "Campinas", "Santos", "São José dos Campos"],
-    "RJ": ["Rio de Janeiro", "Niterói", "Búzios", "Cabo Frio"],
-    "MG": ["Belo Horizonte", "Uberlândia", "Ouro Preto"],
-    "GO": ["Goiânia", "Anápolis", "Rio Verde"]
+    "SP": ["São Paulo", "Campinas", "Santos", "São José dos Campos", "Ribeirão Preto"],
+    "RJ": ["Rio de Janeiro", "Niterói", "Búzios", "Cabo Frio", "Petrópolis"],
+    "MG": ["Belo Horizonte", "Uberlândia", "Ouro Preto", "Juiz de Fora"],
+    "GO": ["Goiânia", "Anápolis", "Rio Verde"],
+    "PR": ["Curitiba", "Londrina", "Maringá"],
+    "ES": ["Vitória", "Vila Velha", "Cachoeiro de Itapemirim", "Linhares"],
+    "SC": ["Florianópolis", "Joinville", "Blumenau"],
+    "RS": ["Porto Alegre", "Caxias do Sul", "Pelotas"]
 };
 
 window.obterCidades = function(siglaEstado) {
-    console.log("Buscando cidades para:", siglaEstado);
-    return CIDADES_POR_ESTADO[siglaEstado] || ["Cidade não encontrada", "Outra"];
+    console.log("Buscando cidades (Fallback) para:", siglaEstado);
+    // Retorna a lista local se a API do IBGE falhar (evita o erro ERR_NETWORK_CHANGED travar tudo)
+    return CIDADES_POR_ESTADO[siglaEstado] || ["Outra"];
 };
 
-// Inicializa o perfil automaticamente sempre que qualquer página carregar
+// Inicializa o perfil automaticamente
 document.addEventListener('DOMContentLoaded', inicializarIconePerfil);
