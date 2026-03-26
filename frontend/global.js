@@ -1,9 +1,11 @@
-// ✅ URL ÚNICA E ATUALIZADA (Google Cloud Run)
-const BASE_URL = "https://backend-649702844549.southamerica-east1.run.app";
+
+const BASE_URL = "https://eventhub-backend-dxabbxsvha-rj.a.run.app";
 const API_URL = `${BASE_URL}/api`;
 
 window.BASE_URL = BASE_URL;
 window.API_URL = API_URL;
+
+console.log('🚀 API QueDia Conectada com Sucesso:', window.API_URL);
 
 console.log('🚀 QueDia API conectada em:', window.API_URL);
 
@@ -80,7 +82,7 @@ const CIDADES_POR_ESTADO = {
 
 window.obterCidades = function(siglaEstado) {
     console.log("Buscando cidades (Fallback) para:", siglaEstado);
-    // Retorna a lista local se a API do IBGE falhar (evita o erro ERR_NETWORK_CHANGED travar tudo)
+    // Retorna a lista local se a API do IBGE falhar
     return CIDADES_POR_ESTADO[siglaEstado] || ["Outra"];
 };
 

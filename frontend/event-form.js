@@ -1,7 +1,6 @@
-// CONFIGURAÇÃO DA API - Link direto do seu Google Cloud Run
+// ✅ URL DA API CORRIGIDA (Link direto do Cloud Run)
 window.API_URL = "https://backend-649702844549.southamerica-east1.run.app/api";
 
-// 1. Configurações de Categorias e Estados
 const ESTADOS_BRASIL = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const CATEGORIAS_JSON = {
     "Música": ["Sertanejo", "Rock", "Eletrônico", "Pagode", "Funk"],
@@ -9,7 +8,8 @@ const CATEGORIAS_JSON = {
     "Outros": ["Gastronomia", "Esporte", "Religioso"]
 };
 
-// 2. Funções de Interface (Preço e Preview)
+// --- FUNÇÕES DE INTERFACE (MANTIDAS EXATAMENTE COMO AS SUAS) ---
+
 window.togglePreco = () => {
     const isPago = document.getElementById('gratuito-nao').checked;
     const containerPreco = document.getElementById('container-preco');
@@ -19,7 +19,7 @@ window.togglePreco = () => {
 window.mostrarPreviewImagens = () => {
     const input = document.getElementById('imagens');
     const preview = document.getElementById('preview-imagens');
-    if (input && input.files && input.files[0]) {
+    if (input?.files?.[0]) {
         const reader = new FileReader();
         reader.onload = (e) => {
             preview.innerHTML = `<img src="${e.target.result}" style="width: 120px; border-radius: 8px; border: 2px solid #00bfff; margin-top: 10px;">`;
@@ -45,7 +45,7 @@ window.atualizarCidades = async () => {
     }
 };
 
-// 3. Inicialização de UF e Categorias
+// --- INICIALIZAÇÃO ---
 document.addEventListener('DOMContentLoaded', () => {
     const estSelect = document.getElementById('evento-estado');
     if (estSelect) {
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 4. Envio do Formulário (Sincronizado com o Backend corrigido)
+// --- ENVIO DO FORMULÁRIO (BLINDADO) ---
 document.getElementById('cadastro-evento').addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('mensagem-evento');
@@ -74,13 +74,13 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
 
     if (!token) {
         msg.style.color = "yellow";
-        msg.textContent = "⚠️ Você precisa estar logado para postar.";
+        msg.textContent = "⚠️ Você precisa estar logado para publicar.";
         return;
     }
 
     const formData = new FormData();
     
-    // Dados Básicos
+    // Captura dos campos do seu formulário
     formData.append('nome', document.getElementById('nome').value);
     formData.append('descricao', document.getElementById('descricao').value);
     formData.append('data', document.getElementById('data').value);
@@ -88,22 +88,23 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
     formData.append('cidade', document.getElementById('evento-cidade').value);
     formData.append('estado', document.getElementById('evento-estado').value);
     
-    // IMPORTANTE: Enviamos como 'local' para bater com o que mudamos no Backend
+    // Sincronizado com o Schema 'local' do backend
     formData.append('local', document.getElementById('endereco').value);
     
-    // Preço e Gratuidade
     const precoVal = document.getElementById('preco').value;
-    formData.append('preco', precoVal ? parseFloat(precoVal) : 0);
-    formData.append('gratuito', document.getElementById('gratuito-sim').checked ? 'true' : 'false');
+    formData.append('preco', precoVal || 0);
+    formData.append('gratuito', document.getElementById('gratuito-sim').checked);
 
-    // Categorias
+    // Tratamento de categorias
     const selecionadas = Array.from(document.querySelectorAll('input[name="subcat"]:checked')).map(el => el.value);
+    // Adicionamos as subcategorias uma a uma no formData
     selecionadas.forEach(s => formData.append('subcategorias', s));
+    // Define a categoria principal (a primeira selecionada ou Outros)
     formData.append('categoria', selecionadas[0] || "Outros");
 
-    // Imagens (Envia para o Multer processar com Cloudinary)
+    // Upload de Fotos (Sincronizado com o Multer do backend)
     const inputFoto = document.getElementById('imagens');
-    if (inputFoto && inputFoto.files.length > 0) {
+    if (inputFoto?.files?.length > 0) {
         for (let i = 0; i < inputFoto.files.length; i++) {
             formData.append('imagens', inputFoto.files[i]);
         }
@@ -112,11 +113,14 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
     try {
         btn.disabled = true;
         msg.style.color = "#00bfff";
-        msg.textContent = "🚀 Publicando evento...";
+        msg.textContent = "🚀 Publicando evento no servidor...";
 
         const res = await fetch(`${window.API_URL}/eventos`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
+            headers: { 
+                // IMPORTANTE: Com FormData não enviamos Content-Type manual, o navegador faz isso
+                'Authorization': `Bearer ${token}` 
+            },
             body: formData
         });
 
@@ -128,12 +132,12 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
             setTimeout(() => window.location.href = 'index.html', 2000);
         } else {
             msg.style.color = "red";
-            msg.textContent = `❌ Erro: ${dados.erro || 'Falha no servidor'}`;
-            console.error("Erro do servidor:", dados);
+            msg.textContent = `❌ Erro: ${dados.erro || dados.detalhe || 'Falha no servidor'}`;
+            console.error("Erro retornado pelo backend:", dados);
         }
     } catch (err) {
         msg.style.color = "red";
-        msg.textContent = "❌ Falha de conexão. O servidor está online?";
+        msg.textContent = "❌ Falha de conexão. O servidor pode estar iniciando.";
         console.error("Erro de fetch:", err);
     } finally {
         btn.disabled = false;

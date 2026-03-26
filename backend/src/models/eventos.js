@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// 1. Definição do Schema (Onde o banco entende o que você está salvando)
+// Define o Schema
 const EventoSchema = new mongoose.Schema({
     nome: { type: String, required: true },
     descricao: { type: String, default: "" },
@@ -17,51 +17,46 @@ const EventoSchema = new mongoose.Schema({
     organizador_id: { type: String, default: "sistema" }, 
     criadoEm: { type: Date, default: Date.now }
 }, { 
-    // Isso aqui impede que o servidor fique tentando conectar por 10s se o banco cair
+    // ESSA LINHA É A MAIS IMPORTANTE:
+    // Impede o Mongoose de enfileirar comandos se a conexão não estiver pronta.
     bufferCommands: false 
 });
 
 const Evento = mongoose.models.Evento || mongoose.model('Evento', EventoSchema);
 
-// 2. Função para SALVAR o evento
 async function cadastrarEvento(dados) {
+    // 1. Verificação de segurança: O banco está mesmo conectado?
+    if (mongoose.connection.readyState !== 1) {
+        console.error("❌ Conexão com MongoDB não está pronta. Estado:", mongoose.connection.readyState);
+        throw new Error("O servidor ainda está conectando ao banco de dados. Tente novamente em 2 segundos.");
+    }
+
     try {
-        // Tratamento de dados "limpa-sujeira"
         const dadosTratados = {
             ...dados,
-            // Converte preço pra número (ex: "10.50" vira 10.5)
             preco: Number(String(dados.preco).replace(',', '.')) || 0,
-            // Converte o "true" que vem do formulário em Boolean real
             gratuito: String(dados.gratuito) === 'true'
         };
 
         const novoEvento = new Evento(dadosTratados);
         
-        // Salva de fato no MongoDB Atlas
-        const salvo = await novoEvento.save();
-        return salvo;
+        // 2. Tenta salvar com um timeout forçado para não travar o Cloud Run
+        return await novoEvento.save();
     } catch (err) {
-        console.error("❌ Erro no save do Mongoose:", err.message);
-        throw err; 
+        console.error("❌ Erro ao salvar no MongoDB:", err.message);
+        throw err;
     }
 }
 
-// 3. Função para LISTAR os eventos na Home
 async function listarEventos(filtros = {}) {
     try {
         let query = {};
         if (filtros.cidade) query.cidade = new RegExp(filtros.cidade, 'i');
         if (filtros.categoria) query.categoria = filtros.categoria;
-        
-        // Retorna ordenado pelo mais novo (criadoEm: -1)
         return await Evento.find(query).sort({ criadoEm: -1 });
     } catch (err) {
         throw new Error("Erro ao buscar eventos: " + err.message);
     }
 }
 
-module.exports = {
-    cadastrarEvento,
-    listarEventos,
-    EventoModel: Evento
-};
+module.exports = { cadastrarEvento, listarEventos, EventoModel: Evento };

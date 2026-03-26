@@ -1,7 +1,6 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs'); // ✅ Trocado para evitar erro no Build do Cloud Run
 const jwt = require('jsonwebtoken');
-const path = require('path');
-const connectDB = require(path.join(__dirname, 'db')); // Importa sua conexão do db.js
+const connectDB = require('./db'); // ✅ Importação simplificada e direta
 require('dotenv').config();
 
 // Função para registrar usuário (MONGODB)
@@ -11,7 +10,7 @@ async function registrarUsuario(dados) {
 
     const { nome, email, senha, estado, cidade, preferencias } = dados;
 
-    // Criptografa a senha
+    // Criptografa a senha (o funcionamento do bcryptjs é idêntico)
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
     const novoUsuario = {
@@ -24,6 +23,8 @@ async function registrarUsuario(dados) {
         data_cadastro: new Date()
     };
 
+    // Note: Se você estiver usando Mongoose, o comando seria novoUsuario.save()
+    // Como você está usando a coleção direto (Native Driver), mantive seu insertOne
     const resultado = await db.collection('usuarios').insertOne(novoUsuario);
     return resultado.insertedId;
 }
@@ -55,10 +56,11 @@ async function autenticarUsuario(email, senha) {
         { expiresIn: '2h' }
     );
 
-    // Remove a senha do objeto antes de enviar para o frontend por segurança
-    delete usuario.senha;
+    // Remove a senha do objeto antes de enviar por segurança
+    const usuarioSemSenha = { ...usuario };
+    delete usuarioSemSenha.senha;
     
-    return { usuario, token };
+    return { usuario: usuarioSemSenha, token };
 }
 
 module.exports = {
