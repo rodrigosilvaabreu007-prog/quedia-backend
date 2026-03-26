@@ -1,5 +1,4 @@
-// ✅ URL DA API EM PRODUÇÃO (GOOGLE CLOUD RUN)
-window.API_URL = "https://backend-649702844549.southamerica-east1.run.app/api";
+// ✅ URL DA API (definida no global.js)
 
 // Função para mostrar/esconder senha
 function toggleSenha(inputId) {

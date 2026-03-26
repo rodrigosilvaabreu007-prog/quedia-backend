@@ -1,11 +1,12 @@
 const bcrypt = require('bcryptjs'); // ✅ Trocado para evitar erro no Build do Cloud Run
 const jwt = require('jsonwebtoken');
-const connectDB = require('./db'); // ✅ Importação simplificada e direta
+const { connectDB, getDatabase } = require('./db');
 require('dotenv').config();
 
 // Função para registrar usuário (MONGODB)
 async function registrarUsuario(dados) {
-    const db = await connectDB();
+    await connectDB();
+    const db = await getDatabase();
     if (!db) throw new Error("Não foi possível conectar ao banco de dados.");
 
     const { nome, email, senha, estado, cidade, preferencias } = dados;

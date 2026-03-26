@@ -27,8 +27,25 @@ const Evento = mongoose.models.Evento || mongoose.model('Evento', EventoSchema);
 async function cadastrarEvento(dados) {
     // 1. Verificação de segurança: O banco está mesmo conectado?
     if (mongoose.connection.readyState !== 1) {
-        console.error("❌ Conexão com MongoDB não está pronta. Estado:", mongoose.connection.readyState);
-        throw new Error("O servidor ainda está conectando ao banco de dados. Tente novamente em 2 segundos.");
+        console.warn("⚠️ Conexão Mongoose não pronta. Estado:", mongoose.connection.readyState);
+        await Promise.race([
+            new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error('Timeout aguardando conexão com MongoDB')), 10000);
+                mongoose.connection.once('connected', () => {
+                    clearTimeout(timeout);
+                    resolve();
+                });
+                mongoose.connection.once('error', (err) => {
+                    clearTimeout(timeout);
+                    reject(err);
+                });
+            }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout aguardando conexão com MongoDB')), 10000))
+        ]);
+
+        if (mongoose.connection.readyState !== 1) {
+            throw new Error("Ainda não há conexão ativa com o MongoDB. Tente novamente em alguns segundos.");
+        }
     }
 
     try {
@@ -41,7 +58,14 @@ async function cadastrarEvento(dados) {
         const novoEvento = new Evento(dadosTratados);
         
         // 2. Tenta salvar com um timeout forçado para não travar o Cloud Run
-        return await novoEvento.save();
+        const savedEvento = await Promise.race([
+            novoEvento.save(),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout ao salvar evento')), 10000)
+            )
+        ]);
+        
+        return savedEvento;
     } catch (err) {
         console.error("❌ Erro ao salvar no MongoDB:", err.message);
         throw err;

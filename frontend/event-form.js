@@ -1,5 +1,4 @@
-// ✅ URL DA API CORRIGIDA (Link direto do Cloud Run)
-window.API_URL = "https://backend-649702844549.southamerica-east1.run.app/api";
+// ✅ URL DA API (definida no global.js)
 
 const ESTADOS_BRASIL = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 const CATEGORIAS_JSON = {
