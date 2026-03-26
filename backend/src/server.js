@@ -34,24 +34,15 @@ const frontendOrigins = process.env.CORS_ORIGIN && process.env.CORS_ORIGIN !== '
       'http://127.0.0.1:5500'
     ];
 
-const globalAllowAll = process.env.CORS_ORIGIN === '*';
-
 app.use(cors({
-  origin: function (origin, callback) {
-    // Requisições sem origem (e.g. mobile, curl) não são bloqueadas
-    if (!origin) return callback(null, true);
-
-    if (globalAllowAll || frontendOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log(`🚫 CORS bloqueado para origem: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // liberar qualquer origem temporariamente para debug e garantir integração frontend/backend
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   credentials: true
 }));
+
+// Removido controle de origem fino para evitar bloqueios em staging/prod (expor ambiente de dev)
+
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   credentials: true
