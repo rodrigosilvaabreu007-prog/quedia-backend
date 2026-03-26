@@ -2,19 +2,10 @@ const mongoose = require('mongoose');
 
 const EventoSchema = new mongoose.Schema({
     nome: { type: String, required: true },
-    descricao: { type: String, default: "" },
-    cidade: { type: String, default: "" },
-    estado: { type: String, default: "" },
-    local: { type: String, default: "" }, 
-    data: { type: String, default: "" },
-    horario: { type: String, default: "" },
-    categoria: { type: String, default: "Outros" },
-    subcategorias: { type: [String], default: [] },
-    gratuito: { type: Boolean, default: false },
-    preco: { type: Number, default: 0 },
-    imagens: { type: [String], default: [] }, 
-    organizador_id: { type: String, default: "sistema" }, 
+    // ... todos os outros campos iguais ...
     criadoEm: { type: Date, default: Date.now }
+}, { 
+    bufferCommands: false // ADICIONE ISSO AQUI
 });
 
 const Evento = mongoose.models.Evento || mongoose.model('Evento', EventoSchema);
