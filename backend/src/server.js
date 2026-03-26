@@ -35,7 +35,7 @@ const frontendOrigins = process.env.CORS_ORIGIN && process.env.CORS_ORIGIN !== '
     ];
 
 app.use(cors({
-  origin: true, // liberar qualquer origem temporariamente para debug e garantir integração frontend/backend
+  origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   credentials: true
@@ -43,10 +43,6 @@ app.use(cors({
 
 // Removido controle de origem fino para evitar bloqueios em staging/prod (expor ambiente de dev)
 
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  credentials: true
-}));
 
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true })); 
