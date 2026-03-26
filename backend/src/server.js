@@ -23,29 +23,35 @@ app.use(async (req, res, next) => {
 
 
 // Configuração de CORS Robusta e configurável
-const allowedOrigins = process.env.CORS_ORIGIN && process.env.CORS_ORIGIN !== '*'
+const frontendOrigins = process.env.CORS_ORIGIN && process.env.CORS_ORIGIN !== '*'
   ? process.env.CORS_ORIGIN.split(',').map((u) => u.trim()).filter(Boolean)
   : [
       'https://quedia.com.br',
       'https://quedia.web.app',
       'https://quedia.firebaseapp.com',
+      'https://quedia-bd2fb.web.app',
       'http://localhost:3000',
       'http://127.0.0.1:5500'
     ];
 
-const allowAnyOrigin = process.env.CORS_ORIGIN === '*' || allowedOrigins.length === 0;
+const globalAllowAll = process.env.CORS_ORIGIN === '*';
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Requisições sem origem (e.g. mobile, curl) não são bloqueadas
     if (!origin) return callback(null, true);
 
-    if (allowAnyOrigin || allowedOrigins.indexOf(origin) !== -1) {
+    if (globalAllowAll || frontendOrigins.includes(origin)) {
       callback(null, true);
     } else {
       console.log(`🚫 CORS bloqueado para origem: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  credentials: true
+}));
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   credentials: true
