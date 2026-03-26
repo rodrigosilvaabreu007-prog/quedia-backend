@@ -1,12 +1,11 @@
 
-const BASE_URL = "https://eventhub-backend-dxabbxsvha-rj.a.run.app";
-const API_URL = `${BASE_URL}/api`;
+const BASE_URL = window.BASE_URL || "https://eventhub-api-649702844549.southamerica-east1.run.app";
+const API_URL = window.API_URL || `${BASE_URL}/api`;
 
 window.BASE_URL = BASE_URL;
 window.API_URL = API_URL;
 
 console.log('🚀 API QueDia Conectada com Sucesso:', window.API_URL);
-
 console.log('🚀 QueDia API conectada em:', window.API_URL);
 
 // --- FUNÇÕES DE PERFIL E NAVEGAÇÃO ---
