@@ -4,6 +4,7 @@ const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const { connectDB } = require('./db'); 
+const { registrarUsuario, autenticarUsuario } = require('./autenticacao');
 
 // 1. IMPORTAÇÃO DOS MODELS (Caminho corrigido para a pasta models)
 const { cadastrarEvento, listarEventos } = require('./models/eventos');
@@ -95,6 +96,42 @@ router.get('/eventos', async (req, res) => {
     } catch (err) {
         console.error("Erro na rota GET /eventos:", err.message);
         res.status(500).json({ erro: 'Erro ao buscar eventos.' });
+    }
+});
+
+// 6. ROTA POST: CADASTRO DE USUÁRIO
+router.post('/cadastro', async (req, res) => {
+    try {
+        const { nome, email, senha, estado, cidade, preferencias } = req.body;
+        if (!nome || !email || !senha) {
+            return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
+        }
+
+        const id = await registrarUsuario({ nome, email, senha, estado, cidade, preferencias });
+        return res.status(201).json({ mensagem: '✅ Usuário cadastrado com sucesso!', id });
+    } catch (err) {
+        console.error('Erro na rota POST /cadastro:', err.message);
+        return res.status(400).json({ erro: err.message || 'Erro ao cadastrar usuário' });
+    }
+});
+
+// 7. ROTA POST: LOGIN DE USUÁRIO
+router.post('/login', async (req, res) => {
+    try {
+        const { email, senha } = req.body;
+        if (!email || !senha) {
+            return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
+        }
+
+        const login = await autenticarUsuario(email, senha);
+        if (!login) {
+            return res.status(401).json({ erro: 'Email ou senha inválidos' });
+        }
+
+        return res.json(login);
+    } catch (err) {
+        console.error('Erro na rota POST /login:', err.message);
+        return res.status(400).json({ erro: err.message || 'Erro ao autenticar usuário' });
     }
 });
 

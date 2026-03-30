@@ -1,5 +1,5 @@
 // CONFIGURAÇÃO DA API
-window.API_URL = window.API_URL || "https://backend-649702844549.southamerica-east1.run.app/api";
+// Usa a URL definida no global.js
 
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('login-form');
