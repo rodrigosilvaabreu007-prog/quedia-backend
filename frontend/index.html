@@ -29,9 +29,15 @@
         <input type="text" id="search-input" placeholder="🔍 Buscar por evento, cidade ou categoria..." style="width: 100%; padding: 16px; border: 2px solid var(--cor-principal, #00bfff); border-radius: 8px; background: var(--bg-secondary, #1a2332); color: var(--text-color, #fff); font-size: 16px;">
       </div>
 
-      <div style="margin-bottom: 16px;">
+      <div style="margin-bottom: 16px; display: flex; gap: 10px; align-items: center;">
         <button id="toggle-filtros" onclick="window.toggleFiltros()" style="padding: 12px 24px; background: var(--cor-principal, #00bfff); border: none; border-radius: 4px; color: #000; font-weight: 600; cursor: pointer; font-size: 16px;">
           Filtros ▼
+        </button>
+        <button id="view-eventos" onclick="window.setView('eventos')" style="padding: 12px 24px; background: var(--bg-secondary, #1a2332); border: 2px solid var(--cor-principal, #00bfff); border-radius: 4px; color: var(--text-primary, #fff); font-weight: 600; cursor: pointer; font-size: 16px;">
+          📋 Eventos
+        </button>
+        <button id="view-calendario" onclick="window.setView('calendario')" style="padding: 12px 24px; background: var(--bg-secondary, #1a2332); border: 2px solid var(--cor-principal, #00bfff); border-radius: 4px; color: var(--text-primary, #fff); font-weight: 600; cursor: pointer; font-size: 16px;">
+          📅 Calendário
         </button>
       </div>
 
@@ -40,6 +46,8 @@
         <div><label style="color: #888; font-size: 12px;">Cidade</label><select id="filtro-cidade" class="filtro-select"><option value="">Todas</option></select></div>
         <div><label style="color: #888; font-size: 12px;">Categoria</label><select id="filtro-categoria" class="filtro-select"><option value="">Todas</option></select></div>
         <div><label style="color: #888; font-size: 12px;">Preço Máx</label><input type="number" id="filtro-preco" class="filtro-select" placeholder="R$"></div>
+        <div><label style="color: #888; font-size: 12px;">Data</label><input type="date" id="filtro-data" class="filtro-select"></div>
+        <div><label style="color: #888; font-size: 12px;">Horário</label><input type="time" id="filtro-horario" class="filtro-select"></div>
         <div style="display: flex; align-items: flex-end;"><button onclick="window.limparFiltros()" class="btn-limpar">Limpar</button></div>
       </div>
 
@@ -53,6 +61,12 @@
         <h2 class="section-title">Todos os Eventos</h2>
         <div id="event-cards" class="event-grid"></div>
         <p id="mensagem-eventos" class="msg-vazia"></p>
+      </section>
+
+      <!-- Calendário View -->
+      <section id="section-calendario" style="display: none; margin-bottom: 48px;">
+        <h2 class="section-title">Calendário de Eventos</h2>
+        <div id="calendario-container"></div>
       </section>
     </main>
   </div>

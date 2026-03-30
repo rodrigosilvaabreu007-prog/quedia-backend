@@ -1,5 +1,9 @@
 let todosEventos = [];
 
+// Controle do calendário
+let calendarioMes = new Date().getMonth();
+let calendarioAno = new Date().getFullYear();
+
 // 1. Formata a data corrigindo o problema de fuso horário
 function formatarData(dataStr) {
     if (!dataStr) return "A definir";
@@ -9,9 +13,13 @@ function formatarData(dataStr) {
 }
 
 // 2. Cria o elemento HTML do Card
-function criarCardEvento(evento) {
+function criarCardEvento(evento, mostrarFavorito = true) {
     const div = document.createElement('div');
     div.className = 'event-card';
+    
+    // Verificar se o evento está favoritado
+    const favoritos = JSON.parse(localStorage.getItem('eventos-favoritos') || '[]');
+    const isFavoritado = favoritos.includes(evento._id);
     
     // Lógica de Imagem: Pega a primeira do array do Cloudinary
     let imagemFinal = 'https://via.placeholder.com/400x200?text=Sem+Imagem';
@@ -25,10 +33,16 @@ function criarCardEvento(evento) {
     const preco = parseFloat(evento.preco) || 0;
     const precoTexto = (evento.gratuito || preco === 0) ? 'GRATUITO' : `R$ ${preco.toFixed(2)}`;
 
+    // Contador de interesses (simulado por enquanto)
+    const contadorInteresses = evento.interesses || Math.floor(Math.random() * 50) + 1;
+
     div.innerHTML = `
         <div class="event-img-container">
             <img src="${imagemFinal}" class="event-img" alt="${evento.nome}" 
                  onerror="this.onerror=null;this.src='https://via.placeholder.com/400x200?text=Imagem+Indisponível';">
+            ${mostrarFavorito ? `<button class="favorito-btn ${isFavoritado ? 'favoritado' : ''}" onclick="event.stopPropagation(); toggleFavorito('${evento._id}', this)" title="${isFavoritado ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
+                ${isFavoritado ? '⭐' : '☆'}
+            </button>` : ''}
         </div>
         <div class="event-info">
             <span class="category-tag">${evento.categoria || 'Geral'}</span>
@@ -37,12 +51,115 @@ function criarCardEvento(evento) {
                 <span>📅 ${formatarData(evento.data)}</span><br>
                 <span>📍 ${evento.cidade || 'Local não informado'}</span>
             </div>
+            <div class="event-stats">
+                <span class="interesses-count">👥 ${contadorInteresses} interessados</span>
+            </div>
             <p class="event-price">${precoTexto}</p>
         </div>
     `;
     
     div.onclick = () => window.abrirPrevia(evento, imagemFinal);
     return div;
+}
+
+// --- FUNÇÕES DE FAVORITOS ---
+window.toggleFavorito = function(eventoId, btnElement) {
+    const favoritos = JSON.parse(localStorage.getItem('eventos-favoritos') || '[]');
+    const index = favoritos.indexOf(eventoId);
+    
+    if (index > -1) {
+        // Remover dos favoritos
+        favoritos.splice(index, 1);
+        btnElement.classList.remove('favoritado');
+        btnElement.innerHTML = '☆';
+        btnElement.title = 'Adicionar aos favoritos';
+    } else {
+        // Adicionar aos favoritos
+        favoritos.push(eventoId);
+        btnElement.classList.add('favoritado');
+        btnElement.innerHTML = '⭐';
+        btnElement.title = 'Remover dos favoritos';
+    }
+    
+window.toggleInteresse = function(eventoId, btnElement) {
+    const interesses = JSON.parse(localStorage.getItem('eventos-interesses') || '[]');
+    const index = interesses.indexOf(eventoId);
+    
+    if (index > -1) {
+        // Remover interesse
+        interesses.splice(index, 1);
+        btnElement.classList.remove('demonstrou-interesse');
+        btnElement.innerHTML = '🤍 Demonstrar Interesse';
+        // Atualizar contador no modal
+        const contadorEl = btnElement.parentElement.querySelector('.interesses-count-modal');
+        if (contadorEl) {
+            const currentCount = parseInt(contadorEl.textContent.match(/\d+/)[0]);
+            contadorEl.textContent = `👥 ${currentCount - 1} pessoas interessadas`;
+        }
+    } else {
+        // Adicionar interesse
+        interesses.push(eventoId);
+        btnElement.classList.add('demonstrou-interesse');
+        btnElement.innerHTML = '❤️ Interessado';
+        // Atualizar contador no modal
+        const contadorEl = btnElement.parentElement.querySelector('.interesses-count-modal');
+        if (contadorEl) {
+            const currentCount = parseInt(contadorEl.textContent.match(/\d+/)[0]);
+            contadorEl.textContent = `👥 ${currentCount + 1} pessoas interessadas`;
+        }
+    }
+    
+    localStorage.setItem('eventos-interesses', JSON.stringify(interesses));
+};
+
+// --- FUNÇÕES DE PREFERÊNCIAS ---
+function getPreferenciasUsuario() {
+    const usuario = localStorage.getItem('eventhub-usuario');
+    if (!usuario) return [];
+    
+    try {
+        const dadosUsuario = JSON.parse(usuario);
+        return dadosUsuario.preferencias || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function getLocalizacaoUsuario() {
+    const usuario = localStorage.getItem('eventhub-usuario');
+    if (!usuario) return { estado: '', cidade: '' };
+    
+    try {
+        const dadosUsuario = JSON.parse(usuario);
+        return {
+            estado: dadosUsuario.estado || '',
+            cidade: dadosUsuario.cidade || ''
+        };
+    } catch (e) {
+        return { estado: '', cidade: '' };
+    }
+}
+
+function filtrarEventosParaVoce() {
+    const preferencias = getPreferenciasUsuario();
+    const localizacao = getLocalizacaoUsuario();
+    
+    if (preferencias.length === 0) {
+        // Se não tem preferências, mostrar eventos da localização
+        return todosEventos.filter(ev => 
+            ev.estado === localizacao.estado || ev.cidade === localizacao.cidade
+        ).slice(0, 6); // Limitar a 6 eventos
+    }
+    
+    // Filtrar por preferências
+    const eventosFiltrados = todosEventos.filter(ev => {
+        // Verificar se a categoria do evento está nas preferências
+        return preferencias.some(pref => 
+            ev.categoria && ev.categoria.toLowerCase().includes(pref.toLowerCase())
+        );
+    });
+    
+    return eventosFiltrados.slice(0, 6); // Limitar a 6 eventos
 }
 
 // 3. Modal Detalhado
@@ -53,6 +170,13 @@ window.abrirPrevia = function(evento, imgResolvida) {
 
     // Padronização com o backend: prioriza 'local'
     const localizacao = evento.local || evento.endereco || 'Endereço não informado';
+    
+    // Verificar se o usuário já demonstrou interesse
+    const interesses = JSON.parse(localStorage.getItem('eventos-interesses') || '[]');
+    const jaDemonstrouInteresse = interesses.includes(evento._id);
+    
+    // Contador de interesses (simulado)
+    const contadorInteresses = (evento.interesses || Math.floor(Math.random() * 50) + 1) + (jaDemonstrouInteresse ? 1 : 0);
 
     body.innerHTML = `
         <div class="modal-header">
@@ -60,6 +184,12 @@ window.abrirPrevia = function(evento, imgResolvida) {
         </div>
         <div class="modal-padding" style="padding:20px; color: white;">
             <h2 style="color:#00bfff; margin-bottom:10px;">${evento.nome}</h2>
+            <div class="evento-stats-modal">
+                <span class="interesses-count-modal">👥 ${contadorInteresses} pessoas interessadas</span>
+                <button class="btn-interesse ${jaDemonstrouInteresse ? 'demonstrou-interesse' : ''}" onclick="toggleInteresse('${evento._id}', this)">
+                    ${jaDemonstrouInteresse ? '❤️ Interessado' : '🤍 Demonstrar Interesse'}
+                </button>
+            </div>
             <p><strong>🕒 Horário:</strong> ${evento.horario || '--:--'}</p>
             <p><strong>📍 Local:</strong> ${localizacao} - ${evento.cidade}/${evento.estado}</p>
             <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
@@ -86,21 +216,31 @@ function filtrarEventos() {
     const cidade = document.getElementById('filtro-cidade')?.value || "";
     const categoria = document.getElementById('filtro-categoria')?.value || "";
     const precoMax = parseFloat(document.getElementById('filtro-preco')?.value) || Infinity;
+    const dataFiltro = document.getElementById('filtro-data')?.value || "";
+    const horarioFiltro = document.getElementById('filtro-horario')?.value || "";
+
+    // Se não há filtros aplicados, usar localização do usuário como padrão
+    const localizacaoUsuario = getLocalizacaoUsuario();
+    const estadoFiltro = estado || (localizacaoUsuario.estado && !termo && !cidade && !categoria && !dataFiltro && !horarioFiltro && precoMax === Infinity ? localizacaoUsuario.estado : "");
+    const cidadeFiltro = cidade || (localizacaoUsuario.cidade && !termo && !estado && !categoria && !dataFiltro && !horarioFiltro && precoMax === Infinity ? localizacaoUsuario.cidade : "");
 
     const filtrados = todosEventos.filter(ev => {
-        const matchesBusca = ev.nome?.toLowerCase().includes(termo) || ev.cidade?.toLowerCase().includes(termo);
-        const matchesEstado = estado === "" || ev.estado === estado;
-        const matchesCidade = cidade === "" || ev.cidade === cidade;
-        const matchesCat = categoria === "" || ev.categoria === categoria;
-        const matchesPreco = ev.gratuito ? true : (parseFloat(ev.preco) <= precoMax);
-
-        return matchesBusca && matchesEstado && matchesCidade && matchesCat && matchesPreco;
-    });
-
-    renderizarGrid(filtrados);
+        // Busca por nome, cidade, categoria ou estado
+        const matchesBusca = !termo || 
+            ev.nome?.toLowerCase().includes(termo) || 
+            ev.cidade?.toLowerCase().includes(termo) ||
+            ev.categoria?.toLowerCase().includes(termo) ||
+            ev.estado?.toLowerCase().includes(termo);
+        
+        const matchesEstado = estadoFiltro === "" || ev.estado === estadoFiltro;
+        const matchesCidade = cidadeFiltro === "" || ev.cidade === cidadeFiltro;
+    // Se estiver no calendário, atualizar também
+    if (currentView === 'calendario') {
+        renderizarCalendario();
+    }
 }
 
-function renderizarGrid(lista) {
+function renderizarGrid(lista, mostrarFavorito = true) {
     const container = document.getElementById('event-cards');
     if (!container) return;
     container.innerHTML = '';
@@ -109,7 +249,7 @@ function renderizarGrid(lista) {
         container.innerHTML = '<p style="color:#ccc; text-align:center; width:100%; padding: 20px;">Nenhum evento encontrado.</p>';
         return;
     }
-    lista.forEach(ev => container.appendChild(criarCardEvento(ev)));
+    lista.forEach(ev => container.appendChild(criarCardEvento(ev, mostrarFavorito)));
 }
 
 // 5. Chamada à API
@@ -126,10 +266,25 @@ async function carregarEventos() {
         const dados = await response.json();
         todosEventos = Array.isArray(dados) ? dados : [];
         
-        renderizarGrid(todosEventos);
+        // Carregar eventos para "Eventos para Você"
+        const eventosParaVoce = filtrarEventosParaVoce();
+        const containerParaVoce = document.getElementById('eventos-para-voce');
+        if (containerParaVoce) {
+            containerParaVoce.innerHTML = '';
+            if (eventosParaVoce.length === 0) {
+                containerParaVoce.innerHTML = '<p style="color:#ccc; text-align:center; width:100%; padding: 20px;">Nenhum evento encontrado para suas preferências.</p>';
+            } else {
+                eventosParaVoce.forEach(ev => containerParaVoce.appendChild(criarCardEvento(ev, true)));
+            }
+        }
+        
+        // Carregar "Todos os Eventos" (excluindo os que já estão em "Para Você")
+        const idsParaVoce = eventosParaVoce.map(ev => ev._id);
+        const todosExcetoParaVoce = todosEventos.filter(ev => !idsParaVoce.includes(ev._id));
+        renderizarGrid(todosExcetoParaVoce, true);
 
         // Adiciona ouvintes de busca
-        const inputs = ['search-input', 'filtro-estado', 'filtro-cidade', 'filtro-categoria', 'filtro-preco'];
+        const inputs = ['search-input', 'filtro-cidade', 'filtro-categoria', 'filtro-preco', 'filtro-data', 'filtro-horario'];
         inputs.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.addEventListener(id.includes('search') || id.includes('preco') ? 'input' : 'change', filtrarEventos);
@@ -141,4 +296,214 @@ async function carregarEventos() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', carregarEventos);
+function popularFiltros() {
+    // Popular estados únicos
+    const estadosUnicos = [...new Set(todosEventos.map(ev => ev.estado).filter(Boolean))].sort();
+    const selectEstado = document.getElementById('filtro-estado');
+    if (selectEstado) {
+        selectEstado.innerHTML = '<option value="">Todos</option>';
+        estadosUnicos.forEach(estado => {
+            selectEstado.innerHTML += `<option value="${estado}">${estado}</option>`;
+        });
+    }
+    
+    // Popular categorias únicas
+    const categoriasUnicas = [...new Set(todosEventos.map(ev => ev.categoria).filter(Boolean))].sort();
+    const selectCategoria = document.getElementById('filtro-categoria');
+    if (selectCategoria) {
+        selectCategoria.innerHTML = '<option value="">Todas</option>';
+        categoriasUnicas.forEach(cat => {
+            selectCategoria.innerHTML += `<option value="${cat}">${cat}</option>`;
+        });
+    }
+    
+    // Adicionar listener para popular cidades quando estado mudar
+    const selectEstadoEl = document.getElementById('filtro-estado');
+    if (selectEstadoEl) {
+        selectEstadoEl.addEventListener('change', function() {
+            const estadoSelecionado = this.value;
+            const selectCidade = document.getElementById('filtro-cidade');
+            if (selectCidade) {
+                if (estadoSelecionado) {
+                    const cidadesUnicas = [...new Set(todosEventos.filter(ev => ev.estado === estadoSelecionado).map(ev => ev.cidade).filter(Boolean))].sort();
+                    selectCidade.innerHTML = '<option value="">Todas</option>';
+                    cidadesUnicas.forEach(cidade => {
+                        selectCidade.innerHTML += `<option value="${cidade}">${cidade}</option>`;
+                    });
+                } else {
+                    selectCidade.innerHTML = '<option value="">Todas</option>';
+                }
+            }
+            filtrarEventos();
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    carregarEventos();
+    // Inicializar visualização padrão
+    window.setView('eventos');
+});
+
+// --- FUNÇÕES DE VISUALIZAÇÃO ---
+let currentView = 'eventos';
+
+window.setView = function(view) {
+    currentView = view;
+    
+    // Atualizar botões
+    document.getElementById('view-eventos').style.background = view === 'eventos' ? 'var(--cor-principal, #00bfff)' : 'var(--bg-secondary, #1a2332)';
+    document.getElementById('view-eventos').style.color = view === 'eventos' ? '#000' : 'var(--text-primary, #fff)';
+    document.getElementById('view-calendario').style.background = view === 'calendario' ? 'var(--cor-principal, #00bfff)' : 'var(--bg-secondary, #1a2332)';
+    document.getElementById('view-calendario').style.color = view === 'calendario' ? '#000' : 'var(--text-primary, #fff)';
+    
+    // Mostrar/ocultar seções
+    document.getElementById('section-para-voce').style.display = view === 'eventos' ? 'block' : 'none';
+    document.getElementById('section-todos').style.display = view === 'eventos' ? 'block' : 'none';
+    document.getElementById('section-calendario').style.display = view === 'calendario' ? 'block' : 'none';
+    
+    if (view === 'calendario') {
+        renderizarCalendario();
+    }
+};
+
+window.limparFiltros = function() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('filtro-estado').value = '';
+    document.getElementById('filtro-cidade').value = '';
+    document.getElementById('filtro-categoria').value = '';
+    document.getElementById('filtro-preco').value = '';
+    document.getElementById('filtro-data').value = '';
+    document.getElementById('filtro-horario').value = '';
+    filtrarEventos();
+};
+
+window.toggleFiltros = function() {
+    const container = document.getElementById('filtros-container');
+    container.style.display = container.style.display === 'none' ? 'grid' : 'none';
+};
+
+// --- CALENDÁRIO ---
+function renderizarCalendario() {
+    const container = document.getElementById('calendario-container');
+    if (!container) return;
+    
+    // Usar a mesma lógica de filtragem
+    const termo = document.getElementById('search-input')?.value.toLowerCase() || "";
+    const estado = document.getElementById('filtro-estado')?.value || "";
+    const cidade = document.getElementById('filtro-cidade')?.value || "";
+    const categoria = document.getElementById('filtro-categoria')?.value || "";
+    const precoMax = parseFloat(document.getElementById('filtro-preco')?.value) || Infinity;
+    const dataFiltro = document.getElementById('filtro-data')?.value || "";
+    const horarioFiltro = document.getElementById('filtro-horario')?.value || "";
+    
+    const eventosFiltrados = todosEventos.filter(ev => {
+        const matchesBusca = !termo || 
+            ev.nome?.toLowerCase().includes(termo) || 
+            ev.cidade?.toLowerCase().includes(termo) ||
+            ev.categoria?.toLowerCase().includes(termo) ||
+            ev.estado?.toLowerCase().includes(termo);
+        
+        const matchesEstado = estado === "" || ev.estado === estado;
+        const matchesCidade = cidade === "" || ev.cidade === cidade;
+        const matchesCat = categoria === "" || ev.categoria === categoria;
+        const matchesPreco = ev.gratuito ? true : (parseFloat(ev.preco) <= precoMax);
+        const matchesData = dataFiltro === "" || ev.data === dataFiltro;
+        const matchesHorario = horarioFiltro === "" || ev.horario?.startsWith(horarioFiltro);
+        
+        return matchesBusca && matchesEstado && matchesCidade && matchesCat && matchesPreco && matchesData && matchesHorario;
+    });
+    
+    // Agrupar eventos por data
+    const eventosPorData = {};
+    eventosFiltrados.forEach(ev => {
+        const data = ev.data;
+        if (!eventosPorData[data]) eventosPorData[data] = [];
+        eventosPorData[data].push(ev);
+    });
+    
+    // Gerar calendário
+    const primeiroDia = new Date(calendarioAno, calendarioMes, 1);
+    const ultimoDia = new Date(calendarioAno, calendarioMes + 1, 0);
+    const diasNoMes = ultimoDia.getDate();
+    const diaSemanaInicio = primeiroDia.getDay();
+    
+    let html = `
+        <div class="calendario-header">
+            <button onclick="mudarMes(-1)">◀</button>
+            <h3>${primeiroDia.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</h3>
+            <button onclick="mudarMes(1)">▶</button>
+        </div>
+        <div class="calendario-grid">
+            <div class="dia-semana">Dom</div>
+            <div class="dia-semana">Seg</div>
+            <div class="dia-semana">Ter</div>
+            <div class="dia-semana">Qua</div>
+            <div class="dia-semana">Qui</div>
+            <div class="dia-semana">Sex</div>
+            <div class="dia-semana">Sáb</div>
+    `;
+    
+    // Dias vazios no início
+    for (let i = 0; i < diaSemanaInicio; i++) {
+        html += '<div class="dia-vazio"></div>';
+    }
+    
+    // Dias do mês
+    for (let dia = 1; dia <= diasNoMes; dia++) {
+        const dataStr = `${calendarioAno}-${String(calendarioMes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        const eventosDia = eventosPorData[dataStr] || [];
+        const temEventos = eventosDia.length > 0;
+        
+        html += `
+            <div class="dia-calendario ${temEventos ? 'tem-eventos' : ''}" onclick="mostrarEventosDia('${dataStr}')">
+                <div class="numero-dia">${dia}</div>
+                ${temEventos ? `<div class="eventos-count">${eventosDia.length}</div>` : ''}
+            </div>
+        `;
+    }
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+window.mudarMes = function(delta) {
+    calendarioMes += delta;
+    if (calendarioMes < 0) {
+        calendarioMes = 11;
+        calendarioAno--;
+    } else if (calendarioMes > 11) {
+        calendarioMes = 0;
+        calendarioAno++;
+    }
+    renderizarCalendario();
+};
+
+window.mostrarEventosDia = function(data) {
+    const eventosDia = todosEventos.filter(ev => ev.data === data);
+    if (eventosDia.length === 0) return;
+    
+    const modal = document.getElementById('event-modal');
+    const body = document.getElementById('modal-body');
+    
+    body.innerHTML = `
+        <div class="modal-padding" style="padding:20px; color: white;">
+            <h2 style="color:#00bfff; margin-bottom:20px;">Eventos em ${new Date(data).toLocaleDateString('pt-BR')}</h2>
+            ${eventosDia.map(ev => `
+                <div class="evento-calendario" onclick="window.abrirPreviaCalendario('${JSON.stringify(ev).replace(/'/g, "\\'").replace(/"/g, '\\"')}', '${ev.imagens?.[0] || ev.imagem_url || 'https://via.placeholder.com/400x200?text=Sem+Imagem'}')">
+                    <h3>${ev.nome}</h3>
+                    <p>📍 ${ev.cidade} - ${ev.horario || '--:--'}</p>
+                    <p>${ev.categoria || 'Geral'}</p>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+};
+
+window.abrirPreviaCalendario = function(eventoStr, imgUrl) {
+    const ev = JSON.parse(eventoStr);
+    window.abrirPrevia(ev, imgUrl);
+};
