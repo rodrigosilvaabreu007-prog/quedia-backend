@@ -144,6 +144,11 @@ function filtrarEventosParaVoce() {
     const preferencias = getPreferenciasUsuario();
     const localizacao = getLocalizacaoUsuario();
     
+    if (preferencias.length === 0 && (!localizacao.estado && !localizacao.cidade)) {
+        // Se não tem preferências nem localização, mostrar eventos aleatórios ou recentes
+        return todosEventos.slice(0, 6);
+    }
+    
     if (preferencias.length === 0) {
         // Se não tem preferências, mostrar eventos da localização
         return todosEventos.filter(ev => 
@@ -234,10 +239,21 @@ function filtrarEventos() {
         
         const matchesEstado = estadoFiltro === "" || ev.estado === estadoFiltro;
         const matchesCidade = cidadeFiltro === "" || ev.cidade === cidadeFiltro;
+        const matchesCat = categoria === "" || ev.categoria === categoria;
+        const matchesPreco = ev.gratuito ? true : (parseFloat(ev.preco) <= precoMax);
+        const matchesData = dataFiltro === "" || ev.data === dataFiltro;
+        const matchesHorario = horarioFiltro === "" || ev.horario?.startsWith(horarioFiltro);
+        
+        return matchesBusca && matchesEstado && matchesCidade && matchesCat && matchesPreco && matchesData && matchesHorario;
+    });
+    
     // Se estiver no calendário, atualizar também
     if (currentView === 'calendario') {
         renderizarCalendario();
     }
+    
+    // Renderizar os eventos filtrados
+    renderizarGrid(filtrados, true);
 }
 
 function renderizarGrid(lista, mostrarFavorito = true) {
@@ -278,10 +294,12 @@ async function carregarEventos() {
             }
         }
         
-        // Carregar "Todos os Eventos" (excluindo os que já estão em "Para Você")
+        // Carregar "Todos os Eventos" - mostrar todos, mas priorizar os que não estão em "Para Você"
         const idsParaVoce = eventosParaVoce.map(ev => ev._id);
-        const todosExcetoParaVoce = todosEventos.filter(ev => !idsParaVoce.includes(ev._id));
-        renderizarGrid(todosExcetoParaVoce, true);
+        const eventosNaoParaVoce = todosEventos.filter(ev => !idsParaVoce.includes(ev._id));
+        const todosOrdenados = [...eventosParaVoce, ...eventosNaoParaVoce]; // Para Você primeiro, depois os outros
+        
+        renderizarGrid(todosOrdenados, true);
 
         // Adiciona ouvintes de busca
         const inputs = ['search-input', 'filtro-cidade', 'filtro-categoria', 'filtro-preco', 'filtro-data', 'filtro-horario'];
