@@ -81,6 +81,9 @@ window.toggleFavorito = function(eventoId, btnElement) {
         btnElement.title = 'Remover dos favoritos';
     }
     
+    localStorage.setItem('eventos-favoritos', JSON.stringify(favoritos));
+};
+
 window.toggleInteresse = function(eventoId, btnElement) {
     const interesses = JSON.parse(localStorage.getItem('eventos-interesses') || '[]');
     const index = interesses.indexOf(eventoId);
