@@ -475,6 +475,25 @@ async function carregarEventos() {
     } catch (err) {
         console.error("Erro ao carregar:", err);
         container.innerHTML = '<p style="color:#ff4444;">❌ Falha ao conectar na API.</p>';
+    } finally {
+        // Sempre adicionar event listeners aos botões, mesmo se a API falhar
+        const btnFiltros = document.getElementById('toggle-filtros');
+        if (btnFiltros && !btnFiltros.hasListener) {
+            btnFiltros.addEventListener('click', () => window.toggleFiltros());
+            btnFiltros.hasListener = true;
+        }
+        
+        const btnEventos = document.getElementById('view-eventos');
+        if (btnEventos && !btnEventos.hasListener) {
+            btnEventos.addEventListener('click', () => window.setView('eventos'));
+            btnEventos.hasListener = true;
+        }
+        
+        const btnCalendario = document.getElementById('view-calendario');
+        if (btnCalendario && !btnCalendario.hasListener) {
+            btnCalendario.addEventListener('click', () => window.setView('calendario'));
+            btnCalendario.hasListener = true;
+        }
     }
 }
 
