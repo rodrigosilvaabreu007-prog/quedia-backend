@@ -56,8 +56,117 @@ function inicializarIconePerfil() {
 
 function irParaPerfil() {
     const token = localStorage.getItem('eventhub-token');
-    // Se tiver token vai para o perfil, se não vai para o login
-    window.location.href = token ? 'perfil.html' : 'login.html';
+    const usuario = localStorage.getItem('eventhub-usuario');
+    
+    if (!token || !usuario) {
+        // Se não logado, vai para login
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // Se logado, mostra modal de perfil
+    mostrarModalPerfil();
+}
+
+async function mostrarModalPerfil() {
+    const usuario = JSON.parse(localStorage.getItem('eventhub-usuario'));
+    if (!usuario) return;
+    
+    // Buscar dados atualizados do usuário
+    try {
+        const response = await fetch(`${API_URL}/usuario/${usuario._id}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('eventhub-token')}`
+            }
+        });
+        
+        if (response.ok) {
+            const dadosAtualizados = await response.json();
+            usuarioAtual = dadosAtualizados;
+        }
+    } catch (err) {
+        console.error('Erro ao buscar dados do usuário:', err);
+    }
+    
+    // Criar modal
+    const modal = document.createElement('div');
+    modal.id = 'modal-perfil';
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); z-index: 10000; display: flex;
+        align-items: center; justify-content: center; font-family: Arial, sans-serif;
+    `;
+    
+    // Verificar preferências
+    let preferenciasArray = [];
+    if (usuarioAtual.preferencias) {
+        if (typeof usuarioAtual.preferencias === 'string') {
+            try {
+                preferenciasArray = JSON.parse(usuarioAtual.preferencias);
+            } catch {
+                preferenciasArray = [];
+            }
+        } else if (Array.isArray(usuarioAtual.preferencias)) {
+            preferenciasArray = usuarioAtual.preferencias;
+        }
+    }
+    
+    const preferenciasHTML = preferenciasArray.length > 0 
+        ? preferenciasArray.map(pref => `<span style="background: rgba(0,191,255,0.1); padding: 4px 8px; border-radius: 4px; margin: 2px; display: inline-block;">${pref}</span>`).join('')
+        : '<span style="color: #888;">Nenhuma preferência configurada</span>';
+    
+    modal.innerHTML = `
+        <div style="background: #1a2332; border: 2px solid #00bfff; border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative;">
+            <button onclick="fecharModalPerfil()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: #00bfff;">✕</button>
+            
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #00bfff; margin: 0 auto 16px; background: #00bfff; display: flex; align-items: center; justify-content: center; font-size: 36px;">
+                    ${usuarioAtual.nome.charAt(0).toUpperCase()}
+                </div>
+                <h2 style="margin: 0 0 8px 0; color: #00bfff;">${usuarioAtual.nome}</h2>
+                <p style="margin: 0; color: #aaa;">${usuarioAtual.email}</p>
+            </div>
+            
+            <div style="margin-bottom: 24px;">
+                <h3 style="margin: 0 0 16px 0; color: #00bfff;">Informações do Perfil</h3>
+                <div style="display: grid; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #888;">Estado:</span>
+                        <span style="color: #fff;">${usuarioAtual.estado || 'Não informado'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #888;">Cidade:</span>
+                        <span style="color: #fff;">${usuarioAtual.cidade || 'Não informado'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #888;">Data de Cadastro:</span>
+                        <span style="color: #fff;">${new Date(usuarioAtual.data_cadastro).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 24px;">
+                <h3 style="margin: 0 0 16px 0; color: #00bfff;">Preferências de Eventos</h3>
+                <div style="line-height: 1.6;">
+                    ${preferenciasHTML}
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button onclick="fazerLogout()" style="padding: 10px 20px; background: #ff4444; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Logout</button>
+                <button onclick="fecharModalPerfil()" style="padding: 10px 20px; background: #00bfff; color: #000; border: none; border-radius: 4px; cursor: pointer;">Fechar</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+function fecharModalPerfil() {
+    const modal = document.getElementById('modal-perfil');
+    if (modal) {
+        modal.remove();
+    }
 }
 
 function fazerLogout() {
@@ -70,6 +179,8 @@ function fazerLogout() {
 window.irParaPerfil = irParaPerfil;
 window.fazerLogout = fazerLogout;
 window.inicializarIconePerfil = inicializarIconePerfil;
+window.mostrarModalPerfil = mostrarModalPerfil;
+window.fecharModalPerfil = fecharModalPerfil;
 
 // --- UTILITÁRIOS DE LOCALIZAÇÃO (Fallback robusto para falhas de rede) ---
 

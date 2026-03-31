@@ -64,7 +64,27 @@ async function autenticarUsuario(email, senha) {
     return { usuario: usuarioSemSenha, token };
 }
 
+// Função para buscar usuário por ID (MONGODB)
+async function buscarUsuarioPorId(id) {
+    const db = await connectDB();
+    if (!db) throw new Error("Não foi possível conectar ao banco de dados.");
+
+    // Busca o usuário pelo ID
+    const usuario = await db.collection('usuarios').findOne({ _id: new require('mongodb').ObjectId(id) });
+    
+    if (!usuario) {
+        return null;
+    }
+
+    // Remove a senha do objeto antes de enviar por segurança
+    const usuarioSemSenha = { ...usuario };
+    delete usuarioSemSenha.senha;
+    
+    return usuarioSemSenha;
+}
+
 module.exports = {
     registrarUsuario,
-    autenticarUsuario
+    autenticarUsuario,
+    buscarUsuarioPorId
 };

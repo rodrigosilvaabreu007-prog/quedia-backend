@@ -83,4 +83,13 @@ async function listarEventos(filtros = {}) {
     }
 }
 
-module.exports = { cadastrarEvento, listarEventos, EventoModel: Evento };
+async function deletarEvento(id) {
+    try {
+        const resultado = await Evento.findByIdAndDelete(id);
+        return resultado;
+    } catch (err) {
+        throw new Error("Erro ao deletar evento: " + err.message);
+    }
+}
+
+module.exports = { cadastrarEvento, listarEventos, deletarEvento, EventoModel: Evento };

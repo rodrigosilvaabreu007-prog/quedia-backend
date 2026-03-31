@@ -4,10 +4,10 @@ const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const { connectDB } = require('./db'); 
-const { registrarUsuario, autenticarUsuario } = require('./autenticacao');
+const { registrarUsuario, autenticarUsuario, buscarUsuarioPorId } = require('./autenticacao');
 
 // 1. IMPORTAÇÃO DOS MODELS (Caminho corrigido para a pasta models)
-const { cadastrarEvento, listarEventos } = require('./models/eventos');
+const { cadastrarEvento, listarEventos, deletarEvento } = require('./models/eventos');
 
 // 2. CONFIGURAÇÃO DO CLOUDINARY
 cloudinary.config({
@@ -99,6 +99,26 @@ router.get('/eventos', async (req, res) => {
     }
 });
 
+// 6. ROTA DELETE: DELETAR EVENTO
+router.delete('/eventos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ erro: 'ID do evento é obrigatório' });
+        }
+
+        const eventoDeletado = await deletarEvento(id);
+        if (!eventoDeletado) {
+            return res.status(404).json({ erro: 'Evento não encontrado' });
+        }
+
+        return res.json({ mensagem: 'Evento deletado com sucesso' });
+    } catch (err) {
+        console.error("Erro na rota DELETE /eventos/:id:", err.message);
+        res.status(500).json({ erro: 'Erro ao deletar evento.' });
+    }
+});
+
 // 6. ROTA POST: CADASTRO DE USUÁRIO
 router.post('/cadastro', async (req, res) => {
     try {
@@ -132,6 +152,26 @@ router.post('/login', async (req, res) => {
     } catch (err) {
         console.error('Erro na rota POST /login:', err.message);
         return res.status(400).json({ erro: err.message || 'Erro ao autenticar usuário' });
+    }
+});
+
+// 8. ROTA GET: BUSCAR USUÁRIO POR ID
+router.get('/usuario/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+        }
+
+        const usuario = await buscarUsuarioPorId(id);
+        if (!usuario) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+
+        return res.json(usuario);
+    } catch (err) {
+        console.error('Erro na rota GET /usuario/:id:', err.message);
+        return res.status(500).json({ erro: err.message || 'Erro ao buscar usuário' });
     }
 });
 
