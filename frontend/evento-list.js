@@ -311,7 +311,7 @@ function filtrarEventos() {
             (termoDataISO && ev.data === termoDataISO) ||
             (ev.data && ev.data.includes(termo)) ||
             (ev.horario && ev.horario.includes(termo)) ||
-            (ev.gratuito && (termoNormalizado.includes('gratuito') || termoNormalizado.includes('gratis')) ) ||
+            ((termoNormalizado.includes('gratuito') || termoNormalizado.includes('gratis')) && (ev.gratuito || parseFloat(ev.preco || 0) === 0)) ||
             filtrarPorPrecoTexto(ev, termoNormalizado);
         }
         
