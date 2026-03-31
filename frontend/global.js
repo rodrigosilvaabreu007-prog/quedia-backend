@@ -45,9 +45,8 @@ function inicializarIconePerfil() {
             iconePerfil.classList.remove('has-image');
         }
     } else {
-        // Se não estiver logado, mostra um ícone padrão e mantem acesso ao login
-        iconePerfilImg.style.display = 'block';
-        iconePerfilImg.src = 'https://via.placeholder.com/56x56/00bfff/000000?text=👤';
+        // Se não estiver logado, mostra apenas o ícone e não exibe <img>
+        iconePerfilImg.style.display = 'none';
         iconePerfil.classList.remove('has-image');
     }
     

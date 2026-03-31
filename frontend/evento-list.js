@@ -12,14 +12,20 @@ function formatarData(dataStr) {
     return d.toLocaleDateString('pt-BR');
 }
 
+function normalizarTexto(texto) {
+    if (!texto) return '';
+    return texto.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
 // 2. Cria o elemento HTML do Card
 function criarCardEvento(evento, mostrarFavorito = true) {
     const div = document.createElement('div');
     div.className = 'event-card';
     div.setAttribute('data-evento-id', evento._id || '');
     
-    // Verificar se o evento está favoritado / interessado pelo usuário atual
-    const isFavoritado = usuarioInteressadoNoEvento(evento._id);
+    // Verificar se o evento está favoritado pelo usuário atual (localStorage)
+    const favoritos = JSON.parse(localStorage.getItem('eventos-favoritos') || '[]');
+    const isFavoritado = favoritos.includes(evento._id);
     
     // Lógica de Imagem: Pega a primeira do array do Cloudinary
     let imagemFinal = 'https://via.placeholder.com/400x200?text=Sem+Imagem';
@@ -294,19 +300,19 @@ function filtrarEventos() {
         // Busca por nome, cidade, categoria, estado, data, horário ou preço
         let matchesBusca = true;
         if (termo) {
-            const termoLower = termo.toLowerCase();
+            const termoNormalizado = normalizarTexto(termo);
         const termoDataISO = converterDataParaISO(termo);
 
         matchesBusca = 
-            ev.nome?.toLowerCase().includes(termoLower) || 
-            ev.cidade?.toLowerCase().includes(termoLower) ||
-            ev.categoria?.toLowerCase().includes(termoLower) ||
-            ev.estado?.toLowerCase().includes(termoLower) ||
+            (ev.nome && normalizarTexto(ev.nome).includes(termoNormalizado)) || 
+            (ev.cidade && normalizarTexto(ev.cidade).includes(termoNormalizado)) ||
+            (ev.categoria && normalizarTexto(ev.categoria).includes(termoNormalizado)) ||
+            (ev.estado && normalizarTexto(ev.estado).includes(termoNormalizado)) ||
             (termoDataISO && ev.data === termoDataISO) ||
-            ev.data?.includes(termo) ||
-            ev.horario?.includes(termo) ||
-            (ev.gratuito && termoLower.includes('gratuito')) ||
-            filtrarPorPrecoTexto(ev, termoLower);
+            (ev.data && ev.data.includes(termo)) ||
+            (ev.horario && ev.horario.includes(termo)) ||
+            (ev.gratuito && (termoNormalizado.includes('gratuito') || termoNormalizado.includes('gratis')) ) ||
+            filtrarPorPrecoTexto(ev, termoNormalizado);
         }
         
         const matchesEstado = estadoFiltro === "" || ev.estado === estadoFiltro;
