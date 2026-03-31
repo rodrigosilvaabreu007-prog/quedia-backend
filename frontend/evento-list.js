@@ -237,15 +237,18 @@ function filtrarEventos() {
         let matchesBusca = true;
         if (termo) {
             const termoLower = termo.toLowerCase();
-            matchesBusca = 
-                ev.nome?.toLowerCase().includes(termoLower) || 
-                ev.cidade?.toLowerCase().includes(termoLower) ||
-                ev.categoria?.toLowerCase().includes(termoLower) ||
-                ev.estado?.toLowerCase().includes(termoLower) ||
-                ev.data?.includes(termo) ||
-                ev.horario?.includes(termo) ||
-                (ev.gratuito && termoLower.includes('gratuito')) ||
-                filtrarPorPrecoTexto(ev, termoLower);
+        const termoDataISO = converterDataParaISO(termo);
+
+        matchesBusca = 
+            ev.nome?.toLowerCase().includes(termoLower) || 
+            ev.cidade?.toLowerCase().includes(termoLower) ||
+            ev.categoria?.toLowerCase().includes(termoLower) ||
+            ev.estado?.toLowerCase().includes(termoLower) ||
+            (termoDataISO && ev.data === termoDataISO) ||
+            ev.data?.includes(termo) ||
+            ev.horario?.includes(termo) ||
+            (ev.gratuito && termoLower.includes('gratuito')) ||
+            filtrarPorPrecoTexto(ev, termoLower);
         }
         
         const matchesEstado = estadoFiltro === "" || ev.estado === estadoFiltro;
@@ -265,6 +268,14 @@ function filtrarEventos() {
     
     // Renderizar os eventos filtrados
     renderizarGrid(filtrados, true);
+}
+
+function converterDataParaISO(texto) {
+    if (!texto) return null;
+    const match = texto.match(/(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})/);
+    if (!match) return null;
+    const [, dia, mes, ano] = match;
+    return `${ano}-${mes}-${dia}`;
 }
 
 function filtrarPorPrecoTexto(evento, termo) {
