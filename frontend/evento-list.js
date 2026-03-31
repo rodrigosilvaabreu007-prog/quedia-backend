@@ -18,9 +18,8 @@ function criarCardEvento(evento, mostrarFavorito = true) {
     div.className = 'event-card';
     div.setAttribute('data-evento-id', evento._id || '');
     
-    // Verificar se o evento está favoritado
-    const favoritos = JSON.parse(localStorage.getItem('eventos-favoritos') || '[]');
-    const isFavoritado = favoritos.includes(evento._id);
+    // Verificar se o evento está favoritado / interessado pelo usuário atual
+    const isFavoritado = usuarioInteressadoNoEvento(evento._id);
     
     // Lógica de Imagem: Pega a primeira do array do Cloudinary
     let imagemFinal = 'https://via.placeholder.com/400x200?text=Sem+Imagem';
@@ -67,22 +66,37 @@ function criarCardEvento(evento, mostrarFavorito = true) {
 window.toggleFavorito = function(eventoId, btnElement) {
     const favoritos = JSON.parse(localStorage.getItem('eventos-favoritos') || '[]');
     const index = favoritos.indexOf(eventoId);
-    
-    if (index > -1) {
-        // Remover dos favoritos
+    const tinhaFavorito = index > -1;
+
+    if (tinhaFavorito) {
         favoritos.splice(index, 1);
         btnElement.classList.remove('favoritado');
         btnElement.innerHTML = '☆';
         btnElement.title = 'Adicionar aos favoritos';
     } else {
-        // Adicionar aos favoritos
         favoritos.push(eventoId);
         btnElement.classList.add('favoritado');
         btnElement.innerHTML = '⭐';
         btnElement.title = 'Remover dos favoritos';
     }
-    
     localStorage.setItem('eventos-favoritos', JSON.stringify(favoritos));
+
+    // Atualiza interesse global compartilhado por usuário
+    const novoContador = toggleInteresseGlobal(eventoId);
+
+    // Refresca contador nos cards da página
+    document.querySelectorAll('.event-card').forEach(card => {
+        if (card.getAttribute('data-evento-id') === eventoId) {
+            const q = card.querySelector('.interesses-count');
+            if (q) q.textContent = `👥 ${novoContador} interessados`;
+        }
+    });
+
+    // Atualiza contador no modal se estiver aberto
+    const contadorModal = document.querySelector('.interesses-count-modal');
+    if (contadorModal) {
+        contadorModal.textContent = `👥 ${novoContador} pessoas interessadas`;
+    }
 };
 
 window.toggleInteresse = function(eventoId, btnElement) {
@@ -228,9 +242,8 @@ window.abrirPrevia = function(evento, imgResolvida) {
     const interesses = JSON.parse(localStorage.getItem('eventos-interesses') || '[]');
     const jaDemonstrouInteresse = interesses.includes(evento._id);
     
-    // Contador de interesses (simulado)
-    const contadorInteresses = (evento.interesses || Math.floor(Math.random() * 50) + 1) + (jaDemonstrouInteresse ? 1 : 0);
-
+    // Contador de interesses (global por evento)
+    const contadorInteresses = getContadorInteressesEvento(evento._id);
     body.innerHTML = `
         <div class="modal-header">
             <img src="${imgResolvida}" class="modal-header-img" style="width:100%; max-height:300px; object-fit:cover; border-radius:8px;">
