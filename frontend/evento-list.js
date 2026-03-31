@@ -16,6 +16,7 @@ function formatarData(dataStr) {
 function criarCardEvento(evento, mostrarFavorito = true) {
     const div = document.createElement('div');
     div.className = 'event-card';
+    div.setAttribute('data-evento-id', evento._id || '');
     
     // Verificar se o evento está favoritado
     const favoritos = JSON.parse(localStorage.getItem('eventos-favoritos') || '[]');
@@ -33,8 +34,8 @@ function criarCardEvento(evento, mostrarFavorito = true) {
     const preco = parseFloat(evento.preco) || 0;
     const precoTexto = (evento.gratuito || preco === 0) ? 'GRATUITO' : `R$ ${preco.toFixed(2)}`;
 
-    // Contador de interesses (simulado por enquanto)
-    const contadorInteresses = evento.interesses || Math.floor(Math.random() * 50) + 1;
+    // Contador de interesses: deriva do localStorage global por evento
+    const contadorInteresses = Math.max(0, getContadorInteressesEvento(evento._id));
 
     div.innerHTML = `
         <div class="event-img-container">
@@ -85,34 +86,31 @@ window.toggleFavorito = function(eventoId, btnElement) {
 };
 
 window.toggleInteresse = function(eventoId, btnElement) {
-    const interesses = JSON.parse(localStorage.getItem('eventos-interesses') || '[]');
-    const index = interesses.indexOf(eventoId);
-    
-    if (index > -1) {
-        // Remover interesse
-        interesses.splice(index, 1);
+    const usuario = getUsuarioId();
+    const interessadoAtual = usuarioInteressadoNoEvento(eventoId);
+    const novoContador = toggleInteresseGlobal(eventoId);
+
+    if (interessadoAtual) {
         btnElement.classList.remove('demonstrou-interesse');
         btnElement.innerHTML = '🤍 Demonstrar Interesse';
-        // Atualizar contador no modal
-        const contadorEl = btnElement.parentElement.querySelector('.interesses-count-modal');
-        if (contadorEl) {
-            const currentCount = parseInt(contadorEl.textContent.match(/\d+/)[0]);
-            contadorEl.textContent = `👥 ${currentCount - 1} pessoas interessadas`;
-        }
     } else {
-        // Adicionar interesse
-        interesses.push(eventoId);
         btnElement.classList.add('demonstrou-interesse');
         btnElement.innerHTML = '❤️ Interessado';
-        // Atualizar contador no modal
-        const contadorEl = btnElement.parentElement.querySelector('.interesses-count-modal');
-        if (contadorEl) {
-            const currentCount = parseInt(contadorEl.textContent.match(/\d+/)[0]);
-            contadorEl.textContent = `👥 ${currentCount + 1} pessoas interessadas`;
-        }
     }
-    
-    localStorage.setItem('eventos-interesses', JSON.stringify(interesses));
+
+    const contadorEl = btnElement.parentElement.querySelector('.interesses-count-modal');
+    if (contadorEl) {
+        contadorEl.textContent = `👥 ${novoContador} pessoas interessadas`;
+    }
+
+    // Atualizar quantificador no card principal caso renderizado
+    document.querySelectorAll('.event-card').forEach(card => {
+        const id = card.getAttribute('data-evento-id');
+        if (id === eventoId) {
+            const q = card.querySelector('.interesses-count');
+            if (q) q.textContent = `👥 ${novoContador} interessados`;
+        }
+    });
 };
 
 // --- FUNÇÕES DE PREFERÊNCIAS ---
@@ -141,6 +139,53 @@ function getLocalizacaoUsuario() {
     } catch (e) {
         return { estado: '', cidade: '' };
     }
+}
+
+function getUsuarioId() {
+    const usuario = localStorage.getItem('eventhub-usuario');
+    if (!usuario) return 'anonimo';
+    try {
+        const dados = JSON.parse(usuario);
+        return dados.id ? String(dados.id) : 'anonimo';
+    } catch {
+        return 'anonimo';
+    }
+}
+
+function getInteressesGlobais() {
+    const data = localStorage.getItem('eventos-interesses-globais');
+    return data ? JSON.parse(data) : {};
+}
+
+function setInteressesGlobais(obj) {
+    localStorage.setItem('eventos-interesses-globais', JSON.stringify(obj));
+}
+
+function getContadorInteressesEvento(eventoId) {
+    const globais = getInteressesGlobais();
+    return Array.isArray(globais[eventoId]) ? globais[eventoId].length : 0;
+}
+
+function usuarioInteressadoNoEvento(eventoId) {
+    const user = getUsuarioId();
+    const globais = getInteressesGlobais();
+    const lista = Array.isArray(globais[eventoId]) ? globais[eventoId] : [];
+    return lista.includes(user);
+}
+
+function toggleInteresseGlobal(eventoId) {
+    const user = getUsuarioId();
+    const globais = getInteressesGlobais();
+    const lista = Array.isArray(globais[eventoId]) ? globais[eventoId] : [];
+
+    if (lista.includes(user)) {
+        globais[eventoId] = lista.filter(uid => uid !== user);
+    } else {
+        globais[eventoId] = [...lista, user];
+    }
+
+    setInteressesGlobais(globais);
+    return globais[eventoId].length;
 }
 
 function filtrarEventosParaVoce() {
@@ -265,10 +310,39 @@ function filtrarEventos() {
     if (currentView === 'calendario') {
         renderizarCalendario();
     }
-    
-    // Renderizar os eventos filtrados
-    renderizarGrid(filtrados, true);
+
+    // Dividir eventos entre 'Para Você' e 'Todos'
+    const eventosParaVoce = filtrarEventosParaVoce().filter(ev => filtrados.some(f => f._id === ev._id));
+    const idsParaVoce = new Set(eventosParaVoce.map(ev => ev._id));
+    const eventosDestacados = filtrados.filter(ev => !idsParaVoce.has(ev._id));
+
+    const containerParaVoce = document.getElementById('eventos-para-voce');
+    const mensagemParaVoce = document.getElementById('mensagem-para-voce');
+    if (containerParaVoce) {
+        containerParaVoce.innerHTML = '';
+        if (eventosParaVoce.length === 0) {
+            mensagemParaVoce.textContent = 'Nenhum evento encontrado para suas preferências.';
+            mensagemParaVoce.style.display = 'block';
+        } else {
+            mensagemParaVoce.style.display = 'none';
+            eventosParaVoce.forEach(ev => containerParaVoce.appendChild(criarCardEvento(ev, true)));
+        }
+    }
+
+    const containerTodos = document.getElementById('event-cards');
+    const mensagemTodos = document.getElementById('mensagem-eventos');
+    if (containerTodos) {
+        containerTodos.innerHTML = '';
+        if (eventosDestacados.length === 0) {
+            mensagemTodos.textContent = 'Nenhum outro evento encontrado.';
+            mensagemTodos.style.display = 'block';
+        } else {
+            mensagemTodos.style.display = 'none';
+            eventosDestacados.forEach(ev => containerTodos.appendChild(criarCardEvento(ev, true)));
+        }
+    }
 }
+
 
 function converterDataParaISO(texto) {
     if (!texto) return null;
@@ -344,12 +418,11 @@ async function carregarEventos() {
             }
         }
         
-        // Carregar "Todos os Eventos" - mostrar todos, mas priorizar os que não estão em "Para Você"
-        const idsParaVoce = eventosParaVoce.map(ev => ev._id);
-        const eventosNaoParaVoce = todosEventos.filter(ev => !idsParaVoce.includes(ev._id));
-        const todosOrdenados = [...eventosParaVoce, ...eventosNaoParaVoce]; // Para Você primeiro, depois os outros
-        
-        renderizarGrid(todosOrdenados, true);
+        // Popular os filtros de seleção
+        popularFiltros();
+
+        // Aplicar filtros iniciais e renderizar
+        filtrarEventos();
 
         // Adiciona ouvintes de busca e filtros
         const inputs = ['search-input', 'filtro-estado', 'filtro-cidade', 'filtro-categoria', 'filtro-preco', 'filtro-data', 'filtro-horario'];
@@ -471,7 +544,13 @@ window.limparFiltros = function() {
 
 window.toggleFiltros = function() {
     const container = document.getElementById('filtros-container');
-    container.style.display = container.style.display === 'none' ? 'grid' : 'none';
+    if (!container) return;
+    const isHidden = container.style.display === 'none' || !container.style.display;
+    container.style.display = isHidden ? 'grid' : 'none';
+    if (!isHidden) {
+        // botão rápido: aplicar filtro quando fecha o painel
+        filtrarEventos();
+    }
 };
 
 // --- CALENDÁRIO ---
