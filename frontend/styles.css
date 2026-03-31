@@ -19,7 +19,7 @@ body {
 
 .container {
   position: relative; z-index: 1;
-  max-width: 1200px; margin: 120px auto 32px auto; padding: 32px 16px;
+  max-width: 1200px; margin: 80px auto 32px auto; padding: 32px 16px;
 }
 
 /* --- HEADER E MENU --- */
@@ -30,15 +30,23 @@ header {
   right: 0;
   text-align: center; 
   background: linear-gradient(135deg, rgba(26, 35, 50, 0.9), rgba(24, 26, 32, 0.95));
-  padding: 20px;
+  padding: 10px;
   border-bottom: 2px solid var(--cor-principal);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   z-index: 100;
 }
+
+.hero-section {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, rgba(26, 35, 50, 0.9), rgba(24, 26, 32, 0.95));
+  margin-bottom: 20px;
+}
+
 .logo { font-size: 2.8rem; font-weight: bold; letter-spacing: 2px; margin: 0; color: var(--cor-principal); }
 .subtitle { font-size: 1.2rem; color: #aaa; margin-top: 8px; }
 
-.menu { display: flex; justify-content: center; gap: 20px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.menu { display: flex; justify-content: center; gap: 20px; margin-bottom: 0; flex-wrap: wrap; align-items: center; }
 .menu a { color: #fff; text-decoration: none; font-weight: 500; padding: 8px 16px; border-radius: 8px; transition: 0.2s; }
 .menu a:hover { background: rgba(255,255,255,0.08); color: var(--cor-principal); }
 
@@ -227,9 +235,10 @@ header {
   border-color: var(--cor-principal);
 }
 
-.dia-calendario.tem-eventos {
-  background: rgba(0, 191, 255, 0.05);
-  border-color: var(--cor-principal);
+.dia-calendario.dia-atual {
+  background: rgba(0, 191, 255, 0.3) !important;
+  border-color: var(--cor-principal) !important;
+  font-weight: bold;
 }
 
 .numero-dia {
@@ -257,23 +266,55 @@ header {
   background: transparent;
 }
 
-.evento-calendario {
-  padding: 10px;
-  margin: 5px 0;
+.eventos-calendario-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.evento-calendario-item {
+  display: flex;
+  gap: 15px;
+  padding: 15px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s;
+  align-items: center;
 }
 
-.evento-calendario:hover {
+.evento-calendario-item:hover {
   background: rgba(0, 191, 255, 0.1);
 }
 
-.evento-calendario h3 {
+.evento-calendario-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.evento-calendario-info h3 {
   margin: 0 0 5px 0;
   color: var(--cor-principal);
-  font-size: 16px;
+  font-size: 18px;
+}
+
+.evento-categoria {
+  color: #00ff00;
+  font-size: 14px;
+  margin: 0 0 5px 0;
+}
+
+.evento-horario, .evento-preco {
+  margin: 2px 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.evento-preco {
+  color: #00ff00;
+  font-weight: bold;
 }
 
 .evento-stats-modal {
@@ -344,21 +385,13 @@ header {
 
 .btn-mais-info:hover { background: #00a0d6; transform: scale(1.02); }
 
-/* --- FORMULÁRIOS E OUTROS (MANTIDOS) --- */
-.card-form { background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 32px; max-width: 600px; margin: 0 auto 32px; }
-.card-form input, .card-form textarea, .card-form select { 
-  width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; 
-  background: rgba(255,255,255,0.08); color: #fff; margin-top: 8px; box-sizing: border-box; 
+/* --- BOTÕES DE VISUALIZAÇÃO --- */
+#view-eventos, #view-calendario {
+  transition: all 0.3s ease;
 }
-.card-form button { background: var(--cor-principal); color: #000; border: none; border-radius: 8px; padding: 12px 32px; font-weight: bold; cursor: pointer; margin-top: 16px; }
 
-#icone-perfil {
-  position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%;
-  display: grid; place-items: center; cursor: pointer; z-index: 1000;
-  border: 3px solid #0f1419; background: var(--cor-principal); overflow: hidden;
+#view-eventos.active, #view-calendario.active {
+  background: var(--cor-principal) !important;
+  color: #000 !important;
+  border-color: var(--cor-principal) !important;
 }
-#icone-perfil img { width: 100%; height: 100%; object-fit: cover; }
-
-.msg-vazia { text-align: center; color: #888; margin-top: 16px; }
-.filtro-select { width: 100%; padding: 8px; border-radius: 4px; background: var(--bg-secondary); color: #fff; border: 1px solid var(--cor-principal); }
-.btn-limpar { width: 100%; padding: 8px; background: var(--cor-principal); border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }

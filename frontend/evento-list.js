@@ -230,12 +230,20 @@ function filtrarEventos() {
     const cidadeFiltro = cidade || (localizacaoUsuario.cidade && !termo && !estado && !categoria && !dataFiltro && !horarioFiltro && precoMax === Infinity ? localizacaoUsuario.cidade : "");
 
     const filtrados = todosEventos.filter(ev => {
-        // Busca por nome, cidade, categoria ou estado
-        const matchesBusca = !termo || 
-            ev.nome?.toLowerCase().includes(termo) || 
-            ev.cidade?.toLowerCase().includes(termo) ||
-            ev.categoria?.toLowerCase().includes(termo) ||
-            ev.estado?.toLowerCase().includes(termo);
+        // Busca por nome, cidade, categoria, estado, data, horário ou preço
+        let matchesBusca = true;
+        if (termo) {
+            const termoLower = termo.toLowerCase();
+            matchesBusca = 
+                ev.nome?.toLowerCase().includes(termoLower) || 
+                ev.cidade?.toLowerCase().includes(termoLower) ||
+                ev.categoria?.toLowerCase().includes(termoLower) ||
+                ev.estado?.toLowerCase().includes(termoLower) ||
+                ev.data?.includes(termo) ||
+                ev.horario?.includes(termo) ||
+                (ev.gratuito && termoLower.includes('gratuito')) ||
+                filtrarPorPrecoTexto(ev, termoLower);
+        }
         
         const matchesEstado = estadoFiltro === "" || ev.estado === estadoFiltro;
         const matchesCidade = cidadeFiltro === "" || ev.cidade === cidadeFiltro;
@@ -254,6 +262,34 @@ function filtrarEventos() {
     
     // Renderizar os eventos filtrados
     renderizarGrid(filtrados, true);
+}
+
+function filtrarPorPrecoTexto(evento, termo) {
+    // Verificar se o termo contém indicações de preço
+    const precoIndicadores = ['r$', 'r', '$', 'real', 'reais'];
+    const temIndicadorPreco = precoIndicadores.some(ind => termo.includes(ind.replace('$', '\\$')));
+    
+    if (!temIndicadorPreco) return false;
+    
+    // Extrair valor numérico do termo
+    const numeroMatch = termo.match(/(\d+(?:[.,]\d+)?)/);
+    if (!numeroMatch) return false;
+    
+    const valorBuscado = parseFloat(numeroMatch[1].replace(',', '.'));
+    
+    if (evento.gratuito) {
+        return termo.includes('gratuito') || termo.includes('0');
+    }
+    
+    const precoEvento = parseFloat(evento.preco) || 0;
+    
+    // Se buscar "gratuito", mostrar apenas gratuitos
+    if (termo.includes('gratuito')) {
+        return evento.gratuito;
+    }
+    
+    // Se buscar um valor, mostrar eventos com preço <= ao buscado
+    return precoEvento <= valorBuscado;
 }
 
 function renderizarGrid(lista, mostrarFavorito = true) {
@@ -301,12 +337,34 @@ async function carregarEventos() {
         
         renderizarGrid(todosOrdenados, true);
 
-        // Adiciona ouvintes de busca
-        const inputs = ['search-input', 'filtro-cidade', 'filtro-categoria', 'filtro-preco', 'filtro-data', 'filtro-horario'];
+        // Adiciona ouvintes de busca e filtros
+        const inputs = ['search-input', 'filtro-estado', 'filtro-cidade', 'filtro-categoria', 'filtro-preco', 'filtro-data', 'filtro-horario'];
         inputs.forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.addEventListener(id.includes('search') || id.includes('preco') ? 'input' : 'change', filtrarEventos);
+            if (el) {
+                if (id === 'search-input' || id === 'filtro-preco') {
+                    el.addEventListener('input', filtrarEventos);
+                } else {
+                    el.addEventListener('change', filtrarEventos);
+                }
+            }
         });
+        
+        // Adiciona ouvintes para os botões de visualização
+        const btnFiltros = document.getElementById('toggle-filtros');
+        if (btnFiltros) {
+            btnFiltros.addEventListener('click', () => window.toggleFiltros());
+        }
+        
+        const btnEventos = document.getElementById('view-eventos');
+        if (btnEventos) {
+            btnEventos.addEventListener('click', () => window.setView('eventos'));
+        }
+        
+        const btnCalendario = document.getElementById('view-calendario');
+        if (btnCalendario) {
+            btnCalendario.addEventListener('click', () => window.setView('calendario'));
+        }
 
     } catch (err) {
         console.error("Erro ao carregar:", err);
@@ -370,10 +428,11 @@ window.setView = function(view) {
     currentView = view;
     
     // Atualizar botões
-    document.getElementById('view-eventos').style.background = view === 'eventos' ? 'var(--cor-principal, #00bfff)' : 'var(--bg-secondary, #1a2332)';
-    document.getElementById('view-eventos').style.color = view === 'eventos' ? '#000' : 'var(--text-primary, #fff)';
-    document.getElementById('view-calendario').style.background = view === 'calendario' ? 'var(--cor-principal, #00bfff)' : 'var(--bg-secondary, #1a2332)';
-    document.getElementById('view-calendario').style.color = view === 'calendario' ? '#000' : 'var(--text-primary, #fff)';
+    const btnEventos = document.getElementById('view-eventos');
+    const btnCalendario = document.getElementById('view-calendario');
+    
+    btnEventos.classList.toggle('active', view === 'eventos');
+    btnCalendario.classList.toggle('active', view === 'calendario');
     
     // Mostrar/ocultar seções
     document.getElementById('section-para-voce').style.display = view === 'eventos' ? 'block' : 'none';
@@ -420,7 +479,11 @@ function renderizarCalendario() {
             ev.nome?.toLowerCase().includes(termo) || 
             ev.cidade?.toLowerCase().includes(termo) ||
             ev.categoria?.toLowerCase().includes(termo) ||
-            ev.estado?.toLowerCase().includes(termo);
+            ev.estado?.toLowerCase().includes(termo) ||
+            ev.data?.includes(termo) ||
+            ev.horario?.includes(termo) ||
+            (ev.gratuito && termo.includes('gratuito')) ||
+            filtrarPorPrecoTexto(ev, termo);
         
         const matchesEstado = estado === "" || ev.estado === estado;
         const matchesCidade = cidade === "" || ev.cidade === cidade;
@@ -439,6 +502,10 @@ function renderizarCalendario() {
         if (!eventosPorData[data]) eventosPorData[data] = [];
         eventosPorData[data].push(ev);
     });
+    
+    // Data atual
+    const hoje = new Date();
+    const hojeStr = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
     
     // Gerar calendário
     const primeiroDia = new Date(calendarioAno, calendarioMes, 1);
@@ -472,9 +539,14 @@ function renderizarCalendario() {
         const dataStr = `${calendarioAno}-${String(calendarioMes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
         const eventosDia = eventosPorData[dataStr] || [];
         const temEventos = eventosDia.length > 0;
+        const ehHoje = dataStr === hojeStr;
+        
+        let classes = 'dia-calendario';
+        if (temEventos) classes += ' tem-eventos';
+        if (ehHoje) classes += ' dia-atual';
         
         html += `
-            <div class="dia-calendario ${temEventos ? 'tem-eventos' : ''}" onclick="mostrarEventosDia('${dataStr}')">
+            <div class="${classes}" onclick="mostrarEventosDia('${dataStr}')">
                 <div class="numero-dia">${dia}</div>
                 ${temEventos ? `<div class="eventos-count">${eventosDia.length}</div>` : ''}
             </div>
@@ -504,16 +576,31 @@ window.mostrarEventosDia = function(data) {
     const modal = document.getElementById('event-modal');
     const body = document.getElementById('modal-body');
     
+    // Lógica de Imagem e preço igual ao criarCardEvento
+    const eventosHtml = eventosDia.map(ev => {
+        let imagemFinal = ev.imagens && ev.imagens.length > 0 ? ev.imagens[0] : (ev.imagem_url || 'https://via.placeholder.com/400x200?text=Sem+Imagem');
+        const preco = parseFloat(ev.preco) || 0;
+        const precoTexto = (ev.gratuito || preco === 0) ? 'GRATUITO' : `R$ ${preco.toFixed(2)}`;
+        
+        return `
+            <div class="evento-calendario-item" onclick="window.abrirPreviaCalendario('${JSON.stringify(ev).replace(/'/g, "\\'").replace(/"/g, '\\"')}', '${imagemFinal}')">
+                <img src="${imagemFinal}" alt="${ev.nome}" class="evento-calendario-img" onerror="this.src='https://via.placeholder.com/400x200?text=Imagem+Indisponível';">
+                <div class="evento-calendario-info">
+                    <h3>${ev.nome}</h3>
+                    <p class="evento-categoria">${ev.categoria || 'Geral'}</p>
+                    <p class="evento-horario">🕒 ${ev.horario || '--:--'}</p>
+                    <p class="evento-preco">${precoTexto}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
     body.innerHTML = `
         <div class="modal-padding" style="padding:20px; color: white;">
             <h2 style="color:#00bfff; margin-bottom:20px;">Eventos em ${new Date(data).toLocaleDateString('pt-BR')}</h2>
-            ${eventosDia.map(ev => `
-                <div class="evento-calendario" onclick="window.abrirPreviaCalendario('${JSON.stringify(ev).replace(/'/g, "\\'").replace(/"/g, '\\"')}', '${ev.imagens?.[0] || ev.imagem_url || 'https://via.placeholder.com/400x200?text=Sem+Imagem'}')">
-                    <h3>${ev.nome}</h3>
-                    <p>📍 ${ev.cidade} - ${ev.horario || '--:--'}</p>
-                    <p>${ev.categoria || 'Geral'}</p>
-                </div>
-            `).join('')}
+            <div class="eventos-calendario-lista">
+                ${eventosHtml}
+            </div>
         </div>
     `;
     

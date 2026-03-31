@@ -41,12 +41,17 @@ function inicializarIconePerfil() {
             }
         } catch (error) {
             console.error('Erro ao processar dados do usuário:', error);
+            iconePerfilImg.style.display = 'none';
+            iconePerfil.classList.remove('has-image');
         }
     } else {
-        // Se não estiver logado, esconde o ícone
+        // Se não estiver logado, mostra ícone padrão
         iconePerfilImg.style.display = 'none';
-        iconePerfil.style.display = 'none'; 
+        iconePerfil.classList.remove('has-image');
     }
+    
+    // Sempre mostra o botão do perfil
+    iconePerfil.style.display = 'grid';
 }
 
 function irParaPerfil() {
