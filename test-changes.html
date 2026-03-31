@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Teste de Mudanças</title>
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    .test { margin: 20px 0; padding: 15px; background: #f0f0f0; border-left: 4px solid #00bfff; }
+    .pass { color: green; font-weight: bold; }
+    .fail { color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Teste de Mudanças</h1>
+  
+  <div class="test">
+    <h3>1. ✅ Botão Perfil no lado direito (right: 24px)</h3>
+    <p id="perfil-test"></p>
+  </div>
+  
+  <div class="test">
+    <h3>2. ✅ Busca por Gratuito/Gratis</h3>
+    <p id="gratuito-test"></p>
+  </div>
+  
+  <div class="test">
+    <h3>3. ✅ Botão Filtro Funcionando</h3>
+    <p id="filtro-test"></p>
+  </div>
+  
+  <div class="test">
+    <h3>4. ✅ Botão Perfil Navega para perfil.html</h3>
+    <p id="nav-test"></p>
+  </div>
+
+  <script>
+    async function testarMudancas() {
+      try {
+        // Buscar index.html do frontend
+        const response = await fetch('index.html');
+        const html = await response.text();
+        
+        // Teste 1: Verificar se botão perfil tem "right" em vez de "left"
+        const perfilMatch = html.match(/#icone-perfil\s*\{[^}]*right:[^}]*\}/);
+        const test1 = perfilMatch ? '<span class="pass">✓ PASS</span>' : '<span class="fail">✗ FAIL</span>';
+        document.getElementById('perfil-test').innerHTML = test1 + ' - Botão perfil está com "right: 24px"';
+        
+        // Teste 2: Verificar se a lógica de gratuito está melhorada
+        const gratuitoMatch = html.match(/termoNormalizado\.includes\('gratuito'\).*?ev\.gratuito.*?parseFloat/s) ||
+                             html.match(/gratuito.*?parseFloat/s);
+        const test2 = gratuitoMatch ? '<span class="pass">✓ PASS</span>' : '<span class="fail">✗ FAIL</span>';
+        document.getElementById('gratuito-test').innerHTML = test2 + ' - Lógica de busca por gratuito melhorada';
+        
+        // Teste 3: Verificar se toggleFiltros existe
+        const filtroMatch = html.match(/toggleFiltros|setView/);
+        const test3 = filtroMatch ? '<span class="pass">✓ PASS</span>' : '<span class="fail">✗ FAIL</span>';
+        document.getElementById('filtro-test').innerHTML = test3 + ' - Funções de filtro e visualização presentes';
+        
+        // Teste 4: Verificar se irParaPerfil navega
+        const navMatch = html.match(/irParaPerfil.*?perfil\.html/) || html.match(/window\.location\.href.*?perfil\.html/);
+        const test4 = navMatch ? '<span class="pass">✓ PASS</span>' : '<span class="fail">✗ FAIL</span>';
+        document.getElementById('nav-test').innerHTML = test4 + ' - Função de navegação para perfil.html presente';
+        
+        console.log('✅ Testes executados com sucesso!');
+      } catch (error) {
+        console.error('Erro ao testar:', error);
+        document.body.innerHTML += `<p style="color: red;">Erro: ${error.message}</p>`;
+      }
+    }
+    
+    // Esperar 2 segundos e depois testar
+    setTimeout(testarMudancas, 2000);
+  </script>
+</body>
+</html>

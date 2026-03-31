@@ -1,5 +1,5 @@
 
-const BASE_URL = window.BASE_URL || "https://eventhub-api-649702844549.southamerica-east1.run.app";
+const BASE_URL = window.BASE_URL || "https://eventhub-api-649702844549.us-central1.run.app";
 const API_URL = window.API_URL || `${BASE_URL}/api`;
 
 window.BASE_URL = BASE_URL;
