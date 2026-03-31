@@ -540,10 +540,12 @@ function popularFiltros() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    carregarEventos();
-    // Inicializar visualização padrão
-    window.setView('eventos');
+document.addEventListener('DOMContentLoaded', async () => {
+    await carregarEventos();
+    // Inicializar visualização padrão após carregar eventos
+    if (typeof window.setView === 'function') {
+        window.setView('eventos');
+    }
 });
 
 // --- FUNÇÕES DE VISUALIZAÇÃO ---
