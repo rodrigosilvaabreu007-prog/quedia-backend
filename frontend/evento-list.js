@@ -374,11 +374,11 @@ function filtrarEventosParaVoce(eventosBase = todosEventos, termoBusca = '', est
 
     document.getElementById('section-para-voce').style.display = 'block';
 
-    const preferenciaUnica = preferencias[0];
+    const preferenciaMatch = preferencias.map(p => p.toLowerCase());
     const aplicarFiltroLocal = !estadoFiltro && !cidadeFiltro && !consegueFiltrarPorLocal(termoBusca, estadoFiltro, cidadeFiltro);
 
     return eventosBase.filter(ev => {
-        const categoriaMatch = ev.categoria && ev.categoria.toLowerCase().includes(preferenciaUnica.toLowerCase());
+        const categoriaMatch = ev.categoria && preferenciaMatch.some(pref => ev.categoria.toLowerCase().includes(pref));
         if (!categoriaMatch) return false;
 
         if (aplicarFiltroLocal && localizacao.cidade) {
@@ -458,7 +458,7 @@ function filtrarEventos() {
     const preferenciasAtuais = getPreferenciasUsuario();
     const sectionParaVoce = document.getElementById('section-para-voce');
     if (sectionParaVoce) {
-        if (!preferenciasAtuais || preferenciasAtuais.length !== 1) {
+        if (!preferenciasAtuais || preferenciasAtuais.length === 0) {
             sectionParaVoce.style.display = 'none';
         } else {
             sectionParaVoce.style.display = 'block';
@@ -476,7 +476,8 @@ function filtrarEventos() {
             const termoNormalizado = normalizarTexto(termo);
             const termoDataISO = converterDataParaISO(termo);
             const siglaEstadoPorNome = obterSiglaEstadoPorNome(termoNormalizado);
-            const dataFormatoBusca = ev.data ? ev.data.replace(/-/g, '/').replace(/\s.*$/, '') : '';
+            const dataFormatoAnoMesDia = ev.data ? ev.data.replace(/-/g, '/') : '';
+            const dataFormatoDiaMesAno = ev.data ? ev.data.split('-').reverse().join('/') : '';
 
             const evEstadoNormalizado = (ev.estado && normalizarTexto(ev.estado)) || '';
             const evEstadoSigla = (ev.estado && ev.estado.toUpperCase()) || '';
@@ -489,7 +490,8 @@ function filtrarEventos() {
                 (ev.estado && evEstadoNormalizado.includes(termoNormalizado)) ||
                 (siglaEstadoPorNome && evEstadoSigla === siglaEstadoPorNome) ||
                 (termoDataISO && ev.data === termoDataISO) ||
-                (dataFormatoBusca && dataFormatoBusca.includes(termo)) ||
+                (dataFormatoAnoMesDia && dataFormatoAnoMesDia.includes(termo)) ||
+                (dataFormatoDiaMesAno && dataFormatoDiaMesAno.includes(termo)) ||
                 (ev.horario && ev.horario.includes(termo)) ||
                 ((termoNormalizado.includes('gratuito') || termoNormalizado.includes('gratis')) && (ev.gratuito || parseFloat(ev.preco || 0) === 0)) ||
                 filtrarPorPrecoTexto(ev, termoNormalizado);
@@ -525,7 +527,7 @@ function filtrarEventos() {
     const containerParaVoce = document.getElementById('eventos-para-voce');
     const mensagemParaVoce = document.getElementById('mensagem-para-voce');
 
-    if (!preferenciasAtuais || preferenciasAtuais.length !== 1) {
+    if (!preferenciasAtuais || preferenciasAtuais.length === 0) {
         if (sectionParaVoce) sectionParaVoce.style.display = 'none';
         if (containerParaVoce) containerParaVoce.innerHTML = '';
         if (mensagemParaVoce) mensagemParaVoce.style.display = 'none';
@@ -756,7 +758,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const preferenciasAtuais = getPreferenciasUsuario();
     const sectionParaVoce = document.getElementById('section-para-voce');
     if (sectionParaVoce) {
-        if (!preferenciasAtuais || preferenciasAtuais.length !== 1) {
+        if (!preferenciasAtuais || preferenciasAtuais.length === 0) {
             sectionParaVoce.style.display = 'none';
         }
     }
@@ -841,12 +843,17 @@ function renderizarCalendario() {
     const horarioFiltro = document.getElementById('filtro-horario')?.value || "";
     
     const eventosFiltrados = todosEventos.filter(ev => {
+        const dataFormatoDiaMesAno = ev.data ? ev.data.split('-').reverse().join('/') : '';
+        const dataFormatoAnoMesDia = ev.data ? ev.data.replace(/-/g, '/') : '';
+
         const matchesBusca = !termo || 
             ev.nome?.toLowerCase().includes(termo) || 
             ev.cidade?.toLowerCase().includes(termo) ||
             ev.categoria?.toLowerCase().includes(termo) ||
             ev.estado?.toLowerCase().includes(termo) ||
             ev.data?.includes(termo) ||
+            dataFormatoDiaMesAno.includes(termo) ||
+            dataFormatoAnoMesDia.includes(termo) ||
             ev.horario?.includes(termo) ||
             (ev.gratuito && termo.includes('gratuito')) ||
             filtrarPorPrecoTexto(ev, termo);
