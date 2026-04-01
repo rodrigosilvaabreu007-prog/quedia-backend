@@ -70,6 +70,12 @@ function criarCardEvento(evento, mostrarFavorito = true) {
 
 // --- FUNÇÕES DE FAVORITOS ---
 window.toggleFavorito = function(eventoId, btnElement) {
+    if (!isUsuarioLogado()) {
+        alert('Você precisa estar logado para favoritar eventos.');
+        window.location.href = 'login.html';
+        return;
+    }
+
     const favoritos = JSON.parse(localStorage.getItem('eventos-favoritos') || '[]');
     const index = favoritos.indexOf(eventoId);
     const tinhaFavorito = index > -1;
@@ -106,6 +112,12 @@ window.toggleFavorito = function(eventoId, btnElement) {
 };
 
 window.toggleInteresse = function(eventoId, btnElement) {
+    if (!isUsuarioLogado()) {
+        alert('Atenção: é necessário estar logado para demonstrar interesse.');
+        window.location.href = 'login.html';
+        return;
+    }
+
     const usuario = getUsuarioId();
     const interessadoAtual = usuarioInteressadoNoEvento(eventoId);
     const novoContador = toggleInteresseGlobal(eventoId);
@@ -166,10 +178,15 @@ function getUsuarioId() {
     if (!usuario) return 'anonimo';
     try {
         const dados = JSON.parse(usuario);
-        return dados.id ? String(dados.id) : 'anonimo';
+        return dados.id ? String(dados.id) : (dados._id ? String(dados._id) : 'anonimo');
     } catch {
         return 'anonimo';
     }
+}
+
+function isUsuarioLogado() {
+    const usuarioId = getUsuarioId();
+    return usuarioId && usuarioId !== 'anonimo';
 }
 
 function getInteressesGlobais() {
@@ -194,6 +211,10 @@ function usuarioInteressadoNoEvento(eventoId) {
 }
 
 function toggleInteresseGlobal(eventoId) {
+    if (!isUsuarioLogado()) {
+        return 0; // Proteção extra: ações inválidas não devem ser persistidas
+    }
+
     const user = getUsuarioId();
     const globais = getInteressesGlobais();
     const lista = Array.isArray(globais[eventoId]) ? globais[eventoId] : [];
