@@ -72,10 +72,21 @@ async function listarInteressesUsuario(usuario_id) {
     return interesses.map(i => i.evento_id);
 }
 
+// Função para remover todos os interesses de um usuário (quando conta é excluída)
+async function removerInteressesPorUsuario(usuario_id) {
+    if (mongoose.connection.readyState !== 1) {
+        throw new Error("Conexão com MongoDB não está pronta.");
+    }
+
+    const resultado = await Interesse.deleteMany({ usuario_id });
+    return resultado.deletedCount;
+}
+
 module.exports = {
     adicionarInteresse,
     removerInteresse,
     usuarioTemInteresse,
     contarInteresses,
-    listarInteressesUsuario
+    listarInteressesUsuario,
+    removerInteressesPorUsuario
 };

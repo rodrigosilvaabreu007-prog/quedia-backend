@@ -8,7 +8,7 @@ const { registrarUsuario, autenticarUsuario, buscarUsuarioPorId, atualizarUsuari
 
 // 1. IMPORTAÇÃO DOS MODELS (Caminho corrigido para a pasta models)
 const { cadastrarEvento, listarEventos, deletarEvento } = require('./models/eventos');
-const { adicionarInteresse, removerInteresse, usuarioTemInteresse, contarInteresses, listarInteressesUsuario } = require('./models/interesses');
+const { adicionarInteresse, removerInteresse, usuarioTemInteresse, contarInteresses, listarInteressesUsuario, removerInteressesPorUsuario } = require('./models/interesses');
 
 // 2. CONFIGURAÇÃO DO CLOUDINARY
 cloudinary.config({
@@ -225,6 +225,9 @@ router.delete('/usuario/:id', verificarToken, async (req, res) => {
         if (tokenUserId !== paramUserId) {
             return res.status(403).json({ erro: 'Você não tem permissão para deletar esta conta' });
         }
+
+        // Limpar interesses relacionados (evita interesses fantasmas após exclusão)
+        await removerInteressesPorUsuario(id);
 
         // Aqui você precisa implementar a função deletarUsuario
         const usuarioDeletado = await deletarUsuario(id);

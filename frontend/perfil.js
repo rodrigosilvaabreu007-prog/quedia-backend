@@ -353,10 +353,6 @@ function atualizarCidadesEditar(estado) {
   select.disabled = false;
 }
 
-// Função para fechar modal de deletar
-function fecharModalDeletar() {
-  document.getElementById('modal-deletar').style.display = 'none';
-}
 async function salvarAlteracoes(e) {
   e.preventDefault();
   
@@ -402,8 +398,14 @@ async function salvarAlteracoes(e) {
     if (tratarErroAutenticacao(resposta)) return;
     
     if (!resposta.ok) {
-      const erro = await resposta.json();
-      throw new Error(erro.erro || 'Erro ao atualizar perfil');
+      let mensagemErro = 'Erro ao atualizar perfil';
+      try {
+        const erro = await resposta.json();
+        mensagemErro = erro.erro || erro.message || mensagemErro;
+      } catch {
+        mensagemErro = resposta.statusText || mensagemErro;
+      }
+      throw new Error(mensagemErro);
     }
     
     const usuarioAtualizado = await resposta.json();
@@ -460,8 +462,14 @@ async function confirmarDelecao() {
       window.showNotification('Conta deletada com sucesso', 'success');
       setTimeout(() => window.location.href = 'index.html', 800);
     } else {
-      const erro = await resposta.json();
-      window.showNotification(erro.erro || 'Erro ao deletar conta', 'error');
+      let mensagemErro = 'Erro ao deletar conta';
+      try {
+        const erro = await resposta.json();
+        mensagemErro = erro.erro || erro.message || mensagemErro;
+      } catch {
+        mensagemErro = resposta.statusText || mensagemErro;
+      }
+      window.showNotification(mensagemErro, 'error');
     }
   } catch (erro) {
     console.error('Erro:', erro);
@@ -492,6 +500,17 @@ function tratarErroAutenticacao(response) {
 
 // Carregar perfil quando a página carrega
 document.addEventListener('DOMContentLoaded', () => {
+  // Forçar fechamento de todos os modais antes de carregar
+  const modalEditar = document.getElementById('modal-editar');
+  const modalDeletar = document.getElementById('modal-deletar');
+  
+  if (modalEditar) {
+    modalEditar.style.display = 'none';
+  }
+  if (modalDeletar) {
+    modalDeletar.style.display = 'none';
+  }
+  
   // Carrega o perfil mas NÃO abre nenhum modal
   carregarPerfil();
   
@@ -501,9 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', salvarAlteracoes);
   }
   
-  // Garantir que os modais começam fechados
-  const modalEditar = document.getElementById('modal-editar');
-  const modalDeletar = document.getElementById('modal-deletar');
+  // Garantir que os modais começam fechados (dupla verificação)
   if (modalEditar) modalEditar.style.display = 'none';
   if (modalDeletar) modalDeletar.style.display = 'none';
 });

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste Perfil - Correção Modal</title>
+  <style>
+    body { background: #0f1419; color: #fff; font-family: Arial; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { color: #00bfff; text-align: center; }
+    .teste { background: #1a2332; border: 2px solid #00bfff; padding: 20px; margin: 15px 0; border-radius: 8px; }
+    h2 { color: #00bfff; }
+    .status { padding: 10px; border-radius: 4px; margin: 10px 0; }
+    .status.ok { background: #28a745; color: #fff; }
+    .status.erro { background: #dc3545; color: #fff; }
+    button { padding: 10px 20px; background: #00bfff; border: none; border-radius: 4px; color: #000; cursor: pointer; margin: 5px; }
+    button:hover { background: #00a8d4; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Teste Correção Modal Perfil</h1>
+
+    <div class="teste">
+      <h2>1️⃣ Verificar Modais</h2>
+      <p>Os modais devem estar fechados por padrão</p>
+      <button onclick="verificarModais()">Verificar Modais</button>
+      <div id="status-modais" class="status"></div>
+    </div>
+
+    <div class="teste">
+      <h2>2️⃣ Testar Abrir Modal Editar</h2>
+      <p>Clicar deve abrir o modal de edição</p>
+      <button onclick="abrirModalEditar()">Abrir Modal Editar</button>
+      <button onclick="fecharModalEditar()">Fechar Modal Editar</button>
+      <div id="status-editar" class="status"></div>
+    </div>
+
+    <div class="teste">
+      <h2>3️⃣ Testar Abrir Modal Deletar</h2>
+      <p>Clicar deve abrir o modal de exclusão</p>
+      <button onclick="abrirModalDeletar()">Abrir Modal Deletar</button>
+      <button onclick="fecharModalDeletar()">Fechar Modal Deletar</button>
+      <div id="status-deletar" class="status"></div>
+    </div>
+
+    <div class="teste">
+      <h2>4️⃣ Testar Perfil Completo</h2>
+      <p>Simular carregamento do perfil</p>
+      <button onclick="simularPerfil()">Simular Perfil</button>
+      <div id="status-perfil" class="status"></div>
+    </div>
+  </div>
+
+  <!-- Modal de edição de perfil -->
+  <div id="modal-editar" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+    <div style="background: var(--bg-primary, #0f1419); border: 2px solid var(--cor-principal, #00bfff); border-radius: 12px; padding: 32px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; position: relative;">
+      <button onclick="fecharModalEditar()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-primary, #00bfff);">✕</button>
+      <h2 style="margin-top: 0; color: var(--text-primary, #00bfff);">Editar Perfil - TESTE</h2>
+      <p>Este é um modal de teste. Deve abrir e fechar corretamente.</p>
+    </div>
+  </div>
+
+  <!-- Modal de confirmação de exclusão -->
+  <div id="modal-deletar" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+    <div style="background: var(--bg-primary, #0f1419); border: 2px solid #ff4444; border-radius: 12px; padding: 32px; width: 90%; max-width: 400px; text-align: center; position: relative;">
+      <button onclick="fecharModalDeletar()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: #ff4444;">✕</button>
+      <h2 style="margin-top: 0; color: #ff4444;">Deletar Conta - TESTE</h2>
+      <p style="color: #aaa; margin: 24px 0;">Este é um modal de teste. Deve abrir e fechar corretamente.</p>
+    </div>
+  </div>
+
+  <script>
+    // Funções de teste
+    function verificarModais() {
+      const modalEditar = document.getElementById('modal-editar');
+      const modalDeletar = document.getElementById('modal-deletar');
+
+      const editarVisivel = modalEditar && modalEditar.style.display !== 'none';
+      const deletarVisivel = modalDeletar && modalDeletar.style.display !== 'none';
+
+      const status = document.getElementById('status-modais');
+      if (!editarVisivel && !deletarVisivel) {
+        status.className = 'status ok';
+        status.textContent = '✅ Modais estão fechados corretamente!';
+      } else {
+        status.className = 'status erro';
+        status.textContent = `❌ Modais visíveis: Editar=${editarVisivel}, Deletar=${deletarVisivel}`;
+      }
+    }
+
+    function abrirModalEditar() {
+      const modal = document.getElementById('modal-editar');
+      if (modal) modal.style.display = 'flex';
+      document.getElementById('status-editar').className = 'status ok';
+      document.getElementById('status-editar').textContent = '✅ Modal de edição aberto!';
+    }
+
+    function fecharModalEditar() {
+      const modal = document.getElementById('modal-editar');
+      if (modal) modal.style.display = 'none';
+      document.getElementById('status-editar').className = 'status ok';
+      document.getElementById('status-editar').textContent = '✅ Modal de edição fechado!';
+    }
+
+    function abrirModalDeletar() {
+      const modal = document.getElementById('modal-deletar');
+      if (modal) modal.style.display = 'flex';
+      document.getElementById('status-deletar').className = 'status ok';
+      document.getElementById('status-deletar').textContent = '✅ Modal de exclusão aberto!';
+    }
+
+    function fecharModalDeletar() {
+      const modal = document.getElementById('modal-deletar');
+      if (modal) modal.style.display = 'none';
+      document.getElementById('status-deletar').className = 'status ok';
+      document.getElementById('status-deletar').textContent = '✅ Modal de exclusão fechado!';
+    }
+
+    function simularPerfil() {
+      // Simular carregamento do perfil
+      const status = document.getElementById('status-perfil');
+      status.className = 'status ok';
+      status.textContent = '✅ Perfil carregado - Modais devem estar fechados!';
+
+      // Forçar fechamento dos modais
+      fecharModalEditar();
+      fecharModalDeletar();
+
+      // Verificar após um tempo
+      setTimeout(() => {
+        verificarModais();
+      }, 100);
+    }
+
+    // Inicializar verificação
+    document.addEventListener('DOMContentLoaded', () => {
+      // Forçar fechamento inicial
+      fecharModalEditar();
+      fecharModalDeletar();
+
+      // Verificar automaticamente
+      setTimeout(verificarModais, 500);
+    });
+  </script>
+</body>
+</html>

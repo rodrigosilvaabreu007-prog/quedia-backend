@@ -49,7 +49,7 @@ function criarCardEvento(evento, mostrarFavorito = true) {
         <div class="event-img-container">
             <img src="${imagemFinal}" class="event-img" alt="${evento.nome}" 
                  onerror="this.onerror=null;this.src='https://via.placeholder.com/400x200?text=Imagem+Indisponível';">
-            ${mostrarFavorito ? `<button class="favorito-btn ${isInteressado ? 'demonstrou-interesse' : ''}" onclick="event.stopPropagation(); toggleInteresse('${evento._id}', this)" title="${isInteressado ? 'Remover interesse' : 'Demonstrar interesse'}">
+            ${mostrarFavorito ? `<button class="favorito-btn ${isInteressado ? 'demonstrou-interesse' : ''}" data-evento-id="${evento._id}" onclick="event.stopPropagation(); toggleInteresse('${evento._id}', this)" title="${isInteressado ? 'Remover interesse' : 'Demonstrar interesse'}">
                 ${isInteressado ? '⭐' : '☆'}
             </button>` : ''}
         </div>
@@ -119,23 +119,31 @@ window.toggleInteresse = async function(eventoId, btnElement) {
             // Atualizar cache
             if (temInteresse) {
                 interessesCache[eventoId] = true;
-                btnElement.classList.add('demonstrou-interesse');
-                btnElement.innerHTML = '⭐';
             } else {
                 delete interessesCache[eventoId];
-                btnElement.classList.remove('demonstrou-interesse');
-                btnElement.innerHTML = '⭐';
             }
 
             contadorCache[eventoId] = contador;
 
-            // Atualizar contador no modal
-            const contadorEl = btnElement.parentElement.querySelector('.interesses-count-modal');
-            if (contadorEl) {
-                contadorEl.textContent = `👥 ${contador} pessoas interessadas`;
+            // Atualiza o estado de botões em todo o app (cards + modal)
+            const botoes = document.querySelectorAll(`button[data-evento-id="${eventoId}"]`);
+            botoes.forEach(btn => {
+                if (temInteresse) {
+                    btn.classList.add('demonstrou-interesse');
+                    btn.innerHTML = '⭐';
+                } else {
+                    btn.classList.remove('demonstrou-interesse');
+                    btn.innerHTML = '☆';
+                }
+                btn.title = temInteresse ? 'Remover interesse' : 'Demonstrar interesse';
+            });
+
+            // Atualizar contador no modal ou card
+            const contadorModal = document.querySelector('.interesses-count-modal');
+            if (contadorModal) {
+                contadorModal.textContent = `👥 ${contador} pessoas interessadas`;
             }
 
-            // Atualizar contador nos cards
             document.querySelectorAll('.event-card').forEach(card => {
                 const id = card.getAttribute('data-evento-id');
                 if (id === eventoId) {
@@ -382,8 +390,8 @@ window.abrirPrevia = function(evento, imgResolvida) {
             <h2 style="color:#00bfff; margin-bottom:10px;">${evento.nome}</h2>
             <div class="evento-stats-modal">
                 <span class="interesses-count-modal">👥 ${contadorInteresses} pessoas interessadas</span>
-                <button class="btn-interesse ${jaDemonstrouInteresse ? 'demonstrou-interesse' : ''}" onclick="toggleInteresse('${evento._id}', this)">
-                    ${jaDemonstrouInteresse ? '⭐ Interessado' : '⭐ Demonstrar Interesse'}
+                <button class="btn-interesse ${jaDemonstrouInteresse ? 'demonstrou-interesse' : ''}" data-evento-id="${evento._id}" onclick="toggleInteresse('${evento._id}', this)" title="${jaDemonstrouInteresse ? 'Remover interesse' : 'Demonstrar interesse'}">
+                    ${jaDemonstrouInteresse ? '⭐' : '☆'}
                 </button>
             </div>
             <p><strong>🕒 Horário:</strong> ${evento.horario || '--:--'}</p>
