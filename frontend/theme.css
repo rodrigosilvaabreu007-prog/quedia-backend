@@ -336,7 +336,7 @@
   font-size: 0.9rem;
 }
 
-.btn-calendario-fav {
+.favorito-btn, .btn-interesse, .btn-calendario-fav {
   border: 1px solid rgba(23, 255, 132, 0.7);
   background: rgba(0, 0, 0, 0.4);
   color: #fff;
@@ -344,11 +344,19 @@
   width: 40px;
   height: 40px;
   cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
+.favorito-btn.demonstrou-interesse,
+.btn-interesse.demonstrou-interesse,
 .btn-calendario-fav.demonstrou-interesse {
-  background: rgba(30, 200, 70, 0.9);
+  background: var(--cor-principal, #00bfff);
   color: #000;
+  border-color: #ffd700;
 }
 
 /* Notificações */

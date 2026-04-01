@@ -425,7 +425,8 @@ window.abrirPrevia = function(evento, imgResolvida) {
                     ${jaDemonstrouInteresse ? '⭐' : '☆'}
                 </button>
             </div>
-            <p><strong>🕒 Horário:</strong> ${evento.horario || '--:--'}</p>
+            <p><strong>� Data:</strong> ${formatarData(evento.data)}</p>
+            <p><strong>�🕒 Horário:</strong> ${evento.horario || '--:--'}</p>
             <p><strong>📍 Local:</strong> ${localizacao} - ${evento.cidade}/${evento.estado}</p>
             <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
             <p style="color:#ccc; line-height:1.6; white-space: pre-wrap;">${evento.descricao || 'Sem descrição disponível.'}</p>
@@ -435,6 +436,17 @@ window.abrirPrevia = function(evento, imgResolvida) {
     window.currentEventId = evento._id;
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+};
+
+window.irParaDetalhes = function() {
+    if (!window.currentEventId) {
+        window.showNotification('Nenhum evento selecionado.', 'info');
+        return;
+    }
+
+    // Se tiver uma rota de detalhes, usar ela.
+    // Por enquanto, mostra notificação para manter sem erro.
+    window.showNotification('Ação de "Mais Informações" não está implementada (pode ser rota de detalhes).', 'info');
 };
 
 // 4. Fechar Modal
@@ -964,10 +976,11 @@ window.mostrarEventosDia = function(data) {
                 <div class="evento-calendario-info">
                     <h3>${ev.nome}</h3>
                     <p class="evento-categoria">${ev.categoria || 'Geral'}</p>
+                    <p class="evento-data">📅 ${formatarData(ev.data)}</p>
                     <p class="evento-horario">🕒 ${ev.horario || '--:--'}</p>
                     <p class="evento-preco">${precoTexto}</p>
                 </div>
-                <button class="btn-calendario-fav ${interessado ? 'demonstrou-interesse' : ''}" onclick="event.stopPropagation(); toggleInteresse('${ev._id}', this)" title="${interessado ? 'Remover interesse' : 'Demonstrar interesse'}">⭐</button>
+                <button class="btn-calendario-fav ${interessado ? 'demonstrou-interesse' : ''}" onclick="event.stopPropagation(); toggleInteresse('${ev._id}', this)" title="${interessado ? 'Remover interesse' : 'Demonstrar interesse'}">${interessado ? '⭐' : '☆'}</button>
             </div>
         `;
     }).join('');
