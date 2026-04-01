@@ -337,9 +337,26 @@ async function getContadorInteressesEvento(eventoId) {
     return 0;
 }
 
+function obterSiglaEstadoPorNome(nomeEstado) {
+    if (!nomeEstado) return null;
+    const termo = normalizarTexto(nomeEstado);
+    for (const sigla in estadosCidades) {
+        if (estadosCidades[sigla] && normalizarTexto(estadosCidades[sigla].nome) === termo) {
+            return sigla;
+        }
+    }
+    return null;
+}
+
 function consegueFiltrarPorLocal(termo, estadoFiltro, cidadeFiltro) {
     if (estadoFiltro || cidadeFiltro || !termo) return false;
     const termoNormalizado = normalizarTexto(termo);
+
+    // Busca direto por nome de estado (ex.: "espirito santo" ou "sao paulo")
+    if (obterSiglaEstadoPorNome(termoNormalizado)) {
+        return true;
+    }
+
     const cidades = todosEventos.map(ev => normalizarTexto(ev.cidade || ''));
     const estados = todosEventos.map(ev => normalizarTexto(ev.estado || ''));
     return cidades.some(c => c.includes(termoNormalizado)) || estados.some(s => s.includes(termoNormalizado));
@@ -349,19 +366,19 @@ function filtrarEventosParaVoce(eventosBase = todosEventos, termoBusca = '', est
     const preferencias = getPreferenciasUsuario();
     const localizacao = getLocalizacaoUsuario();
 
-    // Se não há preferência definida, não mostra a área "para você"
-    if (!preferencias || preferencias.length === 0) {
+    // Só mostra "Para Você" quando há exatamente uma preferência de categoria no perfil
+    if (!preferencias || preferencias.length !== 1) {
         document.getElementById('section-para-voce').style.display = 'none';
         return [];
     }
 
     document.getElementById('section-para-voce').style.display = 'block';
 
-    // Filtro por local padrão do usuário (mesma cidade) somente se não houver filtro explícito
+    const preferenciaUnica = preferencias[0];
     const aplicarFiltroLocal = !estadoFiltro && !cidadeFiltro && !consegueFiltrarPorLocal(termoBusca, estadoFiltro, cidadeFiltro);
 
     return eventosBase.filter(ev => {
-        const categoriaMatch = preferencias.some(pref => ev.categoria && ev.categoria.toLowerCase().includes(pref.toLowerCase()));
+        const categoriaMatch = ev.categoria && ev.categoria.toLowerCase().includes(preferenciaUnica.toLowerCase());
         if (!categoriaMatch) return false;
 
         if (aplicarFiltroLocal && localizacao.cidade) {
@@ -447,14 +464,19 @@ function filtrarEventos() {
         if (termo) {
             const termoNormalizado = normalizarTexto(termo);
             const termoDataISO = converterDataParaISO(termo);
-
+            const siglaEstadoPorNome = obterSiglaEstadoPorNome(termoNormalizado);
             const dataFormatoBusca = ev.data ? ev.data.replace(/-/g, '/').replace(/\s.*$/, '') : '';
+
+            const evEstadoNormalizado = (ev.estado && normalizarTexto(ev.estado)) || '';
+            const evEstadoSigla = (ev.estado && ev.estado.toUpperCase()) || '';
+            const evEstadoPorNome = obterSiglaEstadoPorNome(evEstadoNormalizado);
 
             matchesBusca = 
                 (ev.nome && normalizarTexto(ev.nome).includes(termoNormalizado)) || 
                 (ev.cidade && normalizarTexto(ev.cidade).includes(termoNormalizado)) ||
                 (ev.categoria && normalizarTexto(ev.categoria).includes(termoNormalizado)) ||
-                (ev.estado && normalizarTexto(ev.estado).includes(termoNormalizado)) ||
+                (ev.estado && evEstadoNormalizado.includes(termoNormalizado)) ||
+                (siglaEstadoPorNome && evEstadoSigla === siglaEstadoPorNome) ||
                 (termoDataISO && ev.data === termoDataISO) ||
                 (dataFormatoBusca && dataFormatoBusca.includes(termo)) ||
                 (ev.horario && ev.horario.includes(termo)) ||
