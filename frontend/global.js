@@ -23,7 +23,8 @@ function inicializarIconePerfil() {
         try {
             const usuarioData = JSON.parse(usuario);
             // Tenta pegar a foto salva localmente ou a que veio do objeto usuário
-            const fotoPerfil = localStorage.getItem(`foto-perfil-${usuarioData.id}`) || usuarioData.foto;
+            const usuarioId = usuarioData.id || usuarioData._id || '';
+            const fotoPerfil = localStorage.getItem(`foto-perfil-${usuarioId}`) || usuarioData.foto;
 
             if (fotoPerfil && fotoPerfil !== 'undefined' && fotoPerfil !== 'null') {
                 iconePerfilImg.src = fotoPerfil;
@@ -52,6 +53,24 @@ function inicializarIconePerfil() {
     
     // Sempre mostra o botão do perfil
     iconePerfil.style.display = 'grid';
+}
+
+function inicializarBotoesAutenticacao() {
+    const token = localStorage.getItem('eventhub-token');
+    const usuario = localStorage.getItem('eventhub-usuario');
+    
+    const linkLogin = document.querySelector('a[href="login.html"]');
+    const linkCadastro = document.querySelector('a[href="cadastro.html"]');
+    
+    if (token && usuario) {
+        // Usuário logado: esconder botões de login e cadastro
+        if (linkLogin) linkLogin.style.display = 'none';
+        if (linkCadastro) linkCadastro.style.display = 'none';
+    } else {
+        // Usuário não logado: mostrar botões
+        if (linkLogin) linkLogin.style.display = 'inline-block';
+        if (linkCadastro) linkCadastro.style.display = 'inline-block';
+    }
 }
 
 function irParaPerfil() {
@@ -179,6 +198,7 @@ function fazerLogout() {
 window.irParaPerfil = irParaPerfil;
 window.fazerLogout = fazerLogout;
 window.inicializarIconePerfil = inicializarIconePerfil;
+window.inicializarBotoesAutenticacao = inicializarBotoesAutenticacao;
 window.mostrarModalPerfil = mostrarModalPerfil;
 window.fecharModalPerfil = fecharModalPerfil;
 
@@ -202,4 +222,7 @@ window.obterCidades = function(siglaEstado) {
 };
 
 // Inicializa o perfil automaticamente
-document.addEventListener('DOMContentLoaded', inicializarIconePerfil);
+document.addEventListener('DOMContentLoaded', () => {
+    inicializarIconePerfil();
+    inicializarBotoesAutenticacao();
+});

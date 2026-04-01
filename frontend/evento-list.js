@@ -51,8 +51,8 @@ function criarCardEvento(evento, mostrarFavorito = true) {
             </button>` : ''}
         </div>
         <div class="event-info">
-            <span class="category-tag">${evento.categoria || 'Geral'}</span>
             <h3>${evento.nome || 'Evento sem Nome'}</h3>
+            <span class="category-tag">${evento.categoria || 'Geral'}</span>
             <div class="event-details">
                 <span>📅 ${formatarData(evento.data)}</span><br>
                 <span>📍 ${evento.cidade || 'Local não informado'}</span>
@@ -212,27 +212,28 @@ function filtrarEventosParaVoce() {
     const preferencias = getPreferenciasUsuario();
     const localizacao = getLocalizacaoUsuario();
     
+    // Se não tem preferências nem localização, mostrar todos os eventos
     if (preferencias.length === 0 && (!localizacao.estado && !localizacao.cidade)) {
-        // Se não tem preferências nem localização, mostrar eventos aleatórios ou recentes
         return todosEventos.slice(0, 6);
     }
     
-    if (preferencias.length === 0) {
-        // Se não tem preferências, mostrar eventos da localização
+    // Se tem preferências, filtrar por elas
+    if (preferencias.length > 0) {
         return todosEventos.filter(ev => 
-            ev.estado === localizacao.estado || ev.cidade === localizacao.cidade
-        ).slice(0, 6); // Limitar a 6 eventos
+            preferencias.some(pref => 
+                ev.categoria && ev.categoria.toLowerCase().includes(pref.toLowerCase())
+            )
+        ).slice(0, 6);
     }
     
-    // Filtrar por preferências
-    const eventosFiltrados = todosEventos.filter(ev => {
-        // Verificar se a categoria do evento está nas preferências
-        return preferencias.some(pref => 
-            ev.categoria && ev.categoria.toLowerCase().includes(pref.toLowerCase())
-        );
-    });
+    // Se tem localização, filtrar por ela
+    if (localizacao.estado || localizacao.cidade) {
+        return todosEventos.filter(ev => 
+            ev.estado === localizacao.estado || ev.cidade === localizacao.cidade
+        ).slice(0, 6);
+    }
     
-    return eventosFiltrados.slice(0, 6); // Limitar a 6 eventos
+    return todosEventos.slice(0, 6);
 }
 
 // 3. Modal Detalhado
@@ -291,10 +292,9 @@ function filtrarEventos() {
     const dataFiltro = document.getElementById('filtro-data')?.value || "";
     const horarioFiltro = document.getElementById('filtro-horario')?.value || "";
 
-    // Se não há filtros aplicados, usar localização do usuário como padrão
-    const localizacaoUsuario = getLocalizacaoUsuario();
-    const estadoFiltro = estado || (localizacaoUsuario.estado && !termo && !cidade && !categoria && !dataFiltro && !horarioFiltro && precoMax === Infinity ? localizacaoUsuario.estado : "");
-    const cidadeFiltro = cidade || (localizacaoUsuario.cidade && !termo && !estado && !categoria && !dataFiltro && !horarioFiltro && precoMax === Infinity ? localizacaoUsuario.cidade : "");
+    // Não forçar filtro por local do usuário, pois isso pode ocultar eventos ao entrar logado.
+    const estadoFiltro = estado;
+    const cidadeFiltro = cidade;
 
     const filtrados = todosEventos.filter(ev => {
         // Busca por nome, cidade, categoria, estado, data, horário ou preço

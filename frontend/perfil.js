@@ -1,6 +1,11 @@
 // Variável para armazenar dados do usuário
 let usuarioAtual = null;
 
+function getUsuarioId(usuario) {
+  if (!usuario) return '';
+  return usuario.id || usuario._id || '';
+}
+
 // Função para carregar perfil
 async function carregarPerfil() {
   const token = localStorage.getItem('eventhub-token');
@@ -30,7 +35,8 @@ async function carregarPerfil() {
     usuarioAtual = JSON.parse(usuario);
     
     // Carregar foto de perfil (se existir na página)
-    const fotoPerfil = localStorage.getItem(`foto-perfil-${usuarioAtual.id}`);
+    const usuarioId = getUsuarioId(usuarioAtual);
+    const fotoPerfil = localStorage.getItem(`foto-perfil-${usuarioId}`);
     const iconePerfilImg = document.getElementById('icone-perfil-img');
     if (fotoPerfil && iconePerfilImg) {
       iconePerfilImg.src = fotoPerfil;
@@ -77,9 +83,6 @@ async function carregarPerfil() {
           <div style="position: relative; width: 100px; height: 100px; flex-shrink: 0;">
             <div id="foto-container" style="width: 100%; height: 100%; border-radius: 50%; border: 3px solid var(--cor-principal, #00bfff); overflow: hidden; cursor: pointer;" onclick="document.getElementById('foto-perfil-input').click();" title="Clique para alterar foto de perfil">
               <img id="foto-perfil-display" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='8' r='4' fill='%2300bfff'/%3E%3Cpath d='M12 14c-4 0-6 2-6 2v6h12v-6s-2-2-6-2z' fill='%2300bfff'/%3E%3C/svg%3E" style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            <div style="position: absolute; bottom: -5px; right: -5px; background: var(--cor-principal, #00bfff); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 3px solid var(--bg-secondary, #1a2332); cursor: pointer; font-size: 18px;" onclick="document.getElementById('foto-perfil-input').click();" title="Alterar foto">
-              ✏️
             </div>
             <input type="file" id="foto-perfil-input" accept="image/*" style="display: none;" onchange="trocarFotoPerfil(event)">
           </div>
@@ -144,6 +147,31 @@ async function carregarPerfil() {
 // Função para fechar perfil
 function fecharPerfil() {
   window.location.href = 'index.html';
+}
+
+// Função para atualizar foto de perfil clicando na imagem
+function trocarFotoPerfil(event) {
+  const arquivo = event.target.files?.[0];
+  if (!arquivo || !usuarioAtual) {
+    return;
+  }
+
+  const leitor = new FileReader();
+  leitor.onload = function(e) {
+    const imagemBase64 = e.target.result;
+    const exibir = document.getElementById('foto-perfil-display');
+    if (exibir) exibir.src = imagemBase64;
+
+    const usuarioId = getUsuarioId(usuarioAtual);
+    if (usuarioId) {
+      localStorage.setItem(`foto-perfil-${usuarioId}`, imagemBase64);
+    }
+
+    const iconePerfilImg = document.getElementById('icone-perfil-img');
+    if (iconePerfilImg) iconePerfilImg.src = imagemBase64;
+  };
+
+  leitor.readAsDataURL(arquivo);
 }
 
 // Função para abrir modal de edição
@@ -246,54 +274,6 @@ function preencherPreferenciasEditar() {
   container.appendChild(categoriasDiv);
 }
 
-// Função para trocar foto de perfil ao clicar na foto
-async function trocarFotoPerfil(event) {
-  const arquivo = event.target.files[0];
-  if (!arquivo) return;
-  
-  // Validar tipo
-  if (!arquivo.type.startsWith('image/')) {
-    alert('Por favor, selecione um arquivo de imagem válido');
-    return;
-  }
-  
-  // Validar tamanho (máximo 5MB)
-  if (arquivo.size > 5 * 1024 * 1024) {
-    alert('Imagem muito grande. Máximo de 5MB');
-    return;
-  }
-  
-  try {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const fotoBase64 = e.target.result;
-      
-      // Salvar no localStorage
-      localStorage.setItem(`foto-perfil-${usuarioAtual.id}`, fotoBase64);
-      
-      // Atualizar imagem no perfil
-      const img = document.getElementById('foto-perfil-display');
-      if (img) {
-        img.src = fotoBase64;
-      }
-      
-      // Atualizar ícone de perfil (se existir na página)
-      const iconeImg = document.getElementById('icone-perfil-img');
-      const iconePerfil = document.getElementById('icone-perfil');
-      if (iconeImg) {
-        iconeImg.src = fotoBase64;
-        iconePerfil?.classList.add('has-image');
-      }
-      
-      alert('Foto de perfil alterada com sucesso!');
-    };
-    reader.readAsDataURL(arquivo);
-  } catch (erro) {
-    console.error('Erro ao trocar foto:', erro);
-    alert('Erro ao trocar foto de perfil');
-  }
-}
-
 // Função para fechar modal de edição
 function fecharModalEditar() {
   document.getElementById('modal-editar').style.display = 'none';
@@ -363,43 +343,9 @@ async function salvarAlteracoes(e) {
     return;
   }
   
-  // Coletar preferências selecionadas
+  // Coletar preferências selecionadas  
   const checkboxesSelecionados = document.querySelectorAll('input[name="editar-preferencia-subcategoria"]:checked');
   const preferencias = Array.from(checkboxesSelecionados).map(cb => cb.value);
-  
-  // Verificar se há foto de perfil selecionada
-  const fotoInput = document.getElementById('editar-foto-perfil');
-  let fotoPerfilBase64 = null;
-  
-  if (fotoInput && fotoInput.files && fotoInput.files.length > 0) {
-    const arquivo = fotoInput.files[0];
-    
-    // Validar tipo de arquivo
-    if (!arquivo.type.startsWith('image/')) {
-      alert('Por favor, selecione um arquivo de imagem válido');
-      return;
-    }
-    
-    // Validar tamanho (máximo 5MB)
-    if (arquivo.size > 5 * 1024 * 1024) {
-      alert('Imagem muito grande. Máximo de 5MB');
-      return;
-    }
-    
-    // Converter para base64
-    try {
-      fotoPerfilBase64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
-        reader.readAsDataURL(arquivo);
-      });
-    } catch (erro) {
-      console.error('Erro ao processar imagem:', erro);
-      alert('Erro ao processar a imagem');
-      return;
-    }
-  }
   
   const dadosAtualizados = {
     nome: nome,
@@ -410,7 +356,8 @@ async function salvarAlteracoes(e) {
   };
   
   try {
-    const resposta = await fetch(`https://quedia-production.up.railway.app/${usuarioAtual.id}`, {
+    const usuarioId = getUsuarioId(usuarioAtual);
+    const resposta = await fetch(`${window.API_URL}/usuario/${usuarioId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -430,17 +377,6 @@ async function salvarAlteracoes(e) {
     usuarioAtual = usuarioAtualizado;
     localStorage.setItem('eventhub-usuario', JSON.stringify(usuarioAtualizado));
     
-    // Salvar foto de perfil se houver
-    if (fotoPerfilBase64) {
-      localStorage.setItem(`foto-perfil-${usuarioAtual.id}`, fotoPerfilBase64);
-      
-      // Atualizar imagem no ícone de perfil (se existir na página)
-      const iconeImg = document.getElementById('icone-perfil-img');
-      if (iconeImg) {
-        iconeImg.src = fotoPerfilBase64;
-      }
-    }
-    
     fecharModalEditar();
     
     // Recarregar o perfil
@@ -448,7 +384,6 @@ async function salvarAlteracoes(e) {
     
   } catch (erro) {
     console.error('Erro ao salvar alterações:', erro);
-    alert(`Erro ao atualizar perfil: ${erro.message}`);
     // Não fecha o modal para o usuário poder corrigir
   }
 }
@@ -468,7 +403,8 @@ async function confirmarDelecao() {
   const token = localStorage.getItem('eventhub-token');
   
   try {
-    const resposta = await fetch(`https://quedia-production.up.railway.app/${usuarioAtual.id}`, {
+    const usuarioId = getUsuarioId(usuarioAtual);
+    const resposta = await fetch(`${window.API_URL}/usuario/${usuarioId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`
