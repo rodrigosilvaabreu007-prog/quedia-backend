@@ -454,6 +454,17 @@ function filtrarEventos() {
     const dataFiltro = document.getElementById('filtro-data')?.value || "";
     const horarioFiltro = document.getElementById('filtro-horario')?.value || "";
 
+    // Re-verificar preferências do usuário a cada renderização (para caso de deleção de preferências)
+    const preferenciasAtuais = getPreferenciasUsuario();
+    const sectionParaVoce = document.getElementById('section-para-voce');
+    if (sectionParaVoce) {
+        if (!preferenciasAtuais || preferenciasAtuais.length !== 1) {
+            sectionParaVoce.style.display = 'none';
+        } else {
+            sectionParaVoce.style.display = 'block';
+        }
+    }
+
     // Uso de filtro local do perfil: se o usuário estiver logado e não estiver pesquisando por outra cidade/estado
     const usuarioLocal = getLocalizacaoUsuario();
     const localAplicaPorPadrao = !estado && !cidade && termo && !consegueFiltrarPorLocal(termo, estado, cidade) ? false : !termo;
@@ -723,6 +734,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Inicializar visualização padrão após carregar eventos
     if (typeof window.setView === 'function') {
         window.setView('eventos');
+    }
+});
+
+// Monitorar mudanças no usuário via localStorage para atualizar filtros em tempo real
+window.addEventListener('storage', (e) => {
+    if (e.key === 'eventhub-usuario' && typeof filtrarEventos === 'function') {
+        // Se usuário foi atualizado (ex: preferências mudadas), re-filtrar
+        filtrarEventos();
     }
 });
 
