@@ -71,7 +71,7 @@ document.getElementById('event-cards')?.addEventListener('click', async e => {
     const token = localStorage.getItem('eventhub-token');
 
     if (!token) {
-      alert("⚠️ Você precisa estar logado para marcar interesse!");
+      window.showNotification("Você precisa estar logado para marcar interesse!", 'info');
       return;
     }
 
@@ -92,7 +92,7 @@ document.getElementById('event-cards')?.addEventListener('click', async e => {
       btn.style.backgroundColor = "#28a745";
       btn.textContent = "✅ Marcado!";
     } catch (err) {
-      alert("Erro ao registrar interesse.");
+      window.showNotification("Erro ao registrar interesse.", 'error');
     } finally {
       btn.disabled = false;
     }

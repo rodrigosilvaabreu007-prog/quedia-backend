@@ -5,17 +5,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('login-form');
     const mensagem = document.getElementById('mensagem-login');
 
-    // Se já estiver logado (token + usuário), manda direto para a home
+    // Se já estiver logado, mostrar uma mensagem e deixar o usuário escolher
     const token = localStorage.getItem('eventhub-token');
     const usuario = localStorage.getItem('eventhub-usuario');
-    if (token && usuario) {
-        window.location.href = 'index.html';
-        return;
-    }
 
-    // Se houver token sem usuário válido, limpar token e permitir login
     if (token && !usuario) {
         localStorage.removeItem('eventhub-token');
+    }
+
+    if (token && usuario) {
+        const statusMsg = document.getElementById('mensagem-login');
+        if (statusMsg) {
+            statusMsg.textContent = 'Você já está logado. Caso queira entrar com outra conta, faça logout primeiro.';
+            statusMsg.style.color = '#00bfff';
+        }
     }
 
     if (form) {

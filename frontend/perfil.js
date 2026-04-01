@@ -361,7 +361,7 @@ async function salvarAlteracoes(e) {
   const cidade = document.getElementById('editar-cidade').value;
   
   if (!nome || !email || !estado || !cidade) {
-    alert('Por favor, preencha todos os campos obrigatórios');
+    window.showNotification('Por favor, preencha todos os campos obrigatórios', 'error');
     return;
   }
   
@@ -438,15 +438,15 @@ async function confirmarDelecao() {
       localStorage.removeItem('eventhub-token');
       localStorage.removeItem('eventhub-usuario');
       
-      alert('Conta deletada com sucesso');
-      window.location.href = 'index.html';
+      window.showNotification('Conta deletada com sucesso', 'success');
+      setTimeout(() => window.location.href = 'index.html', 800);
     } else {
       const erro = await resposta.json();
-      alert(erro.erro || 'Erro ao deletar conta');
+      window.showNotification(erro.erro || 'Erro ao deletar conta', 'error');
     }
   } catch (erro) {
     console.error('Erro:', erro);
-    alert('Erro ao conectar com o servidor');
+    window.showNotification('Erro ao conectar com o servidor', 'error');
   }
 }
 

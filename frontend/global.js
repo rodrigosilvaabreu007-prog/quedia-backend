@@ -226,3 +226,43 @@ document.addEventListener('DOMContentLoaded', () => {
     inicializarIconePerfil();
     inicializarBotoesAutenticacao();
 });
+
+// Notificação discreta para feedback no UI
+function showNotification(message, type = 'info') {
+    const existing = document.getElementById('app-notification');
+    if (existing) existing.remove();
+
+    const container = document.createElement('div');
+    container.id = 'app-notification';
+    container.style.position = 'fixed';
+    container.style.top = '16px';
+    container.style.right = '16px';
+    container.style.zIndex = '9999';
+    container.style.padding = '12px 16px';
+    container.style.background = type === 'error' ? 'rgba(255, 68, 68, 0.95)' : type === 'success' ? 'rgba(40, 167, 69, 0.95)' : 'rgba(33, 150, 243, 0.95)';
+    container.style.color = '#fff';
+    container.style.borderRadius = '8px';
+    container.style.boxShadow = '0 4px 16px rgba(0,0,0,0.35)';
+    container.style.fontSize = '0.9rem';
+    container.style.fontWeight = '600';
+    container.textContent = message;
+
+    document.body.appendChild(container);
+
+    setTimeout(() => {
+        container.style.opacity = '0';
+        setTimeout(() => container.remove(), 300);
+    }, 2600);
+}
+
+window.showNotification = showNotification;
+
+// Override de todos os links login/cadastro para garantir navegação direta
+document.addEventListener('click', (event) => {
+    const link = event.target.closest('a[href="login.html"], a[href="cadastro.html"]');
+    if (!link) return;
+
+    event.preventDefault();
+    const target = link.getAttribute('href');
+    window.location.href = target;
+});

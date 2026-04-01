@@ -85,13 +85,13 @@ document.getElementById('meus-eventos-cards')?.addEventListener('click', async e
                 });
 
                 if (res.ok) {
-                    alert('Evento excluído com sucesso!');
+                    window.showNotification('Evento excluído com sucesso!', 'success');
                     carregarMeusEventos();
                 } else {
-                    alert('Erro ao excluir evento.');
+                    window.showNotification('Erro ao excluir evento.', 'error');
                 }
             } catch (error) {
-                alert('Erro de conexão ao tentar excluir.');
+                window.showNotification('Erro de conexão ao tentar excluir.', 'error');
             }
         }
     }

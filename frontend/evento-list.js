@@ -71,7 +71,7 @@ function criarCardEvento(evento, mostrarFavorito = true) {
 // --- FUNÇÕES DE FAVORITOS ---
 window.toggleFavorito = function(eventoId, btnElement) {
     if (!isUsuarioLogado()) {
-        alert('Você precisa estar logado para favoritar eventos.');
+        window.showNotification('Você precisa estar logado para favoritar eventos.', 'info');
         window.location.href = 'login.html';
         return;
     }
@@ -113,7 +113,7 @@ window.toggleFavorito = function(eventoId, btnElement) {
 
 window.toggleInteresse = function(eventoId, btnElement) {
     if (!isUsuarioLogado()) {
-        alert('Atenção: é necessário estar logado para demonstrar interesse.');
+        window.showNotification('Atenção: é necessário estar logado para demonstrar interesse.', 'info');
         window.location.href = 'login.html';
         return;
     }
