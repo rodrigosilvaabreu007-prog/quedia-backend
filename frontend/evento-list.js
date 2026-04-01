@@ -425,8 +425,8 @@ window.abrirPrevia = function(evento, imgResolvida) {
                     ${jaDemonstrouInteresse ? '⭐' : '☆'}
                 </button>
             </div>
-            <p><strong>� Data:</strong> ${formatarData(evento.data)}</p>
-            <p><strong>�🕒 Horário:</strong> ${evento.horario || '--:--'}</p>
+            <p><strong>📅 Data:</strong> ${formatarData(evento.data)}</p>
+            <p><strong>⏰ Horário:</strong> ${evento.horario || '--:--'}</p>
             <p><strong>📍 Local:</strong> ${localizacao} - ${evento.cidade}/${evento.estado}</p>
             <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
             <p style="color:#ccc; line-height:1.6; white-space: pre-wrap;">${evento.descricao || 'Sem descrição disponível.'}</p>
@@ -980,7 +980,7 @@ window.mostrarEventosDia = function(data) {
                     <p class="evento-horario">🕒 ${ev.horario || '--:--'}</p>
                     <p class="evento-preco">${precoTexto}</p>
                 </div>
-                <button class="btn-calendario-fav ${interessado ? 'demonstrou-interesse' : ''}" onclick="event.stopPropagation(); toggleInteresse('${ev._id}', this)" title="${interessado ? 'Remover interesse' : 'Demonstrar interesse'}">${interessado ? '⭐' : '☆'}</button>
+                <button class="btn-calendario-fav ${interessado ? 'demonstrou-interesse' : ''}" data-evento-id="${ev._id}" onclick="event.stopPropagation(); toggleInteresse('${ev._id}', this)" title="${interessado ? 'Remover interesse' : 'Demonstrar interesse'}">${interessado ? '⭐' : '☆'}</button>
             </div>
         `;
     }).join('');

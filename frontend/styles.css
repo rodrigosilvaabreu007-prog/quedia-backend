@@ -355,9 +355,9 @@ header {
 }
 
 .btn-interesse.demonstrou-interesse {
-  background: #ff4444;
-  border-color: #ff4444;
-  color: #fff;
+  background: var(--cor-principal, #00bfff);
+  border-color: #ffd700;
+  color: #000;
 }
 
 @keyframes modalSobe {
