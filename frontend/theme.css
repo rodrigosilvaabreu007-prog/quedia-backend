@@ -257,6 +257,17 @@
   background: rgba(20, 30, 45, 0.9);
   border: 1px solid rgba(0, 191, 255, 0.35);
   border-radius: 14px;
+  align-items: flex-end;
+}
+
+#filtros-container > div {
+  min-width: 170px;
+}
+
+#filtros-container input,
+#filtros-container select {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .filtro-select {
@@ -285,6 +296,59 @@
 
 .btn-limpar:hover {
   background: rgba(0, 191, 255, .2);
+}
+
+.evento-calendario-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  background: rgba(20, 25, 40, 0.85);
+  border: 1px solid rgba(0, 191, 255, 0.35);
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.evento-calendario-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+.evento-calendario-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.evento-calendario-info h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #00e6ff;
+}
+
+.evento-calendario-info p {
+  margin: 2px 0;
+  color: #ddd;
+  font-size: 0.9rem;
+}
+
+.btn-calendario-fav {
+  border: 1px solid rgba(23, 255, 132, 0.7);
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+
+.btn-calendario-fav.demonstrou-interesse {
+  background: rgba(30, 200, 70, 0.9);
+  color: #000;
 }
 
 /* Notificações */

@@ -950,13 +950,16 @@ window.mostrarEventosDia = function(data) {
     const body = document.getElementById('modal-body');
     
     // Lógica de Imagem e preço igual ao criarCardEvento
-    const eventosHtml = eventosDia.map(ev => {
+    window.eventosDiaSelecionados = eventosDia;
+
+    const eventosHtml = eventosDia.map((ev, idx) => {
         let imagemFinal = ev.imagens && ev.imagens.length > 0 ? ev.imagens[0] : (ev.imagem_url || 'https://via.placeholder.com/400x200?text=Sem+Imagem');
         const preco = parseFloat(ev.preco) || 0;
         const precoTexto = (ev.gratuito || preco === 0) ? 'GRATUITO' : `R$ ${preco.toFixed(2)}`;
-        
+        const interessado = interessesCache[ev._id];
+
         return `
-            <div class="evento-calendario-item" onclick="window.abrirPreviaCalendario('${JSON.stringify(ev).replace(/'/g, "\\'").replace(/"/g, '\\"')}', '${imagemFinal}')">
+            <div class="evento-calendario-item" onclick="window.abrirPreviaCalendario(${idx})">
                 <img src="${imagemFinal}" alt="${ev.nome}" class="evento-calendario-img" onerror="this.src='https://via.placeholder.com/400x200?text=Imagem+Indisponível';">
                 <div class="evento-calendario-info">
                     <h3>${ev.nome}</h3>
@@ -964,6 +967,7 @@ window.mostrarEventosDia = function(data) {
                     <p class="evento-horario">🕒 ${ev.horario || '--:--'}</p>
                     <p class="evento-preco">${precoTexto}</p>
                 </div>
+                <button class="btn-calendario-fav ${interessado ? 'demonstrou-interesse' : ''}" onclick="event.stopPropagation(); toggleInteresse('${ev._id}', this)" title="${interessado ? 'Remover interesse' : 'Demonstrar interesse'}">⭐</button>
             </div>
         `;
     }).join('');
@@ -981,7 +985,10 @@ window.mostrarEventosDia = function(data) {
     document.body.style.overflow = 'hidden';
 };
 
-window.abrirPreviaCalendario = function(eventoStr, imgUrl) {
-    const ev = JSON.parse(eventoStr);
-    window.abrirPrevia(ev, imgUrl);
+window.abrirPreviaCalendario = function(indice) {
+    const ev = window.eventosDiaSelecionados?.[indice];
+    if (!ev) return;
+
+    const imagemFinal = ev.imagens && ev.imagens.length > 0 ? ev.imagens[0] : (ev.imagem_url || 'https://via.placeholder.com/400x200?text=Sem+Imagem');
+    window.abrirPrevia(ev, imagemFinal);
 };
