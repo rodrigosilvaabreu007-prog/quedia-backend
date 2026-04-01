@@ -122,7 +122,7 @@ async function carregarPerfil() {
           </div>
           <div>
             <h2 style="margin: 0 0 8px 0; color: var(--text-primary, #00bfff);">${usuarioAtual.nome}</h2>
-            <p style="margin: 0; color: #aaa; font-size: 14px;">${usuarioAtual.email}</p>
+            <p style="margin: 0; color: #aaa; font-size: 14px;">${usuarioAtual.email || 'Email não configurado'}</p>
           </div>
         </div>
         
@@ -214,8 +214,6 @@ function abrirModalEditar() {
   
   // Preencher campos com dados atuais
   document.getElementById('editar-nome').value = usuarioAtual.nome;
-  const mostrarEmail = document.getElementById('mostrar-email-perfil');
-  if (mostrarEmail) mostrarEmail.textContent = usuarioAtual.email || 'Não disponível';
 
   // Preencher dropdown de estados primeiro
   preencherEstadosEditar();

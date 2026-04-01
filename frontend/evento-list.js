@@ -731,6 +731,16 @@ function popularFiltros() {
 document.addEventListener('DOMContentLoaded', async () => {
     await carregarInteressesUsuario(); // Carregar interesses primeiro
     await carregarEventos();
+    
+    // Verificar se deve esconder section "Para Você" logo na carga
+    const preferenciasAtuais = getPreferenciasUsuario();
+    const sectionParaVoce = document.getElementById('section-para-voce');
+    if (sectionParaVoce) {
+        if (!preferenciasAtuais || preferenciasAtuais.length !== 1) {
+            sectionParaVoce.style.display = 'none';
+        }
+    }
+    
     // Inicializar visualização padrão após carregar eventos
     if (typeof window.setView === 'function') {
         window.setView('eventos');
