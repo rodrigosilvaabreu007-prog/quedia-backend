@@ -42,28 +42,15 @@ function criarCardEvento(evento, mostrarFavorito = true) {
     const preco = parseFloat(evento.preco) || 0;
     const precoTexto = (evento.gratuito || preco === 0) ? 'GRATUITO' : `R$ ${preco.toFixed(2)}`;
 
-    // Contador de interesses: deriva do localStorage global por evento
-    getContadorInteressesEvento(evento._id).then(contador => {
-        const contadorInteresses = Math.max(0, contador);
-        // Atualizar o elemento se ele existir
-        const interessesEl = div.querySelector('.interesses-count');
-        if (interessesEl) {
-            interessesEl.textContent = `👥 ${contadorInteresses} interessados`;
-        }
-    }).catch(() => {
-        // Fallback para 0 se erro
-        const interessesEl = div.querySelector('.interesses-count');
-        if (interessesEl) {
-            interessesEl.textContent = `👥 0 interessados`;
-        }
-    });
+    // Contador de interesses: valor inicial
+    let contadorInteresses = 0;
 
     div.innerHTML = `
         <div class="event-img-container">
             <img src="${imagemFinal}" class="event-img" alt="${evento.nome}" 
                  onerror="this.onerror=null;this.src='https://via.placeholder.com/400x200?text=Imagem+Indisponível';">
-            ${mostrarFavorito ? `<button class="favorito-btn ${isFavoritado ? 'favoritado' : ''}" onclick="event.stopPropagation(); toggleFavorito('${evento._id}', this)" title="${isFavoritado ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
-                ${isFavoritado ? '⭐' : '☆'}
+            ${mostrarFavorito ? `<button class="favorito-btn ${isInteressado ? 'demonstrou-interesse' : ''}" onclick="event.stopPropagation(); toggleInteresse('${evento._id}', this)" title="${isInteressado ? 'Remover interesse' : 'Demonstrar interesse'}">
+                ${isInteressado ? '⭐' : '☆'}
             </button>` : ''}
         </div>
         <div class="event-info">
@@ -79,54 +66,27 @@ function criarCardEvento(evento, mostrarFavorito = true) {
             <p class="event-price">${precoTexto}</p>
         </div>
     `;
-    
+
+    // Atualiza contador assíncrono após renderizar o card
+    getContadorInteressesEvento(evento._id).then(contador => {
+        const contadorAtualizado = Math.max(0, contador);
+        const interessesEl = div.querySelector('.interesses-count');
+        if (interessesEl) {
+            interessesEl.textContent = `👥 ${contadorAtualizado} interessados`;
+        }
+        contadorCache[evento._id] = contadorAtualizado;
+    }).catch(() => {
+        const interessesEl = div.querySelector('.interesses-count');
+        if (interessesEl) {
+            interessesEl.textContent = `👥 0 interessados`;
+        }
+    });
+
     div.onclick = () => window.abrirPrevia(evento, imagemFinal);
     return div;
 }
 
-// --- FUNÇÕES DE FAVORITOS ---
-window.toggleFavorito = function(eventoId, btnElement) {
-    if (!isUsuarioLogado()) {
-        window.showNotification('Você precisa estar logado para favoritar eventos.', 'info');
-        const redirect = encodeURIComponent(window.location.pathname.replace(/^\//, '') || 'index.html');
-        window.location.href = `login.html?redirectTo=${redirect}`;
-        return;
-    }
-
-    const favoritos = JSON.parse(localStorage.getItem('eventos-favoritos') || '[]');
-    const index = favoritos.indexOf(eventoId);
-    const tinhaFavorito = index > -1;
-
-    if (tinhaFavorito) {
-        favoritos.splice(index, 1);
-        btnElement.classList.remove('favoritado');
-        btnElement.innerHTML = '☆';
-        btnElement.title = 'Adicionar aos favoritos';
-    } else {
-        favoritos.push(eventoId);
-        btnElement.classList.add('favoritado');
-        btnElement.innerHTML = '⭐';
-        btnElement.title = 'Remover dos favoritos';
-    }
-    localStorage.setItem('eventos-favoritos', JSON.stringify(favoritos));
-
-    // Atualiza interesse global compartilhado por usuário
-    const novoContador = toggleInteresseGlobal(eventoId);
-
-    // Refresca contador nos cards da página
-    document.querySelectorAll('.event-card').forEach(card => {
-        if (card.getAttribute('data-evento-id') === eventoId) {
-            const q = card.querySelector('.interesses-count');
-            if (q) q.textContent = `👥 ${novoContador} interessados`;
-        }
-    });
-
-    // Atualiza contador no modal se estiver aberto
-    const contadorModal = document.querySelector('.interesses-count-modal');
-    if (contadorModal) {
-        contadorModal.textContent = `👥 ${novoContador} pessoas interessadas`;
-    }
-};
+// --- FUNÇÕES DE INTERESSE ---
 
 window.toggleInteresse = async function(eventoId, btnElement) {
     if (!isUsuarioLogado()) {
@@ -146,6 +106,11 @@ window.toggleInteresse = async function(eventoId, btnElement) {
             body: JSON.stringify({ evento_id: eventoId })
         });
 
+        if (isAuthError(response)) {
+            forcarLogoutPorTokenInvalido();
+            return;
+        }
+
         if (response.ok) {
             const data = await response.json();
             const temInteresse = data.acao === 'adicionado';
@@ -155,11 +120,11 @@ window.toggleInteresse = async function(eventoId, btnElement) {
             if (temInteresse) {
                 interessesCache[eventoId] = true;
                 btnElement.classList.add('demonstrou-interesse');
-                btnElement.innerHTML = '❤️ Interessado';
+                btnElement.innerHTML = '⭐';
             } else {
                 delete interessesCache[eventoId];
                 btnElement.classList.remove('demonstrou-interesse');
-                btnElement.innerHTML = '🤍 Demonstrar Interesse';
+                btnElement.innerHTML = '⭐';
             }
 
             contadorCache[eventoId] = contador;
@@ -234,6 +199,17 @@ function isUsuarioLogado() {
     return usuarioId && usuarioId !== 'anonimo';
 }
 
+function forcarLogoutPorTokenInvalido() {
+    localStorage.removeItem('eventhub-token');
+    localStorage.removeItem('eventhub-usuario');
+    window.showNotification('Sessão expirada ou token inválido. Faça login novamente.', 'error');
+    setTimeout(() => window.location.href = 'login.html', 900);
+}
+
+function isAuthError(response) {
+    return response && (response.status === 401 || response.status === 403);
+}
+
 // --- FUNÇÕES DE INTERESSES (AGORA VIA BACKEND) ---
 
 // Cache local para evitar muitas requisições
@@ -250,6 +226,11 @@ async function carregarInteressesUsuario() {
                 'Authorization': `Bearer ${localStorage.getItem('eventhub-token')}`
             }
         });
+
+        if (isAuthError(response)) {
+            forcarLogoutPorTokenInvalido();
+            return;
+        }
 
         if (response.ok) {
             const data = await response.json();
@@ -273,6 +254,11 @@ async function verificarInteresse(eventoId) {
             }
         });
 
+        if (isAuthError(response)) {
+            forcarLogoutPorTokenInvalido();
+            return { temInteresse: false, contador: 0 };
+        }
+
         if (response.ok) {
             const data = await response.json();
             contadorCache[eventoId] = data.contador;
@@ -293,14 +279,42 @@ async function getContadorInteressesEvento(eventoId) {
 
     // Se não tem cache, faz requisição
     try {
-        const response = await fetch(`${window.API_URL}/interesses/${eventoId}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('eventhub-token')}`
+        const token = localStorage.getItem('eventhub-token');
+        let url = `${window.API_URL}/interesses/contador/${eventoId}`;
+        let headers = {};
+
+        // Se tem token, usa a rota autenticada para também verificar se o usuário tem interesse
+        if (token) {
+            url = `${window.API_URL}/interesses/${eventoId}`;
+            headers = {
+                'Authorization': `Bearer ${token}`
+            };
+        }
+
+        const response = await fetch(url, { headers });
+
+        if (isAuthError(response)) {
+            forcarLogoutPorTokenInvalido();
+            // Continua com contador público quando houver token inválido
+            const fallback = await fetch(`${window.API_URL}/interesses/contador/${eventoId}`);
+            if (fallback.ok) {
+                const data = await fallback.json();
+                contadorCache[eventoId] = data.contador;
+                return data.contador;
             }
-        });
+            return 0;
+        }
 
         if (response.ok) {
             const data = await response.json();
+            contadorCache[eventoId] = data.contador;
+            return data.contador;
+        }
+
+        // Tenta fallback público
+        const fallback = await fetch(`${window.API_URL}/interesses/contador/${eventoId}`);
+        if (fallback.ok) {
+            const data = await fallback.json();
             contadorCache[eventoId] = data.contador;
             return data.contador;
         }
@@ -369,7 +383,7 @@ window.abrirPrevia = function(evento, imgResolvida) {
             <div class="evento-stats-modal">
                 <span class="interesses-count-modal">👥 ${contadorInteresses} pessoas interessadas</span>
                 <button class="btn-interesse ${jaDemonstrouInteresse ? 'demonstrou-interesse' : ''}" onclick="toggleInteresse('${evento._id}', this)">
-                    ${jaDemonstrouInteresse ? '❤️ Interessado' : '🤍 Demonstrar Interesse'}
+                    ${jaDemonstrouInteresse ? '⭐ Interessado' : '⭐ Demonstrar Interesse'}
                 </button>
             </div>
             <p><strong>🕒 Horário:</strong> ${evento.horario || '--:--'}</p>
@@ -583,7 +597,8 @@ async function carregarEventos() {
 
     } catch (err) {
         console.error("Erro ao carregar:", err);
-        container.innerHTML = '<p style="color:#ff4444;">❌ Falha ao conectar na API.</p>';
+        const erroMensagem = err?.message ? err.message : JSON.stringify(err);
+        container.innerHTML = `<p style="color:#ff4444;">❌ Falha ao conectar na API: ${erroMensagem}</p>`;
     } finally {
         // Sempre adicionar event listeners aos botões, mesmo se a API falhar
         const btnFiltros = document.getElementById('toggle-filtros');

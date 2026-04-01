@@ -2,7 +2,15 @@
 let usuarioAtual = null;
 
 function getUsuarioId(usuario) {
-  if (!usuario) return '';
+  if (!usuario) {
+    // Se não passou usuário, tenta do localStorage
+    try {
+      const usuarioStorage = JSON.parse(localStorage.getItem('eventhub-usuario') || 'null');
+      return usuarioStorage?.id || usuarioStorage?._id || '';
+    } catch {
+      return '';
+    }
+  }
   return usuario.id || usuario._id || '';
 }
 
@@ -379,6 +387,9 @@ async function salvarAlteracoes(e) {
   
   try {
     const usuarioId = getUsuarioId(usuarioAtual);
+    if (!usuarioId) {
+      throw new Error('ID do usuário não encontrado. Recarregue a página.');
+    }
     const resposta = await fetch(`${window.API_URL}/usuario/${usuarioId}`, {
       method: 'PUT',
       headers: {
@@ -387,6 +398,8 @@ async function salvarAlteracoes(e) {
       },
       body: JSON.stringify(dadosAtualizados)
     });
+    
+    if (tratarErroAutenticacao(resposta)) return;
     
     if (!resposta.ok) {
       const erro = await resposta.json();
@@ -406,7 +419,7 @@ async function salvarAlteracoes(e) {
     
   } catch (erro) {
     console.error('Erro ao salvar alterações:', erro);
-    // Não fecha o modal para o usuário poder corrigir
+    window.showNotification(erro.message || 'Erro ao atualizar perfil', 'error');
   }
 }
 
@@ -426,12 +439,18 @@ async function confirmarDelecao() {
   
   try {
     const usuarioId = getUsuarioId(usuarioAtual);
+    if (!usuarioId) {
+      throw new Error('ID do usuário não encontrado. Recarregue a página.');
+    }
+    
     const resposta = await fetch(`${window.API_URL}/usuario/${usuarioId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
+    
+    if (tratarErroAutenticacao(resposta)) return;
     
     if (resposta.ok) {
       // Limpar dados do localStorage
@@ -456,6 +475,19 @@ function logout(event) {
   localStorage.removeItem('eventhub-token');
   localStorage.removeItem('eventhub-usuario');
   window.location.href = 'index.html';
+}
+
+function tratarErroAutenticacao(response) {
+  if (response && (response.status === 401 || response.status === 403)) {
+    localStorage.removeItem('eventhub-token');
+    localStorage.removeItem('eventhub-usuario');
+    window.showNotification('Sessão inválida. Faça login novamente.', 'error');
+    setTimeout(() => {
+      window.location.href = 'login.html';
+    }, 800);
+    return true;
+  }
+  return false;
 }
 
 // Carregar perfil quando a página carrega

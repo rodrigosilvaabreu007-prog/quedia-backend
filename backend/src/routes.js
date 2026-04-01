@@ -4,7 +4,7 @@ const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const { connectDB } = require('./db'); 
-const { registrarUsuario, autenticarUsuario, buscarUsuarioPorId } = require('./autenticacao');
+const { registrarUsuario, autenticarUsuario, buscarUsuarioPorId, atualizarUsuario, deletarUsuario } = require('./autenticacao');
 
 // 1. IMPORTAÇÃO DOS MODELS (Caminho corrigido para a pasta models)
 const { cadastrarEvento, listarEventos, deletarEvento } = require('./models/eventos');
@@ -176,14 +176,23 @@ router.get('/usuario/:id', async (req, res) => {
     }
 });
 
-// 9. ROTA PUT: ATUALIZAR USUÁRIO
-router.put('/usuario/:id', async (req, res) => {
+// 9. ROTA PUT: ATUALIZAR USUÁRIO (COM AUTENTICAÇÃO)
+router.put('/usuario/:id', verificarToken, async (req, res) => {
     try {
         const { id } = req.params;
         const { nome, email, estado, cidade, preferencias } = req.body;
         
         if (!id) {
             return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+        }
+
+        // Verificar se o usuário está tentando atualizar sua própria conta
+        // Converter para string para comparar (ObjectId vs string da URL)
+        const tokenUserId = String(req.usuario.id);
+        const paramUserId = String(id);
+        
+        if (tokenUserId !== paramUserId) {
+            return res.status(403).json({ erro: 'Você não tem permissão para atualizar esta conta' });
         }
 
         // Aqui você precisa implementar a função atualizarUsuario
@@ -200,12 +209,21 @@ router.put('/usuario/:id', async (req, res) => {
     }
 });
 
-// 10. ROTA DELETE: DELETAR USUÁRIO
-router.delete('/usuario/:id', async (req, res) => {
+// 10. ROTA DELETE: DELETAR USUÁRIO (COM AUTENTICAÇÃO)
+router.delete('/usuario/:id', verificarToken, async (req, res) => {
     try {
         const { id } = req.params;
         if (!id) {
             return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+        }
+
+        // Verificar se o usuário está tentando deletar sua própria conta
+        // Converter para string para comparar (ObjectId vs string da URL)
+        const tokenUserId = String(req.usuario.id);
+        const paramUserId = String(id);
+        
+        if (tokenUserId !== paramUserId) {
+            return res.status(403).json({ erro: 'Você não tem permissão para deletar esta conta' });
         }
 
         // Aqui você precisa implementar a função deletarUsuario
@@ -279,6 +297,22 @@ router.post('/interesses', verificarToken, async (req, res) => {
     } catch (err) {
         console.error('Erro na rota POST /interesses:', err.message);
         return res.status(500).json({ erro: err.message || 'Erro ao processar interesse' });
+    }
+});
+
+// 12.1 ROTA GET: CONTADOR PÚBLICO DE INTERESSES (SEM AUTENTICAÇÃO)
+router.get('/interesses/contador/:evento_id', async (req, res) => {
+    try {
+        const { evento_id } = req.params;
+        if (!evento_id) {
+            return res.status(400).json({ erro: 'ID do evento é obrigatório' });
+        }
+
+        const contador = await contarInteresses(evento_id);
+        return res.json({ contador });
+    } catch (err) {
+        console.error('Erro na rota GET /interesses/contador/:evento_id:', err.message);
+        return res.status(500).json({ erro: err.message || 'Erro ao contar interesses' });
     }
 });
 
