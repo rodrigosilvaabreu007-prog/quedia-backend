@@ -214,8 +214,9 @@ function abrirModalEditar() {
   
   // Preencher campos com dados atuais
   document.getElementById('editar-nome').value = usuarioAtual.nome;
-  document.getElementById('editar-email').value = usuarioAtual.email;
-  
+  const mostrarEmail = document.getElementById('mostrar-email-perfil');
+  if (mostrarEmail) mostrarEmail.textContent = usuarioAtual.email || 'Não disponível';
+
   // Preencher dropdown de estados primeiro
   preencherEstadosEditar();
   
@@ -364,11 +365,10 @@ async function salvarAlteracoes(e) {
   
   // Validar campos obrigatórios
   const nome = document.getElementById('editar-nome').value.trim();
-  const email = document.getElementById('editar-email').value.trim();
   const estado = document.getElementById('editar-estado').value;
   const cidade = document.getElementById('editar-cidade').value;
   
-  if (!nome || !email || !estado || !cidade) {
+  if (!nome || !estado || !cidade) {
     window.showNotification('Por favor, preencha todos os campos obrigatórios', 'error');
     return;
   }
@@ -379,7 +379,6 @@ async function salvarAlteracoes(e) {
   
   const dadosAtualizados = {
     nome: nome,
-    email: email,
     estado: estado,
     cidade: cidade,
     preferencias: preferencias

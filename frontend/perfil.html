@@ -38,12 +38,10 @@
           Nome
           <input type="text" id="editar-nome" style="padding: 12px; border: 1px solid var(--cor-principal, #00bfff); border-radius: 4px; background: var(--bg-secondary, #1a2332); color: var(--text-color, #fff); margin-top: 6px;" required>
         </label>
-        
-        <label style="display: grid;">
-          Email
-          <input type="email" id="editar-email" style="padding: 12px; border: 1px solid var(--cor-principal, #00bfff); border-radius: 4px; background: var(--bg-secondary, #1a2332); color: var(--text-color, #fff); margin-top: 6px;" required>
-        </label>
-        
+
+        <!-- Email é fixo, não pode ser alterado aqui -->
+        <p style="color:#aaa; font-size:14px; margin: -8px 0 12px;">Email (inalterável): <strong id="mostrar-email-perfil"></strong></p>
+
         <label style="display: grid;">
           Estado
           <select id="editar-estado" style="padding: 12px; border: 1px solid var(--cor-principal, #00bfff); border-radius: 4px; background: var(--bg-secondary, #1a2332); color: var(--text-color, #fff); margin-top: 6px;" required>
