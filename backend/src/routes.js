@@ -188,7 +188,7 @@ router.put('/usuario/:id', verificarToken, async (req, res) => {
 
         // Verificar se o usuário está tentando atualizar sua própria conta
         // Converter para string para comparar (ObjectId vs string da URL)
-        const tokenUserId = String(req.usuario.id);
+        const tokenUserId = String(req.usuario?.id?.toString ? req.usuario.id.toString() : req.usuario?.id || '');
         const paramUserId = String(id);
         
         if (tokenUserId !== paramUserId) {
@@ -219,7 +219,7 @@ router.delete('/usuario/:id', verificarToken, async (req, res) => {
 
         // Verificar se o usuário está tentando deletar sua própria conta
         // Converter para string para comparar (ObjectId vs string da URL)
-        const tokenUserId = String(req.usuario.id);
+        const tokenUserId = String(req.usuario?.id?.toString ? req.usuario.id.toString() : req.usuario?.id || '');
         const paramUserId = String(id);
         
         if (tokenUserId !== paramUserId) {
@@ -266,7 +266,7 @@ function verificarToken(req, res, next) {
 router.post('/interesses', verificarToken, async (req, res) => {
     try {
         const { evento_id } = req.body;
-        const usuario_id = req.usuario.id;
+        const usuario_id = String(req.usuario?.id?.toString ? req.usuario.id.toString() : req.usuario?.id || '');
 
         if (!evento_id) {
             return res.status(400).json({ erro: 'ID do evento é obrigatório' });
@@ -323,7 +323,7 @@ router.get('/interesses/contador/:evento_id', async (req, res) => {
 router.get('/interesses/:evento_id', verificarToken, async (req, res) => {
     try {
         const { evento_id } = req.params;
-        const usuario_id = req.usuario.id;
+        const usuario_id = String(req.usuario?.id?.toString ? req.usuario.id.toString() : req.usuario?.id || '');
 
         const temInteresse = await usuarioTemInteresse(usuario_id, evento_id);
         const contador = await contarInteresses(evento_id);
@@ -344,9 +344,10 @@ router.get('/interesses/:evento_id', verificarToken, async (req, res) => {
 router.get('/interesses/usuario/:usuario_id', verificarToken, async (req, res) => {
     try {
         const { usuario_id } = req.params;
+        const tokenUserId = String(req.usuario?.id?.toString ? req.usuario.id.toString() : req.usuario?.id || '');
 
         // Verificar se o usuário está pedindo seus próprios interesses
-        if (usuario_id !== req.usuario.id) {
+        if (String(usuario_id) !== tokenUserId) {
             return res.status(403).json({ erro: 'Acesso negado' });
         }
 

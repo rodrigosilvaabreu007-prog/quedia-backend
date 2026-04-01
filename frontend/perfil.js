@@ -11,7 +11,11 @@ function getUsuarioId(usuario) {
       return '';
     }
   }
-  return usuario.id || usuario._id || '';
+  const userIdRaw = usuario.id || usuario._id || '';
+  if (userIdRaw && typeof userIdRaw === 'object' && typeof userIdRaw.toString === 'function') {
+    return userIdRaw.toString();
+  }
+  return String(userIdRaw || '');
 }
 
 // Função para carregar perfil

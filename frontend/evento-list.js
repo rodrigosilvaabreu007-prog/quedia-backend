@@ -196,7 +196,11 @@ function getUsuarioId() {
     if (!usuario) return 'anonimo';
     try {
         const dados = JSON.parse(usuario);
-        return dados.id ? String(dados.id) : (dados._id ? String(dados._id) : 'anonimo');
+        const rawId = dados.id || dados._id || 'anonimo';
+        if (rawId && typeof rawId === 'object' && typeof rawId.toString === 'function') {
+            return rawId.toString();
+        }
+        return String(rawId || 'anonimo');
     } catch {
         return 'anonimo';
     }

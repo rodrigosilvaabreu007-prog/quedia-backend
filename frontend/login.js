@@ -82,8 +82,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Salva o Token e os Dados do Usuário
                     localStorage.setItem('eventhub-token', resultado.token);
-                    // Padronizado para 'eventhub-usuario' para bater com o global.js
-                    localStorage.setItem('eventhub-usuario', JSON.stringify(resultado.usuario || resultado.user));
+                    let usuarioData = resultado.usuario || resultado.user;
+                    if (usuarioData) {
+                        let userId = usuarioData.id || usuarioData._id || '';
+                        if (userId && typeof userId === 'object' && typeof userId.toString === 'function') {
+                            userId = userId.toString();
+                        }
+                        userId = String(userId || '');
+                        usuarioData = { ...usuarioData, id: userId, _id: userId };
+                    }
+                    localStorage.setItem('eventhub-usuario', JSON.stringify(usuarioData));
                     
                     // Atualiza interface se a função existir
                     if (typeof window.inicializarIconePerfil === 'function') {

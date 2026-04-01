@@ -20,6 +20,9 @@ async function adicionarInteresse(usuario_id, evento_id) {
         throw new Error("Conexão com MongoDB não está pronta.");
     }
 
+    usuario_id = String(usuario_id);
+    evento_id = String(evento_id);
+
     try {
         const interesse = new Interesse({ usuario_id, evento_id });
         await interesse.save();
@@ -38,6 +41,9 @@ async function removerInteresse(usuario_id, evento_id) {
         throw new Error("Conexão com MongoDB não está pronta.");
     }
 
+    usuario_id = String(usuario_id);
+    evento_id = String(evento_id);
+
     const resultado = await Interesse.deleteOne({ usuario_id, evento_id });
     return resultado.deletedCount > 0;
 }
@@ -47,6 +53,9 @@ async function usuarioTemInteresse(usuario_id, evento_id) {
     if (mongoose.connection.readyState !== 1) {
         throw new Error("Conexão com MongoDB não está pronta.");
     }
+
+    usuario_id = String(usuario_id);
+    evento_id = String(evento_id);
 
     const interesse = await Interesse.findOne({ usuario_id, evento_id });
     return !!interesse;
@@ -58,6 +67,7 @@ async function contarInteresses(evento_id) {
         throw new Error("Conexão com MongoDB não está pronta.");
     }
 
+    evento_id = String(evento_id);
     const count = await Interesse.countDocuments({ evento_id });
     return count;
 }
@@ -68,6 +78,7 @@ async function listarInteressesUsuario(usuario_id) {
         throw new Error("Conexão com MongoDB não está pronta.");
     }
 
+    usuario_id = String(usuario_id);
     const interesses = await Interesse.find({ usuario_id }, { evento_id: 1, _id: 0 });
     return interesses.map(i => i.evento_id);
 }
@@ -78,6 +89,7 @@ async function removerInteressesPorUsuario(usuario_id) {
         throw new Error("Conexão com MongoDB não está pronta.");
     }
 
+    usuario_id = String(usuario_id);
     const resultado = await Interesse.deleteMany({ usuario_id });
     return resultado.deletedCount;
 }

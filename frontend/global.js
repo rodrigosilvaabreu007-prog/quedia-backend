@@ -48,7 +48,11 @@ function inicializarIconePerfil() {
         try {
             const usuarioData = JSON.parse(usuario);
             // Tenta pegar a foto salva localmente ou a que veio do objeto usuário
-            const usuarioId = usuarioData.id || usuarioData._id || '';
+            let usuarioId = usuarioData.id || usuarioData._id || '';
+            if (usuarioId && typeof usuarioId === 'object' && typeof usuarioId.toString === 'function') {
+                usuarioId = usuarioId.toString();
+            }
+            usuarioId = String(usuarioId || '');
             const fotoPerfil = localStorage.getItem(`foto-perfil-${usuarioId}`) || usuarioData.foto;
 
             if (fotoPerfil && fotoPerfil !== 'undefined' && fotoPerfil !== 'null') {

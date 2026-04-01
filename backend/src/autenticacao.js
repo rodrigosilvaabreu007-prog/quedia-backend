@@ -1,5 +1,7 @@
 const bcrypt = require('bcryptjs'); // ✅ Trocado para evitar erro no Build do Cloud Run
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 const { connectDB, getDatabase } = require('./db');
 require('dotenv').config();
 
@@ -50,15 +52,16 @@ async function autenticarUsuario(email, senha) {
         return null;
     }
 
-    // Gerar token JWT
+    // Normalizar ID e gerar token JWT
+    const usuarioIdStr = String(usuario._id);
     const token = jwt.sign(
-        { id: usuario._id, email: usuario.email }, 
+        { id: usuarioIdStr, email: usuario.email }, 
         process.env.JWT_SECRET || 'secret_key_fixa', 
         { expiresIn: '2h' }
     );
 
-    // Remove a senha do objeto antes de enviar por segurança
-    const usuarioSemSenha = { ...usuario };
+    // Remove a senha do objeto antes de enviar por segurança e normaliza IDs
+    const usuarioSemSenha = { ...usuario, _id: usuarioIdStr, id: usuarioIdStr };
     delete usuarioSemSenha.senha;
     
     return { usuario: usuarioSemSenha, token };
@@ -70,21 +73,70 @@ async function buscarUsuarioPorId(id) {
     if (!db) throw new Error("Não foi possível conectar ao banco de dados.");
 
     // Busca o usuário pelo ID
-    const usuario = await db.collection('usuarios').findOne({ _id: new require('mongodb').ObjectId(id) });
-    
-    if (!usuario) {
-        return null;
-    }
+    try {
+        if (!ObjectId.isValid(id)) {
+            return null;
+        }
 
-    // Remove a senha do objeto antes de enviar por segurança
-    const usuarioSemSenha = { ...usuario };
-    delete usuarioSemSenha.senha;
+        const usuario = await db.collection('usuarios').findOne({ _id: new ObjectId(id) });
     
-    return usuarioSemSenha;
+        if (!usuario) {
+            return null;
+        }
+
+        // Remove a senha do objeto antes de enviar por segurança e normaliza IDs
+        const usuarioSemSenha = { ...usuario, _id: String(usuario._id), id: String(usuario._id) };
+        delete usuarioSemSenha.senha;
+        
+        return usuarioSemSenha;
+    } catch (err) {
+        console.error('Erro ao buscar usuário por ID:', err.message);
+        throw err;
+    }
+}
+
+// Função para atualizar usuário (MONGODB)
+async function atualizarUsuario(id, dados) {
+    const db = await connectDB();
+    if (!db) throw new Error("Não foi possível conectar ao banco de dados.");
+
+    const { nome, email, estado, cidade, preferencias } = dados;
+
+    try {
+        const resultado = await db.collection('usuarios').updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { nome, email, estado, cidade, preferencias } }
+        );
+
+        if (resultado.matchedCount === 0) {
+            return null;
+        }
+
+        // Retorna o usuário atualizado (com ID normalizado)
+        const usuarioAtualizado = await buscarUsuarioPorId(id);
+        return usuarioAtualizado;
+    } catch (err) {
+        console.error('Erro ao atualizar usuário:', err.message);
+        throw err;
+    }
+}
+
+// Função para deletar usuário (MONGODB)
+async function deletarUsuario(id) {
+    const db = await connectDB();
+    if (!db) throw new Error("Não foi possível conectar ao banco de dados.");
+
+    const resultado = await db.collection('usuarios').deleteOne(
+        { _id: new ObjectId(id) }
+    );
+
+    return resultado.deletedCount > 0;
 }
 
 module.exports = {
     registrarUsuario,
     autenticarUsuario,
-    buscarUsuarioPorId
+    buscarUsuarioPorId,
+    atualizarUsuario,
+    deletarUsuario
 };
