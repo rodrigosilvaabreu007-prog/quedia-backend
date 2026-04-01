@@ -524,14 +524,21 @@ function filtrarEventos() {
 
     const containerParaVoce = document.getElementById('eventos-para-voce');
     const mensagemParaVoce = document.getElementById('mensagem-para-voce');
-    if (containerParaVoce) {
-        containerParaVoce.innerHTML = '';
-        if (eventosParaVoce.length === 0) {
-            mensagemParaVoce.textContent = 'Nenhum evento encontrado para suas preferências.';
-            mensagemParaVoce.style.display = 'block';
-        } else {
-            mensagemParaVoce.style.display = 'none';
-            eventosParaVoce.forEach(ev => containerParaVoce.appendChild(criarCardEvento(ev, true)));
+
+    if (!preferenciasAtuais || preferenciasAtuais.length !== 1) {
+        if (sectionParaVoce) sectionParaVoce.style.display = 'none';
+        if (containerParaVoce) containerParaVoce.innerHTML = '';
+        if (mensagemParaVoce) mensagemParaVoce.style.display = 'none';
+    } else {
+        if (containerParaVoce) {
+            containerParaVoce.innerHTML = '';
+            if (eventosParaVoce.length === 0) {
+                mensagemParaVoce.textContent = 'Nenhum evento encontrado para suas preferências.';
+                mensagemParaVoce.style.display = 'block';
+            } else {
+                mensagemParaVoce.style.display = 'none';
+                eventosParaVoce.forEach(ev => containerParaVoce.appendChild(criarCardEvento(ev, true)));
+            }
         }
     }
 
@@ -613,11 +620,24 @@ async function carregarEventos() {
         todosEventos = Array.isArray(dados) ? dados : [];
         
         // Carregar eventos para "Eventos para Você"
+        const preferenciasAtuais = getPreferenciasUsuario();
+        const eventoParaVoceSection = document.getElementById('section-para-voce');
+        if (eventoParaVoceSection) {
+            if (!preferenciasAtuais || preferenciasAtuais.length !== 1) {
+                eventoParaVoceSection.style.display = 'none';
+            } else {
+                eventoParaVoceSection.style.display = 'block';
+            }
+        }
+
         const eventosParaVoce = filtrarEventosParaVoce();
         const containerParaVoce = document.getElementById('eventos-para-voce');
         if (containerParaVoce) {
             containerParaVoce.innerHTML = '';
-            if (eventosParaVoce.length === 0) {
+            if (!preferenciasAtuais || preferenciasAtuais.length !== 1) {
+                // Não exibir conteúdo se não há exatamente uma preferência
+                containerParaVoce.innerHTML = '';
+            } else if (eventosParaVoce.length === 0) {
                 containerParaVoce.innerHTML = '<p style="color:#ccc; text-align:center; width:100%; padding: 20px;">Nenhum evento encontrado para suas preferências.</p>';
             } else {
                 eventosParaVoce.forEach(ev => containerParaVoce.appendChild(criarCardEvento(ev, true)));
