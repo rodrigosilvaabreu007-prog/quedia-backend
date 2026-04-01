@@ -27,6 +27,9 @@ function criarCardEvento(evento, mostrarFavorito = true) {
     const favoritos = JSON.parse(localStorage.getItem('eventos-favoritos') || '[]');
     const isFavoritado = favoritos.includes(evento._id);
     
+    // Verificar interesse usando cache
+    const isInteressado = interessesCache[evento._id] || false;
+    
     // Lógica de Imagem: Pega a primeira do array do Cloudinary
     let imagemFinal = 'https://via.placeholder.com/400x200?text=Sem+Imagem';
     if (evento.imagens && evento.imagens.length > 0) {
@@ -40,7 +43,20 @@ function criarCardEvento(evento, mostrarFavorito = true) {
     const precoTexto = (evento.gratuito || preco === 0) ? 'GRATUITO' : `R$ ${preco.toFixed(2)}`;
 
     // Contador de interesses: deriva do localStorage global por evento
-    const contadorInteresses = Math.max(0, getContadorInteressesEvento(evento._id));
+    getContadorInteressesEvento(evento._id).then(contador => {
+        const contadorInteresses = Math.max(0, contador);
+        // Atualizar o elemento se ele existir
+        const interessesEl = div.querySelector('.interesses-count');
+        if (interessesEl) {
+            interessesEl.textContent = `👥 ${contadorInteresses} interessados`;
+        }
+    }).catch(() => {
+        // Fallback para 0 se erro
+        const interessesEl = div.querySelector('.interesses-count');
+        if (interessesEl) {
+            interessesEl.textContent = `👥 0 interessados`;
+        }
+    });
 
     div.innerHTML = `
         <div class="event-img-container">
@@ -112,7 +128,7 @@ window.toggleFavorito = function(eventoId, btnElement) {
     }
 };
 
-window.toggleInteresse = function(eventoId, btnElement) {
+window.toggleInteresse = async function(eventoId, btnElement) {
     if (!isUsuarioLogado()) {
         window.showNotification('Atenção: é necessário estar logado para demonstrar interesse.', 'info');
         const redirect = encodeURIComponent(window.location.pathname.replace(/^\//, '') || 'index.html');
@@ -120,31 +136,58 @@ window.toggleInteresse = function(eventoId, btnElement) {
         return;
     }
 
-    const usuario = getUsuarioId();
-    const interessadoAtual = usuarioInteressadoNoEvento(eventoId);
-    const novoContador = toggleInteresseGlobal(eventoId);
+    try {
+        const response = await fetch(`${window.API_URL}/interesses`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('eventhub-token')}`
+            },
+            body: JSON.stringify({ evento_id: eventoId })
+        });
 
-    if (interessadoAtual) {
-        btnElement.classList.remove('demonstrou-interesse');
-        btnElement.innerHTML = '🤍 Demonstrar Interesse';
-    } else {
-        btnElement.classList.add('demonstrou-interesse');
-        btnElement.innerHTML = '❤️ Interessado';
-    }
+        if (response.ok) {
+            const data = await response.json();
+            const temInteresse = data.acao === 'adicionado';
+            const contador = data.contador;
 
-    const contadorEl = btnElement.parentElement.querySelector('.interesses-count-modal');
-    if (contadorEl) {
-        contadorEl.textContent = `👥 ${novoContador} pessoas interessadas`;
-    }
+            // Atualizar cache
+            if (temInteresse) {
+                interessesCache[eventoId] = true;
+                btnElement.classList.add('demonstrou-interesse');
+                btnElement.innerHTML = '❤️ Interessado';
+            } else {
+                delete interessesCache[eventoId];
+                btnElement.classList.remove('demonstrou-interesse');
+                btnElement.innerHTML = '🤍 Demonstrar Interesse';
+            }
 
-    // Atualizar quantificador no card principal caso renderizado
-    document.querySelectorAll('.event-card').forEach(card => {
-        const id = card.getAttribute('data-evento-id');
-        if (id === eventoId) {
-            const q = card.querySelector('.interesses-count');
-            if (q) q.textContent = `👥 ${novoContador} interessados`;
+            contadorCache[eventoId] = contador;
+
+            // Atualizar contador no modal
+            const contadorEl = btnElement.parentElement.querySelector('.interesses-count-modal');
+            if (contadorEl) {
+                contadorEl.textContent = `👥 ${contador} pessoas interessadas`;
+            }
+
+            // Atualizar contador nos cards
+            document.querySelectorAll('.event-card').forEach(card => {
+                const id = card.getAttribute('data-evento-id');
+                if (id === eventoId) {
+                    const q = card.querySelector('.interesses-count');
+                    if (q) q.textContent = `👥 ${contador} interessados`;
+                }
+            });
+
+            window.showNotification(data.mensagem, 'success');
+        } else {
+            const error = await response.json();
+            window.showNotification(error.erro || 'Erro ao processar interesse', 'error');
         }
-    });
+    } catch (err) {
+        console.error('Erro ao toggle interesse:', err);
+        window.showNotification('Erro de conexão', 'error');
+    }
 };
 
 // --- FUNÇÕES DE PREFERÊNCIAS ---
@@ -191,44 +234,81 @@ function isUsuarioLogado() {
     return usuarioId && usuarioId !== 'anonimo';
 }
 
-function getInteressesGlobais() {
-    const data = localStorage.getItem('eventos-interesses-globais');
-    return data ? JSON.parse(data) : {};
+// --- FUNÇÕES DE INTERESSES (AGORA VIA BACKEND) ---
+
+// Cache local para evitar muitas requisições
+let interessesCache = {};
+let contadorCache = {};
+
+async function carregarInteressesUsuario() {
+    if (!isUsuarioLogado()) return;
+
+    const usuarioId = getUsuarioId();
+    try {
+        const response = await fetch(`${window.API_URL}/interesses/usuario/${usuarioId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('eventhub-token')}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            interessesCache = {};
+            data.interesses.forEach(eventoId => {
+                interessesCache[eventoId] = true;
+            });
+        }
+    } catch (err) {
+        console.error('Erro ao carregar interesses do usuário:', err);
+    }
 }
 
-function setInteressesGlobais(obj) {
-    localStorage.setItem('eventos-interesses-globais', JSON.stringify(obj));
-}
+async function verificarInteresse(eventoId) {
+    if (!isUsuarioLogado()) return { temInteresse: false, contador: 0 };
 
-function getContadorInteressesEvento(eventoId) {
-    const globais = getInteressesGlobais();
-    return Array.isArray(globais[eventoId]) ? globais[eventoId].length : 0;
-}
+    try {
+        const response = await fetch(`${window.API_URL}/interesses/${eventoId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('eventhub-token')}`
+            }
+        });
 
-function usuarioInteressadoNoEvento(eventoId) {
-    const user = getUsuarioId();
-    const globais = getInteressesGlobais();
-    const lista = Array.isArray(globais[eventoId]) ? globais[eventoId] : [];
-    return lista.includes(user);
-}
-
-function toggleInteresseGlobal(eventoId) {
-    if (!isUsuarioLogado()) {
-        return 0; // Proteção extra: ações inválidas não devem ser persistidas
+        if (response.ok) {
+            const data = await response.json();
+            contadorCache[eventoId] = data.contador;
+            return { temInteresse: data.temInteresse, contador: data.contador };
+        }
+    } catch (err) {
+        console.error('Erro ao verificar interesse:', err);
     }
 
-    const user = getUsuarioId();
-    const globais = getInteressesGlobais();
-    const lista = Array.isArray(globais[eventoId]) ? globais[eventoId] : [];
+    return { temInteresse: false, contador: 0 };
+}
 
-    if (lista.includes(user)) {
-        globais[eventoId] = lista.filter(uid => uid !== user);
-    } else {
-        globais[eventoId] = [...lista, user];
+async function getContadorInteressesEvento(eventoId) {
+    // Primeiro tenta usar cache
+    if (contadorCache[eventoId] !== undefined) {
+        return contadorCache[eventoId];
     }
 
-    setInteressesGlobais(globais);
-    return globais[eventoId].length;
+    // Se não tem cache, faz requisição
+    try {
+        const response = await fetch(`${window.API_URL}/interesses/${eventoId}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('eventhub-token')}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            contadorCache[eventoId] = data.contador;
+            return data.contador;
+        }
+    } catch (err) {
+        console.error('Erro ao buscar contador de interesses:', err);
+    }
+
+    return 0;
 }
 
 function filtrarEventosParaVoce() {
@@ -268,12 +348,18 @@ window.abrirPrevia = function(evento, imgResolvida) {
     // Padronização com o backend: prioriza 'local'
     const localizacao = evento.local || evento.endereco || 'Endereço não informado';
     
-    // Verificar se o usuário já demonstrou interesse
-    const interesses = JSON.parse(localStorage.getItem('eventos-interesses') || '[]');
-    const jaDemonstrouInteresse = interesses.includes(evento._id);
+    // Verificar se o usuário já demonstrou interesse (usando cache)
+    const jaDemonstrouInteresse = interessesCache[evento._id] || false;
     
-    // Contador de interesses (global por evento)
-    const contadorInteresses = getContadorInteressesEvento(evento._id);
+    // Contador de interesses (global por evento) - será atualizado depois
+    let contadorInteresses = 0;
+    getContadorInteressesEvento(evento._id).then(contador => {
+        contadorInteresses = contador;
+        const contadorEl = body.querySelector('.interesses-count-modal');
+        if (contadorEl) {
+            contadorEl.textContent = `👥 ${contador} pessoas interessadas`;
+        }
+    });
     body.innerHTML = `
         <div class="modal-header">
             <img src="${imgResolvida}" class="modal-header-img" style="width:100%; max-height:300px; object-fit:cover; border-radius:8px;">
@@ -564,6 +650,7 @@ function popularFiltros() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    await carregarInteressesUsuario(); // Carregar interesses primeiro
     await carregarEventos();
     // Inicializar visualização padrão após carregar eventos
     if (typeof window.setView === 'function') {

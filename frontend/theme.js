@@ -67,7 +67,7 @@ themeBtn.onclick = () => {
 };
 document.getElementById('close-theme').onclick = () => themeModal.style.display = 'none';
 
-document.getElementById('save-theme').onclick = () => {
+document.getElementById('save-theme').onclick = async () => {
   const corPrincipal = document.getElementById('theme-main').value;
   const corFundo = document.getElementById('theme-bg').value;
   const corTexto = document.getElementById('theme-text').value;
@@ -77,8 +77,40 @@ document.getElementById('save-theme').onclick = () => {
   document.body.style.setProperty('--bg-primary', corFundo);
   document.body.style.setProperty('--text-primary', corTexto);
 
-  // Salvar preferências
+  // Salvar localmente
   localStorage.setItem('eventhub-theme', JSON.stringify({ corPrincipal, corFundo, corTexto }));
+
+  // Salvar no backend se usuário estiver logado
+  const token = localStorage.getItem('eventhub-token');
+  const usuarioStr = localStorage.getItem('eventhub-usuario');
+  if (token && usuarioStr) {
+    try {
+      const usuario = JSON.parse(usuarioStr);
+      const preferencias = usuario.preferencias || {};
+      if (typeof preferencias === 'string') {
+        preferencias = JSON.parse(preferencias);
+      }
+
+      preferencias.tema = { corPrincipal, corFundo, corTexto };
+
+      const response = await fetch(`${window.API_URL}/usuario/${usuario._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ preferencias })
+      });
+
+      if (response.ok) {
+        // Atualizar dados do usuário no localStorage
+        usuario.preferencias = preferencias;
+        localStorage.setItem('eventhub-usuario', JSON.stringify(usuario));
+      }
+    } catch (err) {
+      console.error('Erro ao salvar tema no backend:', err);
+    }
+  }
 
   themeModal.style.display = 'none';
   showNotification('Tema salvo com sucesso!', 'success');
@@ -104,18 +136,50 @@ document.getElementById('theme-bg').addEventListener('input', updatePreviews);
 document.getElementById('theme-text').addEventListener('input', updatePreviews);
 
 // Restaurar tema salvo
-const savedTheme = localStorage.getItem('eventhub-theme');
-if (savedTheme) {
-  const { corPrincipal, corFundo, corTexto } = JSON.parse(savedTheme);
-  document.body.style.setProperty('--cor-principal', corPrincipal);
-  document.body.style.setProperty('--bg-primary', corFundo);
-  document.body.style.setProperty('--text-primary', corTexto);
+async function restaurarTema() {
+  const usuarioStr = localStorage.getItem('eventhub-usuario');
+  let tema = null;
 
-  // Definir valores nos inputs
-  document.getElementById('theme-main').value = corPrincipal;
-  document.getElementById('theme-bg').value = corFundo;
-  document.getElementById('theme-text').value = corTexto;
+  // Primeiro tentar carregar do backend se usuário estiver logado
+  if (usuarioStr) {
+    try {
+      const usuario = JSON.parse(usuarioStr);
+      const preferencias = usuario.preferencias;
+      if (preferencias) {
+        if (typeof preferencias === 'string') {
+          const prefs = JSON.parse(preferencias);
+          tema = prefs.tema;
+        } else if (preferencias.tema) {
+          tema = preferencias.tema;
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao carregar tema do usuário:', err);
+    }
+  }
+
+  // Se não tem tema do backend, tentar localStorage
+  if (!tema) {
+    const savedTheme = localStorage.getItem('eventhub-theme');
+    if (savedTheme) {
+      tema = JSON.parse(savedTheme);
+    }
+  }
+
+  // Aplicar tema se encontrado
+  if (tema) {
+    document.body.style.setProperty('--cor-principal', tema.corPrincipal);
+    document.body.style.setProperty('--bg-primary', tema.corFundo);
+    document.body.style.setProperty('--text-primary', tema.corTexto);
+
+    // Definir valores nos inputs
+    document.getElementById('theme-main').value = tema.corPrincipal;
+    document.getElementById('theme-bg').value = tema.corFundo;
+    document.getElementById('theme-text').value = tema.corTexto;
+  }
 }
+
+restaurarTema();
 
 // Função para mostrar notificações
 function showNotification(message, type = 'info') {

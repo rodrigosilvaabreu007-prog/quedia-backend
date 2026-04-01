@@ -8,6 +8,7 @@ const { registrarUsuario, autenticarUsuario, buscarUsuarioPorId } = require('./a
 
 // 1. IMPORTAÇÃO DOS MODELS (Caminho corrigido para a pasta models)
 const { cadastrarEvento, listarEventos, deletarEvento } = require('./models/eventos');
+const { adicionarInteresse, removerInteresse, usuarioTemInteresse, contarInteresses, listarInteressesUsuario } = require('./models/interesses');
 
 // 2. CONFIGURAÇÃO DO CLOUDINARY
 cloudinary.config({
@@ -172,6 +173,151 @@ router.get('/usuario/:id', async (req, res) => {
     } catch (err) {
         console.error('Erro na rota GET /usuario/:id:', err.message);
         return res.status(500).json({ erro: err.message || 'Erro ao buscar usuário' });
+    }
+});
+
+// 9. ROTA PUT: ATUALIZAR USUÁRIO
+router.put('/usuario/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nome, email, estado, cidade, preferencias } = req.body;
+        
+        if (!id) {
+            return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+        }
+
+        // Aqui você precisa implementar a função atualizarUsuario
+        // Por enquanto, vou usar uma implementação simples
+        const usuarioAtualizado = await atualizarUsuario(id, { nome, email, estado, cidade, preferencias });
+        if (!usuarioAtualizado) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+
+        return res.json(usuarioAtualizado);
+    } catch (err) {
+        console.error('Erro na rota PUT /usuario/:id:', err.message);
+        return res.status(500).json({ erro: err.message || 'Erro ao atualizar usuário' });
+    }
+});
+
+// 10. ROTA DELETE: DELETAR USUÁRIO
+router.delete('/usuario/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+        }
+
+        // Aqui você precisa implementar a função deletarUsuario
+        const usuarioDeletado = await deletarUsuario(id);
+        if (!usuarioDeletado) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+
+        return res.json({ mensagem: 'Usuário deletado com sucesso' });
+    } catch (err) {
+        console.error('Erro na rota DELETE /usuario/:id:', err.message);
+        return res.status(500).json({ erro: err.message || 'Erro ao deletar usuário' });
+    }
+});
+
+// --- ROTAS DE INTERESSES ---
+
+// Middleware para verificar token JWT
+function verificarToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+    if (!token) {
+        return res.status(401).json({ erro: 'Token de acesso necessário' });
+    }
+
+    try {
+        const decoded = require('jsonwebtoken').verify(token, process.env.JWT_SECRET || 'secret_key_fixa');
+        req.usuario = decoded;
+        next();
+    } catch (err) {
+        return res.status(403).json({ erro: 'Token inválido' });
+    }
+}
+
+// 11. ROTA POST: TOGGLE INTERESSE (adicionar/remover)
+router.post('/interesses', verificarToken, async (req, res) => {
+    try {
+        const { evento_id } = req.body;
+        const usuario_id = req.usuario.id;
+
+        if (!evento_id) {
+            return res.status(400).json({ erro: 'ID do evento é obrigatório' });
+        }
+
+        // Verificar se já tem interesse
+        const jaTemInteresse = await usuarioTemInteresse(usuario_id, evento_id);
+
+        let resultado;
+        if (jaTemInteresse) {
+            // Remover interesse
+            resultado = await removerInteresse(usuario_id, evento_id);
+            return res.json({ 
+                mensagem: 'Interesse removido', 
+                acao: 'removido',
+                contador: await contarInteresses(evento_id)
+            });
+        } else {
+            // Adicionar interesse
+            resultado = await adicionarInteresse(usuario_id, evento_id);
+            if (resultado) {
+                return res.json({ 
+                    mensagem: 'Interesse adicionado', 
+                    acao: 'adicionado',
+                    contador: await contarInteresses(evento_id)
+                });
+            } else {
+                return res.status(409).json({ erro: 'Interesse já existe' });
+            }
+        }
+    } catch (err) {
+        console.error('Erro na rota POST /interesses:', err.message);
+        return res.status(500).json({ erro: err.message || 'Erro ao processar interesse' });
+    }
+});
+
+// 12. ROTA GET: VERIFICAR SE USUÁRIO TEM INTERESSE
+router.get('/interesses/:evento_id', verificarToken, async (req, res) => {
+    try {
+        const { evento_id } = req.params;
+        const usuario_id = req.usuario.id;
+
+        const temInteresse = await usuarioTemInteresse(usuario_id, evento_id);
+        const contador = await contarInteresses(evento_id);
+
+        return res.json({ 
+            temInteresse, 
+            contador,
+            evento_id,
+            usuario_id 
+        });
+    } catch (err) {
+        console.error('Erro na rota GET /interesses/:evento_id:', err.message);
+        return res.status(500).json({ erro: err.message || 'Erro ao verificar interesse' });
+    }
+});
+
+// 13. ROTA GET: LISTAR INTERESSES DO USUÁRIO
+router.get('/interesses/usuario/:usuario_id', verificarToken, async (req, res) => {
+    try {
+        const { usuario_id } = req.params;
+
+        // Verificar se o usuário está pedindo seus próprios interesses
+        if (usuario_id !== req.usuario.id) {
+            return res.status(403).json({ erro: 'Acesso negado' });
+        }
+
+        const interesses = await listarInteressesUsuario(usuario_id);
+        return res.json({ interesses });
+    } catch (err) {
+        console.error('Erro na rota GET /interesses/usuario/:usuario_id:', err.message);
+        return res.status(500).json({ erro: err.message || 'Erro ao listar interesses' });
     }
 });
 
