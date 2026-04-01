@@ -789,7 +789,13 @@ window.setView = function(view) {
     btnCalendario.classList.toggle('active', view === 'calendario');
     
     // Mostrar/ocultar seções
-    document.getElementById('section-para-voce').style.display = view === 'eventos' ? 'block' : 'none';
+    const sectionParaVoce = document.getElementById('section-para-voce');
+    const preferenciasAtuais = getPreferenciasUsuario();
+    const paraVoceVisivel = view === 'eventos' && preferenciasAtuais && preferenciasAtuais.length === 1;
+    if (sectionParaVoce) {
+        sectionParaVoce.style.display = paraVoceVisivel ? 'block' : 'none';
+    }
+
     document.getElementById('section-todos').style.display = view === 'eventos' ? 'block' : 'none';
     document.getElementById('section-calendario').style.display = view === 'calendario' ? 'block' : 'none';
     
