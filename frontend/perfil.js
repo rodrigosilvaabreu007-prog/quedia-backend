@@ -18,16 +18,38 @@ async function carregarPerfil() {
   
   // Se não estiver logado, mostrar tela de login
   if (!token || !usuario) {
+    if (token && !usuario) {
+      // Limpa token antigo caso exista sem usuário válido (evita cycle de redirecionamento no login)
+      localStorage.removeItem('eventhub-token');
+    }
+
     container.innerHTML = `
       <div style="text-align: center; padding: 40px 20px;">
         <h2 style="color: var(--cor-principal, #00bfff); margin-bottom: 20px;">Você não está logado</h2>
         <p style="color: #aaa; margin-bottom: 30px;">Faça login ou crie uma conta para acessar seu perfil</p>
         <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-          <a href="login.html" style="padding: 12px 24px; background: var(--cor-principal, #00bfff); color: #000; border-radius: 4px; text-decoration: none; font-weight: bold; cursor: pointer;">Login</a>
-          <a href="cadastro.html" style="padding: 12px 24px; background: transparent; color: var(--cor-principal, #00bfff); border: 2px solid var(--cor-principal, #00bfff); border-radius: 4px; text-decoration: none; font-weight: bold; cursor: pointer;">Cadastro</a>
+          <button id="btn-abrir-login" style="padding: 12px 24px; background: var(--cor-principal, #00bfff); color: #000; border-radius: 4px; font-weight: bold; cursor: pointer; border: none;">Login</button>
+          <button id="btn-abrir-cadastro" style="padding: 12px 24px; background: transparent; color: var(--cor-principal, #00bfff); border: 2px solid var(--cor-principal, #00bfff); border-radius: 4px; font-weight: bold; cursor: pointer;">Cadastro</button>
         </div>
+        <p style="color: #ffcc00; margin-top: 18px; font-size: 0.9rem;">Se não abrir, limpe o cache do browser ou use o botão abaixo.</p>
+        <button id="btn-limpar-sessao" style="padding: 10px 16px; background: #444; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Limpar sessão</button>
       </div>
     `;
+
+    document.getElementById('btn-abrir-login')?.addEventListener('click', () => {
+      window.location.href = 'login.html';
+    });
+
+    document.getElementById('btn-abrir-cadastro')?.addEventListener('click', () => {
+      window.location.href = 'cadastro.html';
+    });
+
+    document.getElementById('btn-limpar-sessao')?.addEventListener('click', () => {
+      localStorage.removeItem('eventhub-token');
+      localStorage.removeItem('eventhub-usuario');
+      location.reload();
+    });
+
     return;
   }
   

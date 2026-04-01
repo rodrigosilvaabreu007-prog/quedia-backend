@@ -5,10 +5,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('login-form');
     const mensagem = document.getElementById('mensagem-login');
 
-    // Se já estiver logado, manda direto para a home
-    if (localStorage.getItem('eventhub-token')) {
+    // Se já estiver logado (token + usuário), manda direto para a home
+    const token = localStorage.getItem('eventhub-token');
+    const usuario = localStorage.getItem('eventhub-usuario');
+    if (token && usuario) {
         window.location.href = 'index.html';
         return;
+    }
+
+    // Se houver token sem usuário válido, limpar token e permitir login
+    if (token && !usuario) {
+        localStorage.removeItem('eventhub-token');
     }
 
     if (form) {
@@ -46,8 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Salva o Token e os Dados do Usuário
                     localStorage.setItem('eventhub-token', resultado.token);
-                    // Padronizado para 'eventhub-user' para bater com o global.js
-                    localStorage.setItem('eventhub-user', JSON.stringify(resultado.usuario || resultado.user));
+                    // Padronizado para 'eventhub-usuario' para bater com o global.js
+                    localStorage.setItem('eventhub-usuario', JSON.stringify(resultado.usuario || resultado.user));
                     
                     // Atualiza interface se a função existir
                     if (typeof window.inicializarIconePerfil === 'function') {
