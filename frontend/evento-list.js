@@ -366,8 +366,8 @@ function filtrarEventosParaVoce(eventosBase = todosEventos, termoBusca = '', est
     const preferencias = getPreferenciasUsuario();
     const localizacao = getLocalizacaoUsuario();
 
-    // Só mostra "Para Você" quando há exatamente uma preferência de categoria no perfil
-    if (!preferencias || preferencias.length !== 1) {
+    // Só mostra "Para Você" quando há pelo menos uma preferência de categoria no perfil
+    if (!preferencias || preferencias.length === 0) {
         document.getElementById('section-para-voce').style.display = 'none';
         return [];
     }
@@ -623,7 +623,7 @@ async function carregarEventos() {
         const preferenciasAtuais = getPreferenciasUsuario();
         const eventoParaVoceSection = document.getElementById('section-para-voce');
         if (eventoParaVoceSection) {
-            if (!preferenciasAtuais || preferenciasAtuais.length !== 1) {
+            if (!preferenciasAtuais || preferenciasAtuais.length === 0) {
                 eventoParaVoceSection.style.display = 'none';
             } else {
                 eventoParaVoceSection.style.display = 'block';
@@ -634,8 +634,8 @@ async function carregarEventos() {
         const containerParaVoce = document.getElementById('eventos-para-voce');
         if (containerParaVoce) {
             containerParaVoce.innerHTML = '';
-            if (!preferenciasAtuais || preferenciasAtuais.length !== 1) {
-                // Não exibir conteúdo se não há exatamente uma preferência
+            if (!preferenciasAtuais || preferenciasAtuais.length === 0) {
+                // Não exibir conteúdo se não há preferências
                 containerParaVoce.innerHTML = '';
             } else if (eventosParaVoce.length === 0) {
                 containerParaVoce.innerHTML = '<p style="color:#ccc; text-align:center; width:100%; padding: 20px;">Nenhum evento encontrado para suas preferências.</p>';
@@ -791,7 +791,7 @@ window.setView = function(view) {
     // Mostrar/ocultar seções
     const sectionParaVoce = document.getElementById('section-para-voce');
     const preferenciasAtuais = getPreferenciasUsuario();
-    const paraVoceVisivel = view === 'eventos' && preferenciasAtuais && preferenciasAtuais.length === 1;
+    const paraVoceVisivel = view === 'eventos' && preferenciasAtuais && preferenciasAtuais.length > 0;
     if (sectionParaVoce) {
         sectionParaVoce.style.display = paraVoceVisivel ? 'block' : 'none';
     }
