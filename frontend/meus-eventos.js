@@ -9,7 +9,8 @@ async function carregarMeusEventos() {
     const usuarioStr = localStorage.getItem('eventhub-usuario');
 
     if (!token || !usuarioStr) {
-        container.innerHTML = '<p>Você precisa estar logado para ver seus eventos. <a href="login.html" style="color: var(--cor-principal, #00bfff);">Fazer Login</a></p>';
+        const redirect = encodeURIComponent('meus-eventos.html');
+        container.innerHTML = `<p>Você precisa estar logado para ver seus eventos. <a href="login.html?redirectTo=${redirect}" style="color: var(--cor-principal, #00bfff);">Fazer Login</a></p>`;
         return;
     }
 

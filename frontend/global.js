@@ -8,6 +8,31 @@ window.API_URL = API_URL;
 console.log('🚀 API QueDia Conectada com Sucesso:', window.API_URL);
 console.log('🚀 QueDia API conectada em:', window.API_URL);
 
+// Redirecionamento de rota curta para arquivo HTML (ajusta deploy sem .html)
+function normalizeSimplePath() {
+    const path = window.location.pathname.replace(/\/$/, '');
+    const map = {
+        '/login': '/login.html',
+        '/cadastro': '/cadastro.html',
+        '/meus-eventos': '/meus-eventos.html',
+        '/event-form': '/event-form.html',
+        '/perfil': '/perfil.html',
+        '/contato': '/contato.html',
+        '/sobre': '/sobre.html',
+        '/': '/index.html'
+    };
+
+    if (map[path] && map[path] !== window.location.pathname) {
+        window.location.replace(map[path] + window.location.search + window.location.hash);
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', normalizeSimplePath);
+} else {
+    normalizeSimplePath();
+}
+
 // --- FUNÇÕES DE PERFIL E NAVEGAÇÃO ---
 
 function inicializarIconePerfil() {

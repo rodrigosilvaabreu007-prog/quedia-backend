@@ -1,9 +1,28 @@
 // CONFIGURAÇÃO DA API
 // Usa a URL definida no global.js
 
+function getQueryParam(name) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name);
+}
+
+function getRedirectTarget() {
+    const raw = getQueryParam('redirectTo') || getQueryParam('next');
+    if (!raw) return 'index.html';
+
+    try {
+        const url = new URL(raw, window.location.origin);
+        if (url.origin !== window.location.origin) return 'index.html';
+        return url.pathname.endsWith('.html') ? url.pathname.replace(/^\//, '') : 'index.html';
+    } catch {
+        return 'index.html';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('login-form');
     const mensagem = document.getElementById('mensagem-login');
+    const redirectTarget = getRedirectTarget();
 
     // Se já estiver logado, mostrar uma mensagem e deixar o usuário escolher
     const token = localStorage.getItem('eventhub-token');
@@ -16,9 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (token && usuario) {
         const statusMsg = document.getElementById('mensagem-login');
         if (statusMsg) {
-            statusMsg.textContent = 'Você já está logado. Caso queira entrar com outra conta, faça logout primeiro.';
+            statusMsg.innerHTML = 'Você já está logado. <a href="perfil.html" style="color:#00bfff; text-decoration:underline;">Ver perfil</a> ou <a href="#" id="logout-link" style="color:#00bfff; text-decoration:underline;">sair</a>.';
             statusMsg.style.color = '#00bfff';
         }
+
+        document.getElementById('logout-link')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('eventhub-token');
+            localStorage.removeItem('eventhub-usuario');
+            window.location.reload();
+        });
     }
 
     if (form) {
@@ -64,9 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         window.inicializarIconePerfil();
                     }
 
-                    // Redireciona após 1 segundo
+                    // Redireciona após 1 segundo para destino de origem (ou index)
                     setTimeout(() => {
-                        window.location.href = 'index.html';
+                        window.location.href = redirectTarget;
                     }, 1000);
                 } else {
                     mensagem.textContent = resultado.erro || '❌ Email ou senha incorretos.';
