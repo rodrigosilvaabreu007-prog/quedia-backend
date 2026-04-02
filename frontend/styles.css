@@ -360,16 +360,19 @@ header {
 
 .card-form .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "estado cidade"
+    "data horario";
   grid-auto-rows: minmax(70px, auto);
   gap: 16px;
   margin-bottom: 18px;
 }
 
-.card-form .form-grid label:nth-child(1) { grid-column: 1; }
-.card-form .form-grid label:nth-child(2) { grid-column: 2; }
-.card-form .form-grid label:nth-child(3) { grid-column: 1; }
-.card-form .form-grid label:nth-child(4) { grid-column: 2; }
+.card-form .form-grid label:nth-child(1) { grid-area: estado; }
+.card-form .form-grid label:nth-child(2) { grid-area: cidade; }
+.card-form .form-grid label:nth-child(3) { grid-area: data; }
+.card-form .form-grid label:nth-child(4) { grid-area: horario; }
 
 .card-form .form-grid label,
 .coordenadas-container label {
@@ -393,16 +396,6 @@ header {
 
 .coordenadas-container input {
   width: 100%;
-}
-
-.card-form .form-grid label:nth-child(1),
-.card-form .form-grid label:nth-child(2) {
-  grid-column: auto;
-}
-
-.card-form .form-grid label:nth-child(3),
-.card-form .form-grid label:nth-child(4) {
-  grid-column: auto;
 }
 
 @media (max-width: 1060px) {
