@@ -308,6 +308,122 @@ header {
   box-shadow: 0 10px 30px rgba(0, 191, 255, 0.2);
 }
 
+/* --- FORMULÁRIO - CADASTRAR EVENTO --- */
+.card-form {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: rgba(12, 20, 32, 0.95);
+  border: 1px solid rgba(0, 191, 255, 0.25);
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.card-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 14px;
+  color: var(--text-primary);
+}
+
+.card-form label input,
+.card-form label select,
+.card-form label textarea,
+.card-form input[type='date'],
+.card-form input[type='time'],
+.card-form input[type='file'],
+.card-form input[type='number'] {
+  width: 100%;
+  margin-top: 6px;
+  background: rgba(5, 10, 20, 0.8);
+  border: 1px solid rgba(0, 191, 255, 0.45);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.card-form label textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.card-form label input:focus,
+.card-form label select:focus,
+.card-form label textarea:focus {
+  outline: none;
+  border-color: var(--cor-principal);
+  box-shadow: 0 0 12px rgba(0, 191, 255, 0.45);
+}
+
+.card-form .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.card-form .form-section {
+  border: 1px solid rgba(0, 191, 255, 0.35);
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(6, 12, 26, 0.75);
+  margin-bottom: 18px;
+}
+
+.card-form .form-section legend {
+  color: var(--cor-principal);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.card-form #categorias-evento {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.card-form .categoria-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#btn-submit {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: var(--cor-principal);
+  color: #000;
+  border: 2px solid var(--cor-principal);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-top: 10px;
+}
+
+#btn-submit:hover {
+  background: rgba(0, 255, 150, 0.95);
+  box-shadow: 0 0 15px rgba(0, 255, 150, 0.5);
+}
+
+@media (max-width: 900px) {
+  .card-form {
+    padding: 22px;
+  }
+  .card-form .form-grid {
+    grid-template-columns: 1fr;
+  }
+  #btn-submit {
+    font-size: 1rem;
+  }
+}
+
 .event-img-container {
   position: relative;
   width: 100%;

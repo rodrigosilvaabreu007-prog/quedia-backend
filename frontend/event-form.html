@@ -39,24 +39,24 @@
 
     <main>
       <form id="cadastro-evento" class="card-form">
+        <h1 style="font-size:2rem; color: var(--cor-principal); margin-bottom: 18px;">Cadastrar Evento</h1>
+        <p style="color:#999; margin-bottom: 22px">Preencha os dados abaixo para publicar seu evento.</p>
+
         <label>Nome do evento <input type="text" id="nome" required></label>
         <label>Descrição <textarea id="descricao" required></textarea></label>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-          <label>Estado 
+
+        <div class="form-grid">
+          <label>Estado
             <select id="evento-estado" required onchange="window.atualizarCidades()"></select>
           </label>
-          <label>Cidade 
+          <label>Cidade
             <select id="evento-cidade" required disabled><option value="">Selecione o estado</option></select>
           </label>
-        </div>
-
-        <label>Endereço / Local <input type="text" id="endereco" required></label>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
           <label>Data <input type="date" id="data" required></label>
           <label>Horário <input type="time" id="horario" required></label>
         </div>
+
+        <label>Endereço / Local <input type="text" id="endereco" required></label>
 
         <label>Categorias</label>
         <div id="categorias-evento" class="categorias-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;"></div>
