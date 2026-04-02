@@ -105,7 +105,7 @@ async function carregarDetalhesEvento(eventoId) {
         }
 
         // Configurar mapa
-        configurarMapa(evento.local, evento.endereco, evento.latitude, evento.longitude);
+        await configurarMapa(evento.local, evento.endereco, evento.latitude, evento.longitude);
 
         // atualizar botão topo só estrela:
         const botaoTopo = document.getElementById('btn-interesse-top');
@@ -122,34 +122,65 @@ async function carregarDetalhesEvento(eventoId) {
     }
 }
 
-function configurarMapa(local, endereco, latitude, longitude) {
-    const enderecoCompleto = endereco || local || 'Local não informado';
+async function buscarCoordenadasDetalhes(endereco) {
+    if (!endereco) return null;
+    try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)}&limit=1&countrycodes=br`;
+        const res = await fetch(url, {
+            headers: { 'Accept-Language': 'pt-BR,pt;q=0.9', 'User-Agent': 'EventHub-Detalhes/1.0' }
+        });
+        const dados = await res.json();
+        if (Array.isArray(dados) && dados.length > 0) {
+            return { lat: parseFloat(dados[0].lat), lon: parseFloat(dados[0].lon), display_name: dados[0].display_name };
+        }
+    } catch (err) {
+        console.warn('Erro geocodificando evento:', err);
+    }
+    return null;
+}
+
+async function configurarMapa(local, endereco, latitude, longitude) {
+    const enderecoCompleto = (endereco || local || 'Local não informado').trim();
     document.getElementById('endereco-completo').textContent = enderecoCompleto;
 
     const mapaIframe = document.getElementById('mapa-iframe');
     const mapaLeafletContainer = document.getElementById('mapa-leaflet');
 
-    if (latitude && longitude && mapaLeafletContainer && window.L) {
-        mapaIframe.style.display = 'none';
-        mapaLeafletContainer.style.display = 'block';
-
-        mapaLeafletContainer.innerHTML = '';
-        const map = L.map('mapa-leaflet').setView([parseFloat(latitude), parseFloat(longitude)], 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-        L.marker([parseFloat(latitude), parseFloat(longitude)]).addTo(map)
-            .bindPopup(enderecoCompleto)
-            .openPopup();
+    if (mapaIframe) mapaIframe.style.display = 'none';
+    if (!mapaLeafletContainer || !window.L) {
+        if (mapaIframe) {
+            mapaIframe.style.display = 'block';
+            mapaIframe.src = 'https://www.openstreetmap.org/export/embed.html?bbox=-54,-33,-46,-23&layer=mapnik';
+        }
         return;
     }
 
-    // fallback para iframe do Google Maps
-    if (mapaLeafletContainer) mapaLeafletContainer.style.display = 'none';
-    if (mapaIframe) {
-        mapaIframe.style.display = 'block';
-        const enderecoEncoded = encodeURIComponent(enderecoCompleto);
-        mapaIframe.src = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dOMLD0k8XKTQ&zoom=15&q=${enderecoEncoded}`;
+    mapaLeafletContainer.style.display = 'block';
+
+    if (window.mapDetalhes) {
+        window.mapDetalhes.remove();
+        window.mapDetalhes = null;
+    }
+
+    window.mapDetalhes = L.map('mapa-leaflet').setView([-15.7801, -47.9292], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(window.mapDetalhes);
+
+    let lat = parseFloat(latitude);
+    let lon = parseFloat(longitude);
+
+    if (!lat || !lon) {
+        const geolocal = await buscarCoordenadasDetalhes(enderecoCompleto);
+        if (geolocal) {
+            lat = geolocal.lat;
+            lon = geolocal.lon;
+        }
+    }
+
+    if (lat && lon) {
+        window.mapDetalhes.setView([lat, lon], 13);
+        L.marker([lat, lon]).addTo(window.mapDetalhes).bindPopup(enderecoCompleto).openPopup();
     }
 }
 
