@@ -367,7 +367,7 @@ header {
   border: none;
   border-radius: 6px;
   background: var(--bg-secondary);
-  color: #ffd700;
+  color: #999;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -380,10 +380,10 @@ header {
 }
 
 .btn-interesse-star:hover {
-  background: var(--cor-principal);
-  color: #ffd700;
+  background: var(--bg-secondary);
+  color: #bbb;
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 191, 255, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .btn-interesse-star:active {
@@ -397,6 +397,7 @@ header {
 }
 
 .btn-interesse-star.demonstrou-interesse:hover {
+  color: #ffd700;
   box-shadow: 0 0 16px rgba(255, 215, 0, 0.7), inset 0 0 6px rgba(255, 215, 0, 0.3);
 }
 
