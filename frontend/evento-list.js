@@ -513,9 +513,6 @@ window.abrirPrevia = function(evento, imgResolvida) {
             <p><strong>📍 Local:</strong> ${localizacao} - ${evento.cidade}/${evento.estado}</p>
             <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
             <p style="color:#ccc; line-height:1.6; white-space: pre-wrap;">${evento.descricao || 'Sem descrição disponível.'}</p>
-            <div style="margin-top:20px; text-align:center;">
-                <button class="btn-mais-info" onclick="irParaDetalhes()">Mais Informações</button>
-            </div>
         </div>
     `;
     
