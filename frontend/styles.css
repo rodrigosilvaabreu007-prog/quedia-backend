@@ -345,6 +345,15 @@ header {
   transition: all 0.2s ease;
 }
 
+/* altura consistente de campos de entrada para equalizar linhas */
+.card-form .form-grid input,
+.card-form .form-grid select,
+.coordenadas-container input {
+  min-height: 44px;
+  height: 44px;
+  line-height: 1.25;
+}
+
 .card-form label textarea {
   min-height: 110px;
   resize: vertical;
