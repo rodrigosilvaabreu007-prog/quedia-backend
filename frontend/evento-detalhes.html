@@ -10,17 +10,27 @@
     <script src="theme.js"></script>
 </head>
 <body>
+    <header class="pagina-header">
+        <div class="header-content">
+            <a href="index.html" class="logo">Quedia</a>
+            <nav>
+                <a href="index.html">Voltar</a>
+                <a href="perfil.html">Perfil</a>
+                <a href="login.html" id="login-link">Login</a>
+            </nav>
+        </div>
+    </header>
     <main>
-        <div id="evento-detalhes" class="evento-detalhes-container">
-            <div class="evento-topo-cabecalho" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
-                <h1 id="evento-nome">Carregando...</h1>
-                <div class="evento-topo-botoes">
-                    <span class="interesses-count" id="interesses-count-top">👥 0 interessados</span>
-                    <button id="btn-interesse-top" class="btn-interesse" onclick="toggleInteresse(window.eventoAtual?._id, this)">☆</button>
-                </div>
-            </div>
+        <section class="titulo-fora-caixa">
+            <h1 id="evento-nome">Carregando...</h1>
+            <div id="subtitulo-organizador" class="subtitulo-organizador">Organizador: carregando...</div>
+        </section>
 
-            <div id="subtitulo-organizador" style="font-size:1rem; color:#b0c4de; margin-bottom:18px;">Organizador: carregando...</div>
+        <div id="evento-detalhes" class="evento-detalhes-container">
+            <div class="evento-topo-botoes">
+                <span class="interesses-count" id="interesses-count-top">👥 0</span>
+                <button id="btn-interesse-top" class="btn-interesse" onclick="toggleInteresse(window.eventoAtual?._id, this)">☆</button>
+            </div>
 
             <div class="evento-header">
                 <img id="evento-imagem" src="" alt="Imagem do Evento" class="evento-imagem-principal">
@@ -46,11 +56,6 @@
                     <iframe id="mapa-iframe" src="" width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                 </div>
                 <p id="endereco-completo">Endereço completo será carregado...</p>
-            </div>
-
-            <div class="evento-organizador">
-                <h2>Organizador</h2>
-                <p id="evento-organizador-info">Informações do organizador...</p>
             </div>
         </div>
     </main>

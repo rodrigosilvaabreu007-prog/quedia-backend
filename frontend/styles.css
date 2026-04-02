@@ -441,11 +441,57 @@ header {
   border-radius: 50%;
 }
 
-/* Estilos para a p�gina de detalhes do evento */
-.evento-detalhes-container {
+/* Estilos para a página de detalhes do evento */
+.pagina-header {
+    background: #0f172a;
+    border-bottom: 1px solid rgba(0,191,255,0.3);
+    padding: 12px 20px;
+}
+
+.pagina-header .header-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pagina-header .logo {
+    color: #00bfff;
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.pagina-header nav a {
+    color: #fff;
+    text-decoration: none;
+    margin-left: 14px;
+    font-weight: 600;
+}
+
+.titulo-fora-caixa {
+    max-width: 1200px;
+    margin: 20px auto 0 auto;
+    padding: 0 16px;
+}
+
+.titulo-fora-caixa h1 {
+    margin: 0;
+    font-size: 2.8rem;
+    color: #00bfff;
+}
+
+.titulo-fora-caixa .subtitulo-organizador {
+    margin-top: 8px;
+    color: #b0c4de;
+    font-size: 1rem;
+}
+
+.evento-detalhes-container {
+    max-width: 1200px;
+    margin: 16px auto 32px auto;
+    padding: 24px;
     background: var(--bg-secondary, #1a1a1a);
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
@@ -454,7 +500,7 @@ header {
 .evento-header {
     display: flex;
     gap: 30px;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
     flex-wrap: wrap;
     position: relative;
 }
@@ -462,7 +508,7 @@ header {
 .evento-imagem-principal {
     width: 100%;
     max-width: 680px;
-    height: 400px;
+    height: 420px;
     object-fit: cover;
     border-radius: 12px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
@@ -471,23 +517,72 @@ header {
 .evento-info-principal {
     flex: 1;
     min-width: 320px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
 }
 
 .evento-topo-botoes {
     position: absolute;
-    top: 18px;
-    right: 18px;
+    top: -28px;
+    right: 0;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
-    background: rgba(0,0,0,0.55);
-    border: 1px solid rgba(0,191,255,0.5);
-    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid rgba(0, 191, 255, 0.6);
+    border-radius: 999px;
     padding: 8px 12px;
     z-index: 6;
+}
+
+.evento-topo-botoes .interesses-count {
+    font-size: 1rem;
+    color: #fff;
+    margin: 0;
+}
+
+.btn-interesse {
+    background: rgba(0, 191, 255, 0.9);
+    color: #000;
+    border: 1px solid #00d4ff;
+    padding: 8px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-interesse.demonstrou-interesse {
+    background: #00ff6c;
+    color: #000;
+}
+
+.evento-meta {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.evento-meta p {
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 1.05rem;
+}
+
+.evento-descricao h2,
+.evento-localizacao h2 {
+    color: #00bfff;
+    margin: 0 0 12px 0;
+}
+
+.evento-descricao p,
+#endereco-completo {
+    color: #cbd5e1;
+    line-height: 1.6;
 }
 
 .evento-topo-botoes .interesses-count {

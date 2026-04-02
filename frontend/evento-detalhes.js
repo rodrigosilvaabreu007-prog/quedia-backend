@@ -72,23 +72,16 @@ async function carregarDetalhesEvento(eventoId) {
 
         // Contador de interesses
         const interessesCount = evento.interesses ? evento.interesses.length : 0;
-        const contadorTexto = `👥 ${interessesCount} pessoa${interessesCount !== 1 ? 's' : ''} interessada${interessesCount !== 1 ? 's' : ''}`;
-        const contadorMain = document.getElementById('interesses-count');
+        const contadorTexto = `👥 ${interessesCount}`;
         const contadorTopo = document.getElementById('interesses-count-top');
-        if (contadorMain) contadorMain.textContent = contadorTexto;
         if (contadorTopo) contadorTopo.textContent = contadorTexto;
 
         // Verificar se usuário demonstrou interesse (se houver evento.interesses)
         const usuario = JSON.parse(localStorage.getItem('eventhub-usuario')) || {};
         const idUsuario = usuario._id || usuario.id;
         const demonstrouInteresse = idUsuario && evento.interesses && evento.interesses.includes(idUsuario);
-        const textoInteresse = demonstrouInteresse ? '★ Interesse Demonstrado' : '☆ Demonstrar Interesse';
-        const btnInteresse = document.getElementById('btn-interesse');
+        const textoInteresse = demonstrouInteresse ? '★' : '☆';
         const btnInteresseTopo = document.getElementById('btn-interesse-top');
-        if (btnInteresse) {
-            btnInteresse.textContent = textoInteresse;
-            btnInteresse.classList.toggle('demonstrou-interesse', demonstrouInteresse);
-        }
         if (btnInteresseTopo) {
             btnInteresseTopo.textContent = textoInteresse;
             btnInteresseTopo.classList.toggle('demonstrou-interesse', demonstrouInteresse);
@@ -140,20 +133,18 @@ async function toggleInteresse(eventoId, button) {
 
     // Atualizar UI imediatamente
     const btnInteresseTopo = document.getElementById('btn-interesse-top');
-    const textos = novoEstado ? '★ Interesse Demonstrado' : '☆ Demonstrar Interesse';
+    const textoEstrela = novoEstado ? '★' : '☆';
     [button, btnInteresseTopo].forEach(b => {
         if (!b) return;
-        b.textContent = textos;
+        b.textContent = textoEstrela;
         b.classList.toggle('demonstrou-interesse', novoEstado);
     });
 
     // Atualizar contador
-    const interessesCountEl = document.getElementById('interesses-count');
     const interessesCountTopo = document.getElementById('interesses-count-top');
-    let count = parseInt((interessesCountEl || interessesCountTopo).textContent.match(/\d+/)[0]);
-    count = novoEstado ? count + 1 : count - 1;
-    const novoTextoContador = `👥 ${count} pessoa${count !== 1 ? 's' : ''} interessada${count !== 1 ? 's' : ''}`;
-    if (interessesCountEl) interessesCountEl.textContent = novoTextoContador;
+    let count = parseInt(interessesCountTopo?.textContent.match(/\d+/)?.[0] || '0');
+    count = novoEstado ? count + 1 : Math.max(0, count - 1);
+    const novoTextoContador = `👥 ${count}`;
     if (interessesCountTopo) interessesCountTopo.textContent = novoTextoContador;
 
     try {
