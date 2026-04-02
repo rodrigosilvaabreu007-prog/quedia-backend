@@ -67,24 +67,31 @@ async function carregarDetalhesEvento(eventoId) {
         document.getElementById('evento-organizador-info').textContent = `Organizado por: ${evento.organizador || 'Não informado'}`;
 
         // Imagem
-        if (evento.imagem) {
-            document.getElementById('evento-imagem').src = evento.imagem;
-        } else {
-            document.getElementById('evento-imagem').src = 'https://via.placeholder.com/600x300?text=Evento';
-        }
+        const imagemUrl = (evento.imagens && evento.imagens.length > 0) ? evento.imagens[0] : (evento.imagem || 'https://via.placeholder.com/800x450?text=Evento');
+        document.getElementById('evento-imagem').src = imagemUrl;
 
         // Contador de interesses
         const interessesCount = evento.interesses ? evento.interesses.length : 0;
-        document.getElementById('interesses-count').textContent = `👥 ${interessesCount} pessoa${interessesCount !== 1 ? 's' : ''} interessada${interessesCount !== 1 ? 's' : ''}`;
+        const contadorTexto = `👥 ${interessesCount} pessoa${interessesCount !== 1 ? 's' : ''} interessada${interessesCount !== 1 ? 's' : ''}`;
+        const contadorMain = document.getElementById('interesses-count');
+        const contadorTopo = document.getElementById('interesses-count-top');
+        if (contadorMain) contadorMain.textContent = contadorTexto;
+        if (contadorTopo) contadorTopo.textContent = contadorTexto;
 
         // Verificar se usuário demonstrou interesse (se houver evento.interesses)
         const usuario = JSON.parse(localStorage.getItem('eventhub-usuario')) || {};
         const idUsuario = usuario._id || usuario.id;
         const demonstrouInteresse = idUsuario && evento.interesses && evento.interesses.includes(idUsuario);
+        const textoInteresse = demonstrouInteresse ? '★ Interesse Demonstrado' : '☆ Demonstrar Interesse';
         const btnInteresse = document.getElementById('btn-interesse');
+        const btnInteresseTopo = document.getElementById('btn-interesse-top');
         if (btnInteresse) {
-            btnInteresse.textContent = demonstrouInteresse ? '★ Interesse Demonstrado' : '☆ Demonstrar Interesse';
+            btnInteresse.textContent = textoInteresse;
             btnInteresse.classList.toggle('demonstrou-interesse', demonstrouInteresse);
+        }
+        if (btnInteresseTopo) {
+            btnInteresseTopo.textContent = textoInteresse;
+            btnInteresseTopo.classList.toggle('demonstrou-interesse', demonstrouInteresse);
         }
 
         // Configurar mapa
@@ -124,14 +131,22 @@ async function toggleInteresse(eventoId, button) {
     const novoEstado = !demonstrouInteresse;
 
     // Atualizar UI imediatamente
-    button.textContent = novoEstado ? '★ Interesse Demonstrado' : '☆ Demonstrar Interesse';
-    button.classList.toggle('demonstrou-interesse', novoEstado);
+    const btnInteresseTopo = document.getElementById('btn-interesse-top');
+    const textos = novoEstado ? '★ Interesse Demonstrado' : '☆ Demonstrar Interesse';
+    [button, btnInteresseTopo].forEach(b => {
+        if (!b) return;
+        b.textContent = textos;
+        b.classList.toggle('demonstrou-interesse', novoEstado);
+    });
 
     // Atualizar contador
     const interessesCountEl = document.getElementById('interesses-count');
-    let count = parseInt(interessesCountEl.textContent.match(/\d+/)[0]);
+    const interessesCountTopo = document.getElementById('interesses-count-top');
+    let count = parseInt((interessesCountEl || interessesCountTopo).textContent.match(/\d+/)[0]);
     count = novoEstado ? count + 1 : count - 1;
-    interessesCountEl.textContent = `👥 ${count} pessoa${count !== 1 ? 's' : ''} interessada${count !== 1 ? 's' : ''}`;
+    const novoTextoContador = `👥 ${count} pessoa${count !== 1 ? 's' : ''} interessada${count !== 1 ? 's' : ''}`;
+    if (interessesCountEl) interessesCountEl.textContent = novoTextoContador;
+    if (interessesCountTopo) interessesCountTopo.textContent = novoTextoContador;
 
     try {
         const response = await fetch(`${window.API_URL}/eventos/${eventoId}/interesse`, {

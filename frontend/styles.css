@@ -441,7 +441,7 @@ header {
   border-radius: 50%;
 }
 
-/* Estilos para a página de detalhes do evento */
+/* Estilos para a pï¿½gina de detalhes do evento */
 .evento-detalhes-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -456,12 +456,13 @@ header {
     gap: 30px;
     margin-bottom: 30px;
     flex-wrap: wrap;
+    position: relative;
 }
 
 .evento-imagem-principal {
     width: 100%;
-    max-width: 400px;
-    height: 250px;
+    max-width: 680px;
+    height: 400px;
     object-fit: cover;
     border-radius: 12px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
@@ -469,7 +470,50 @@ header {
 
 .evento-info-principal {
     flex: 1;
-    min-width: 300px;
+    min-width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.evento-topo-botoes {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(0,191,255,0.5);
+    border-radius: 8px;
+    padding: 8px 12px;
+    z-index: 6;
+}
+
+.evento-topo-botoes .interesses-count {
+    font-size: 0.9rem;
+    color: #fff;
+    margin: 0;
+}
+
+.evento-info-principal h1 {
+    margin-top: 0;
+}
+
+.evento-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(100px, 1fr));
+    gap: 10px;
+}
+
+.evento-meta p {
+    margin: 0;
+    color: var(--text-secondary, #ccc);
+    font-size: 1rem;
+}
+
+.evento-interesse {
+    display: none;
 }
 
 .evento-info-principal h1 {

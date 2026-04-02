@@ -24,6 +24,10 @@
     <main>
         <div id="evento-detalhes" class="evento-detalhes-container">
             <div class="evento-header">
+                <div class="evento-topo-botoes">
+                    <span class="interesses-count" id="interesses-count-top">👥 0 interessados</span>
+                    <button id="btn-interesse-top" class="btn-interesse" onclick="toggleInteresse(window.eventoAtual?._id, this)">☆ Demonstrar Interesse</button>
+                </div>
                 <img id="evento-imagem" src="" alt="Imagem do Evento" class="evento-imagem-principal">
                 <div class="evento-info-principal">
                     <h1 id="evento-nome">Carregando...</h1>
