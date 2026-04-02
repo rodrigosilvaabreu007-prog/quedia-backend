@@ -531,6 +531,8 @@ window.abrirPrevia = function(evento, imgResolvida) {
     `;
     
     window.currentEventId = evento._id;
+    const footer = modal.querySelector('.modal-footer');
+    if (footer) footer.style.display = 'flex';
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 };
@@ -1090,6 +1092,10 @@ window.mostrarEventosDia = function(data) {
         </div>
     `;
     
+    // Esconde o botão Mais Informações apenas na modal de calendário
+    const footer = modal.querySelector('.modal-footer');
+    if (footer) footer.style.display = 'none';
+
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 };
