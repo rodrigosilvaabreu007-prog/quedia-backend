@@ -502,8 +502,23 @@ header {
 .radio-item {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin-right: 14px;
+  font-weight: 700;
+  position: relative;
+}
+
+.radio-item input[type="radio"] {
+  margin-right: 6px;
+  vertical-align: middle;
+  transform: none;
+  position: static;
+}
+
+.radio-item label, .radio-item span {
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
 }
 
 .preco-container input {
