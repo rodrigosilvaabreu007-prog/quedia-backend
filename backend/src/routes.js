@@ -274,6 +274,23 @@ router.get('/auth/check', verificarToken, async (req, res) => {
     });
 });
 
+// Rota de debug para mostrar JWT_SECRET (sem autenticação)
+router.get('/debug/jwt-secret-status', (req, res) => {
+    const jwtSecret = process.env.JWT_SECRET || 'secret_key_fixa';
+    return res.json({
+        status: 'ok',
+        jwtSecretLength: jwtSecret.length,
+        hasJWT_SECRET: !!process.env.JWT_SECRET,
+        jwtSecretPrefix: jwtSecret.substring(0, 10) + '...',
+        allEnvVars: {
+            NODE_ENV: process.env.NODE_ENV,
+            JWT_SECRET: process.env.JWT_SECRET ? '***SET***' : 'NOT SET (usando fallback)',
+            MONGO_URI: process.env.MONGO_URI ? '***SET***' : 'NOT SET',
+            CORS_ORIGIN: process.env.CORS_ORIGIN
+        }
+    });
+});
+
 // Middleware para verificar token JWT
 function verificarToken(req, res, next) {
     const authHeader = req.headers['authorization'];

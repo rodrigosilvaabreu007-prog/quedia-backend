@@ -193,31 +193,35 @@ function toggleInteresseClique(button) {
         alert('ID do evento não encontrado. Atualize a página e tente de novo.');
         return;
     }
-        // Validar token antes de fazer chamada
+    
+    // Validar token antes de fazer chamada
     const token = localStorage.getItem('eventhub-token');
-    if (!token) {
+    const usuarioStr = localStorage.getItem('eventhub-usuario');
+    
+    console.log('=== TOGGLE CHECK ===');
+    console.log('Token exists:', !!token);
+    console.log('Usuario exists:', !!usuarioStr);
+    console.log('eventoId:', eventoId);
+    
+    if (!token || !usuarioStr) {
         alert('Sessão expirada. Faça login novamente.');
         window.location.href = 'login.html?redirectTo=evento-detalhes.html%3Fid=' + eventoId;
         return;
     }
     
-    // Verificar se token é válido chamando /auth/check
-    try {
-        const checkResp = await fetch(`${window.API_URL}/auth/check`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (checkResp.status === 403) {
+    // Verificar token em background (não bloqueia)
+    fetch(`${window.API_URL}/auth/check`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    }).then(r => {
+        console.log('Token check response:', r.status);
+        if (r.status === 403) {
+            console.error('Token inválido');
             localStorage.removeItem('eventhub-token');
             localStorage.removeItem('eventhub-usuario');
-            alert('Token inválido ou expirado. Faça login novamente.');
-            window.location.href = 'login.html?redirectTo=evento-detalhes.html%3Fid=' + eventoId;
-            return;
         }
-    } catch (e) {
-        console.warn('Aviso: não conseguiu verificar token (ignorando)', e);
-    }
-        toggleInteresse(eventoId, button);
+    }).catch(e => console.warn('Não conseguiu verificar token:', e));
+    
+    toggleInteresse(eventoId, button);
 }
 
 async function toggleInteresse(eventoId, button) {

@@ -54,11 +54,14 @@ async function autenticarUsuario(email, senha) {
 
     // Normalizar ID e gerar token JWT
     const usuarioIdStr = String(usuario._id);
+    const jwtSecret = process.env.JWT_SECRET || 'secret_key_fixa';
+    console.log('🔐 LOGIN: Gerando token com JWT_SECRET length:', jwtSecret.length);
     const token = jwt.sign(
         { id: usuarioIdStr, email: usuario.email }, 
-        process.env.JWT_SECRET || 'secret_key_fixa', 
+        jwtSecret, 
         { expiresIn: '2h' }
     );
+    console.log('✅ TOKEN gerado:', token.substring(0, 20) + '...');
 
     // Remove a senha do objeto antes de enviar por segurança e normaliza IDs
     const usuarioSemSenha = { ...usuario, _id: usuarioIdStr, id: usuarioIdStr };
