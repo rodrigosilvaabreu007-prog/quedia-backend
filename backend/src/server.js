@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const apiRoutes = require('./routes');
+const { connectDB } = require('./db');
+const mongoose = require('mongoose');
 
 // Middlewares
 app.use(express.json());
@@ -11,6 +13,27 @@ app.use(cors());
 
 app.get('/', (req, res) => {
   res.send('🚀 API QUE DIA - ONLINE');
+});
+
+app.get('/debug', async (req, res) => {
+  try {
+    const db = await connectDB();
+    return res.json({
+      status: 'ok',
+      mongoUri: process.env.MONGO_URI ? process.env.MONGO_URI.replace(/\?.*$/, '?...') : null,
+      readyState: mongoose.connection.readyState,
+      connected: mongoose.connection.readyState === 1,
+      db: !!db,
+      hostname: require('os').hostname(),
+      now: new Date().toISOString()
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: 'error',
+      erro: err.message,
+      mongoUri: process.env.MONGO_URI ? process.env.MONGO_URI.replace(/\?.*$/, '?...') : null
+    });
+  }
 });
 
 // Uso do router de rotas API

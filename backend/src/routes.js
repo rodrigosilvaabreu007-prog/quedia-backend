@@ -264,21 +264,36 @@ router.delete('/usuario/:id', verificarToken, async (req, res) => {
 
 // --- ROTAS DE INTERESSES ---
 
+// Rota de debug para checar token
+router.get('/auth/check', verificarToken, async (req, res) => {
+    return res.json({
+        status: 'token_valid',
+        usuario: req.usuario,
+        jwtSecretLength: (process.env.JWT_SECRET || '').length,
+        now: new Date().toISOString()
+    });
+});
+
 // Middleware para verificar token JWT
 function verificarToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
     if (!token) {
+        console.warn('⚠️ verificarToken: sem token no header');
         return res.status(401).json({ erro: 'Token de acesso necessário' });
     }
 
     try {
-        const decoded = require('jsonwebtoken').verify(token, process.env.JWT_SECRET || 'secret_key_fixa');
+        const jwtSecret = process.env.JWT_SECRET || 'secret_key_fixa';
+        console.log(`🔐 verificarToken: tentando verificar com JWT_SECRET:`, jwtSecret.substring(0, 5) + '...');
+        const decoded = require('jsonwebtoken').verify(token, jwtSecret);
+        console.log(`✅ verificarToken: token válido`, decoded);
         req.usuario = decoded;
         next();
     } catch (err) {
-        return res.status(403).json({ erro: 'Token inválido' });
+        console.error(`❌ verificarToken erro:`, err.message, 'jurSecret length:', (process.env.JWT_SECRET || '').length);
+        return res.status(403).json({ erro: 'Token inválido', details: err.message });
     }
 }
 
