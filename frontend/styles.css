@@ -58,40 +58,23 @@ header {
   z-index: 1000;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   animation: glow-border 3s ease-in-out infinite;
 }
-
-.hero-section {
-  text-align: center;
-  padding: 28px 20px 20px 20px;
-  background: transparent;
-  margin-bottom: 20px;
-  margin-top: 0;
-}
-
-.logo { 
-  font-size: 2.8rem; 
-  font-weight: bold; 
-  letter-spacing: 2px; 
-  margin: 0; 
-  color: #00ffff;
-  text-shadow: 0 0 10px #00ffff, 0 0 20px #00bfff, 0 0 30px #0088ff;
-}
-.subtitle { font-size: 1.2rem; color: #aaa; margin-top: 8px; }
 
 .menu { 
   display: flex; 
   align-items: center; 
   gap: 16px;
   margin: 0;
-  width: 100%;
+  flex: 1;
+  justify-content: center;
 }
 
 .logo-provisoria {
   font-size: 32px;
   font-weight: 900;
-  margin-right: 40px;
+  margin-right: auto;
   min-width: 50px;
   text-align: center;
   letter-spacing: -3px;
@@ -157,28 +140,92 @@ header {
   width: 100%;
 }
 
+/* --- HAMBURGER MENU --- */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  gap: 6px;
+  margin-left: 20px;
+}
+
+.hamburger span {
+  width: 25px;
+  height: 3px;
+  background: linear-gradient(90deg, #00ff00, #00ffff);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+}
+
+.hamburger.active span:nth-child(1) {
+  transform: rotate(45deg) translate(8px, 8px);
+}
+
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(8px, -8px);
+}
+
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 80px;
+  left: 0;
+  right: 0;
+  background: linear-gradient(180deg, rgba(5, 15, 30, 0.98) 0%, rgba(15, 25, 45, 0.95) 100%);
+  border-bottom: 2px solid rgba(0, 191, 255, 0.6);
+  flex-direction: column;
+  padding: 20px;
+  gap: 10px;
+  z-index: 999;
+  box-shadow: 0 0 20px rgba(0, 191, 255, 0.4);
+}
+
+.mobile-menu.active {
+  display: flex;
+}
+
+.mobile-menu a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 2px solid rgba(0, 191, 255, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.mobile-menu a:hover {
+  border-color: rgba(0, 255, 255, 1);
+  color: #00ffff;
+  text-shadow: 0 0 10px rgba(0, 191, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.5);
+  box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
+}
+
 @media (max-width: 768px) {
   header {
     padding: 12px 16px;
-    flex-wrap: wrap;
-    border-bottom: 2px solid rgba(0, 191, 255, 0.8);
   }
   
   .logo-provisoria {
-    margin-right: 20px;
+    margin-right: 16px;
     font-size: 24px;
   }
   
   .menu {
-    gap: 8px;
+    display: none;
   }
   
-  .menu a {
-    padding: 8px 12px;
-    font-size: 12px;
-    border: 1px solid rgba(0, 191, 255, 0.3);
+  .hamburger {
+    display: flex;
   }
-}
 
 /* --- GRID DE EVENTOS (3 por linha PC, 1 Mobile) --- */
 .event-grid {
@@ -187,11 +234,11 @@ header {
   gap: 24px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .event-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .event-grid { grid-template-columns: 1fr; } /* 1 coluna no celular */
 }
 
