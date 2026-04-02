@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Evento - Quedia</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="theme.css">
+    <script src="global.js"></script>
+    <script src="theme.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Quedia</h1>
+            <nav>
+                <a href="index.html">Eventos</a>
+                <a href="perfil.html">Perfil</a>
+                <a href="login.html" id="login-link">Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div id="evento-detalhes" class="evento-detalhes-container">
+            <div class="evento-header">
+                <img id="evento-imagem" src="" alt="Imagem do Evento" class="evento-imagem-principal">
+                <div class="evento-info-principal">
+                    <h1 id="evento-nome">Carregando...</h1>
+                    <div class="evento-meta">
+                        <p id="evento-data">📅 Data: --/--/----</p>
+                        <p id="evento-horario">⏰ Horário: --:--</p>
+                        <p id="evento-local">📍 Local: Carregando...</p>
+                        <p id="evento-categoria">🏷️ Categoria: Geral</p>
+                        <p id="evento-preco">💰 Preço: GRATUITO</p>
+                    </div>
+                    <div class="evento-interesse">
+                        <span id="interesses-count">👥 0 pessoas interessadas</span>
+                        <button id="btn-interesse" class="btn-interesse" onclick="toggleInteresse(window.eventoAtual?._id, this)">☆ Demonstrar Interesse</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="evento-descricao">
+                <h2>Descrição</h2>
+                <p id="evento-descricao">Carregando descrição...</p>
+            </div>
+
+            <div class="evento-localizacao">
+                <h2>Localização</h2>
+                <div id="mapa-container">
+                    <iframe id="mapa-iframe" src="" width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+                <p id="endereco-completo">Endereço completo será carregado...</p>
+            </div>
+
+            <div class="evento-organizador">
+                <h2>Organizador</h2>
+                <p id="evento-organizador-info">Informações do organizador...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Quedia. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="evento-detalhes.js"></script>
+</body>
+</html>

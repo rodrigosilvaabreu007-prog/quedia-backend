@@ -513,6 +513,9 @@ window.abrirPrevia = function(evento, imgResolvida) {
             <p><strong>📍 Local:</strong> ${localizacao} - ${evento.cidade}/${evento.estado}</p>
             <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
             <p style="color:#ccc; line-height:1.6; white-space: pre-wrap;">${evento.descricao || 'Sem descrição disponível.'}</p>
+            <div style="margin-top:20px; text-align:center;">
+                <button onclick="irParaDetalhes()" style="background:#00bfff; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; font-size:16px;">Mais Informações</button>
+            </div>
         </div>
     `;
     
@@ -527,9 +530,8 @@ window.irParaDetalhes = function() {
         return;
     }
 
-    // Se tiver uma rota de detalhes, usar ela.
-    // Por enquanto, mostra notificação para manter sem erro.
-    window.showNotification('Ação de "Mais Informações" não está implementada (pode ser rota de detalhes).', 'info');
+    // Redirecionar para a página de detalhes do evento
+    window.location.href = `evento-detalhes.html?id=${window.currentEventId}`;
 };
 
 // 4. Fechar Modal

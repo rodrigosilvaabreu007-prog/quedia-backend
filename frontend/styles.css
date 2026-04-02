@@ -440,3 +440,125 @@ header {
   display: block;
   border-radius: 50%;
 }
+
+/* Estilos para a página de detalhes do evento */
+.evento-detalhes-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background: var(--bg-secondary, #1a1a1a);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.evento-header {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.evento-imagem-principal {
+    width: 100%;
+    max-width: 400px;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.evento-info-principal {
+    flex: 1;
+    min-width: 300px;
+}
+
+.evento-info-principal h1 {
+    color: var(--text-primary, #fff);
+    margin-bottom: 15px;
+    font-size: 2.5rem;
+}
+
+.evento-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.evento-meta p {
+    margin: 0;
+    color: var(--text-secondary, #ccc);
+    font-size: 1.1rem;
+}
+
+.evento-interesse {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.interesses-count {
+    font-size: 1.2rem;
+    color: var(--text-secondary, #ccc);
+}
+
+.btn-interesse {
+    background: var(--bg-tertiary, #333);
+    color: var(--text-primary, #fff);
+    border: 2px solid var(--cor-principal, #00bfff);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-interesse:hover {
+    background: var(--cor-principal, #00bfff);
+    transform: translateY(-2px);
+}
+
+.btn-interesse.demonstrou-interesse {
+    background: var(--cor-principal, #00bfff);
+    color: var(--text-primary, #fff);
+}
+
+.evento-descricao,
+.evento-localizacao,
+.evento-organizador {
+    margin-bottom: 30px;
+}
+
+.evento-descricao h2,
+.evento-localizacao h2,
+.evento-organizador h2 {
+    color: var(--cor-principal, #00bfff);
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+}
+
+.evento-descricao p {
+    color: var(--text-secondary, #ccc);
+    line-height: 1.6;
+    font-size: 1.1rem;
+}
+
+#mapa-container {
+    width: 100%;
+    height: 300px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+#endereco-completo {
+    margin-top: 10px;
+    color: var(--text-secondary, #ccc);
+    font-size: 1rem;
+}
+
+.evento-organizador p {
+    color: var(--text-secondary, #ccc);
+    font-size: 1.1rem;
+}
