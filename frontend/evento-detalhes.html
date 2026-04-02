@@ -10,37 +10,27 @@
     <script src="theme.js"></script>
 </head>
 <body>
-    <header>
-        <div class="header-content">
-            <h1>Quedia</h1>
-            <nav>
-                <a href="index.html">Eventos</a>
-                <a href="perfil.html">Perfil</a>
-                <a href="login.html" id="login-link">Login</a>
-            </nav>
-        </div>
-    </header>
-
     <main>
         <div id="evento-detalhes" class="evento-detalhes-container">
-            <div class="evento-header">
+            <div class="evento-topo-cabecalho" style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+                <h1 id="evento-nome">Carregando...</h1>
                 <div class="evento-topo-botoes">
                     <span class="interesses-count" id="interesses-count-top">👥 0 interessados</span>
-                    <button id="btn-interesse-top" class="btn-interesse" onclick="toggleInteresse(window.eventoAtual?._id, this)">☆ Demonstrar Interesse</button>
+                    <button id="btn-interesse-top" class="btn-interesse" onclick="toggleInteresse(window.eventoAtual?._id, this)">☆</button>
                 </div>
+            </div>
+
+            <div id="subtitulo-organizador" style="font-size:1rem; color:#b0c4de; margin-bottom:18px;">Organizador: carregando...</div>
+
+            <div class="evento-header">
                 <img id="evento-imagem" src="" alt="Imagem do Evento" class="evento-imagem-principal">
                 <div class="evento-info-principal">
-                    <h1 id="evento-nome">Carregando...</h1>
                     <div class="evento-meta">
                         <p id="evento-data">📅 Data: --/--/----</p>
                         <p id="evento-horario">⏰ Horário: --:--</p>
                         <p id="evento-local">📍 Local: Carregando...</p>
                         <p id="evento-categoria">🏷️ Categoria: Geral</p>
                         <p id="evento-preco">💰 Preço: GRATUITO</p>
-                    </div>
-                    <div class="evento-interesse">
-                        <span id="interesses-count">👥 0 pessoas interessadas</span>
-                        <button id="btn-interesse" class="btn-interesse" onclick="toggleInteresse(window.eventoAtual?._id, this)">☆ Demonstrar Interesse</button>
                     </div>
                 </div>
             </div>

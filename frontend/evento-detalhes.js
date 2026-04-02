@@ -58,13 +58,13 @@ async function carregarDetalhesEvento(eventoId) {
 
         // Preencher dados na página
         document.getElementById('evento-nome').textContent = evento.nome;
+        document.getElementById('subtitulo-organizador').textContent = `Organizador: ${evento.organizador || 'Não informado'}`;
         document.getElementById('evento-data').textContent = `📅 Data: ${formatarData(evento.data)}`;
         document.getElementById('evento-horario').textContent = `⏰ Horário: ${evento.horario}`;
         document.getElementById('evento-local').textContent = `📍 Local: ${evento.local}`;
         document.getElementById('evento-categoria').textContent = `🏷️ Categoria: ${evento.categoria || 'Geral'}`;
         document.getElementById('evento-preco').textContent = `💰 Preço: ${evento.preco || 'GRATUITO'}`;
         document.getElementById('evento-descricao').textContent = evento.descricao || 'Sem descrição disponível.';
-        document.getElementById('evento-organizador-info').textContent = `Organizado por: ${evento.organizador || 'Não informado'}`;
 
         // Imagem
         const imagemUrl = (evento.imagens && evento.imagens.length > 0) ? evento.imagens[0] : (evento.imagem || 'https://via.placeholder.com/800x450?text=Evento');
@@ -96,6 +96,14 @@ async function carregarDetalhesEvento(eventoId) {
 
         // Configurar mapa
         configurarMapa(evento.local, evento.endereco);
+
+        // atualizar botão topo só estrela:
+        const botaoTopo = document.getElementById('btn-interesse-top');
+        const textoEstrela = demonstrouInteresse ? '★' : '☆';
+        if (botaoTopo) {
+            botaoTopo.textContent = textoEstrela;
+            botaoTopo.classList.toggle('demonstrou-interesse', demonstrouInteresse);
+        }
 
     } catch (error) {
         console.error('Erro ao carregar detalhes do evento:', error);
