@@ -45,6 +45,7 @@
 
         <label>Nome do evento <input type="text" id="nome" required></label>
         <label>Descrição <textarea id="descricao" required></textarea></label>
+        <label>Organizador <input type="text" id="organizador" required></label>
 
         <div class="form-grid">
           <label>Estado
@@ -58,13 +59,13 @@
         </div>
 
         <label>Endereço / Local <input type="text" id="endereco" required></label>
-        <button id="btn-geolocalizar" class="btn-geolocalizar">📍 Geolocalizar endereço</button>
-        <div id="geo-status" style="font-size: 0.9rem; color: #ccc; margin-bottom: 8px;">Informe endereço para mapear.</div>
+        <button id="btn-definir-endereco" class="btn-geolocalizar">📍 Definir endereço</button>
+        <div id="geo-status" style="font-size: 0.9rem; color: #ccc; margin-bottom: 8px;">Clique no mapa para definir localização ou use o botão acima.</div>
 
         <div id="mapa-evento" class="mapa-evento"></div>
         <div class="coordenadas-container">
-          <label>Latitude <input type="text" id="latitude" placeholder="-23.564" readonly></label>
-          <label>Longitude <input type="text" id="longitude" placeholder="-46.654" readonly></label>
+          <label>Latitude <input type="text" id="latitude" placeholder="-23.564" readonly required></label>
+          <label>Longitude <input type="text" id="longitude" placeholder="-46.654" readonly required></label>
         </div>
 
         <label>Categorias</label>
@@ -72,17 +73,26 @@
 
         <fieldset class="form-section">
           <legend>Entrada</legend>
-          <label class="radio-item"><input type="radio" name="gratuito" id="gratuito-sim" checked onchange="window.togglePreco()"> Gratuito</label>
-          <label class="radio-item"><input type="radio" name="gratuito" id="gratuito-nao" onchange="window.togglePreco()"> Pago</label>
+          <div class="rads-wrap">
+            <label class="radio-item"><input type="radio" name="gratuito" id="gratuito-sim" checked onchange="window.togglePreco()"> Gratuito</label>
+            <label class="radio-item"><input type="radio" name="gratuito" id="gratuito-nao" onchange="window.togglePreco()"> Pago</label>
+          </div>
           <div id="container-preco" class="preco-container" style="display: none; margin-top: 10px;">
             <input type="number" id="preco" placeholder="Preço R$" step="0.01" value="0">
           </div>
         </fieldset>
 
         <fieldset class="form-section">
-          <legend>Imagem do Evento</legend>
-          <label class="file-label" for="imagens">Escolher imagens (até 8)</label>
-          <input type="file" id="imagens" accept="image/*" onchange="window.mostrarPreviewImagens()" multiple>
+          <legend>Imagem de capa (obrigatória)</legend>
+          <label class="file-label" for="imagem-capa">📷 Selecionar imagem de capa</label>
+          <input type="file" id="imagem-capa" accept="image/*" required onchange="window.mostrarPreviewCapa()">
+          <div id="preview-capa" class="preview-imagens"></div>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <legend>Imagens do evento (opcional)</legend>
+          <label class="file-label" for="imagens-evento">🖼️ Selecionar imagens do evento</label>
+          <input type="file" id="imagens-evento" accept="image/*" multiple onchange="window.mostrarPreviewImagens()">
           <div id="preview-imagens" class="preview-imagens"></div>
         </fieldset>
 

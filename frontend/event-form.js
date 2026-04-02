@@ -43,13 +43,31 @@ window.togglePreco = () => {
     if (containerPreco) containerPreco.style.display = isPago ? 'block' : 'none';
 };
 
+window.mostrarPreviewCapa = () => {
+    const input = document.getElementById('imagem-capa');
+    const preview = document.getElementById('preview-capa');
+    preview.innerHTML = '';
+
+    if (input?.files?.[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.alt = input.files[0].name;
+            img.className = 'preview-thumb';
+            preview.appendChild(img);
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+};
+
 window.mostrarPreviewImagens = () => {
-    const input = document.getElementById('imagens');
+    const input = document.getElementById('imagens-evento');
     const preview = document.getElementById('preview-imagens');
     preview.innerHTML = '';
 
     if (input?.files?.length > 0) {
-        const files = Array.from(input.files).slice(0, 8);
+        const files = Array.from(input.files);
         files.forEach(file => {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -61,13 +79,6 @@ window.mostrarPreviewImagens = () => {
             };
             reader.readAsDataURL(file);
         });
-
-        if (input.files.length > 8) {
-            const aviso = document.createElement('div');
-            aviso.textContent = `Mostrando 8 de ${input.files.length} imagens. Remova algumas para ver todas.`;
-            aviso.className = 'preview-aviso';
-            preview.appendChild(aviso);
-        }
     }
 };
 
@@ -148,11 +159,18 @@ function inicializarMapaEvento() {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(mapaEvento);
 
-    marcadorEvento = L.marker([-15.7801, -47.9292], { draggable: true }).addTo(mapaEvento);
-    marcadorEvento.on('moveend', function(event) {
-        const latLng = event.target.getLatLng();
-        document.getElementById('latitude').value = latLng.lat.toFixed(6);
-        document.getElementById('longitude').value = latLng.lng.toFixed(6);
+    mapaEvento.on('click', function(event) {
+        const lat = event.latlng.lat;
+        const lon = event.latlng.lng;
+        document.getElementById('latitude').value = lat.toFixed(6);
+        document.getElementById('longitude').value = lon.toFixed(6);
+        document.getElementById('geo-status').textContent = `📍 Local definido em: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+
+        if (marcadorEvento) {
+            marcadorEvento.setLatLng([lat, lon]);
+        } else {
+            marcadorEvento = L.marker([lat, lon]).addTo(mapaEvento);
+        }
     });
 }
 
@@ -190,13 +208,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     inicializarMapaEvento();
 
-    const botaoGeo = document.getElementById('btn-geolocalizar');
+    const botaoGeo = document.getElementById('btn-definir-endereco');
     if (botaoGeo) {
         botaoGeo.addEventListener('click', async (e) => {
             e.preventDefault();
             const endereco = document.getElementById('endereco').value;
             if (!endereco) {
-                document.getElementById('geo-status').textContent = 'Informe o endereço antes de geolocalizar.';
+                document.getElementById('geo-status').textContent = 'Informe o endereço antes de definir.';
                 return;
             }
             await atualizarMapaPorEndereco();
@@ -218,51 +236,66 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
     }
 
     const formData = new FormData();
-    
-    // Captura dos campos do seu formulário
-    formData.append('nome', document.getElementById('nome').value);
-    formData.append('descricao', document.getElementById('descricao').value);
-    formData.append('data', document.getElementById('data').value);
-    formData.append('horario', document.getElementById('horario').value);
-    formData.append('cidade', document.getElementById('evento-cidade').value);
-    formData.append('estado', document.getElementById('evento-estado').value);
-    
-    // Sincronizado com o Schema 'local' do backend
-    formData.append('local', document.getElementById('endereco').value);
 
-    // Inserir coordenadas de geolocalização, se houver
-    const lat = document.getElementById('latitude')?.value || '';
-    const lon = document.getElementById('longitude')?.value || '';
-    if (lat) formData.append('latitude', lat);
-    if (lon) formData.append('longitude', lon);
+    // Campos obrigatórios
+    const nome = document.getElementById('nome').value.trim();
+    const descricao = document.getElementById('descricao').value.trim();
+    const organizador = document.getElementById('organizador').value.trim();
+    const data = document.getElementById('data').value;
+    const horario = document.getElementById('horario').value;
+    const estado = document.getElementById('evento-estado').value;
+    const cidade = document.getElementById('evento-cidade').value;
+    const endereco = document.getElementById('endereco').value.trim();
+    const latitude = document.getElementById('latitude').value;
+    const longitude = document.getElementById('longitude').value;
 
-    const dateValue = document.getElementById('data').value;
-    const timeValue = document.getElementById('horario').value;
-    if (dateValue && timeValue) {
-        const scheduled = new Date(`${dateValue}T${timeValue}`);
-        if (scheduled < new Date()) {
-            msg.style.color = 'red';
-            msg.textContent = '🚫 Data e horário não podem ser no passado.';
-            return;
-        }
+    if (!nome || !descricao || !organizador || !data || !horario || !estado || !cidade || !endereco || !latitude || !longitude) {
+        msg.style.color = 'red';
+        msg.textContent = '🚨 Preencha todos os campos obrigatórios e defina a localização no mapa.';
+        return;
     }
-    
+
+    const capaInput = document.getElementById('imagem-capa');
+    if (!capaInput || !capaInput.files || capaInput.files.length === 0) {
+        msg.style.color = 'red';
+        msg.textContent = '🚨 Imagem de capa é obrigatória.';
+        return;
+    }
+
+    if (new Date(`${data}T${horario}`) < new Date()) {
+        msg.style.color = 'red';
+        msg.textContent = '🚫 Data e horário não podem ser no passado.';
+        return;
+    }
+
+    formData.append('nome', nome);
+    formData.append('descricao', descricao);
+    formData.append('organizador', organizador);
+    formData.append('data', data);
+    formData.append('horario', horario);
+    formData.append('cidade', cidade);
+    formData.append('estado', estado);
+    formData.append('local', endereco);
+    formData.append('latitude', latitude);
+    formData.append('longitude', longitude);
+
     const precoVal = document.getElementById('preco').value;
     formData.append('preco', precoVal || 0);
     formData.append('gratuito', document.getElementById('gratuito-sim').checked);
 
     // Tratamento de categorias
     const selecionadas = Array.from(document.querySelectorAll('input[name="subcat"]:checked')).map(el => el.value);
-    // Adicionamos as subcategorias uma a uma no formData
     selecionadas.forEach(s => formData.append('subcategorias', s));
-    // Define a categoria principal (a primeira selecionada ou Outros)
-    formData.append('categoria', selecionadas[0] || "Outros");
+    formData.append('categoria', selecionadas[0] || 'Outros');
 
-    // Upload de Fotos (Sincronizado com o Multer do backend)
-    const inputFoto = document.getElementById('imagens');
-    if (inputFoto?.files?.length > 0) {
-        for (let i = 0; i < inputFoto.files.length; i++) {
-            formData.append('imagens', inputFoto.files[i]);
+    // Imagem de capa
+    formData.append('imagemCapa', capaInput.files[0]);
+
+    // Imagens do evento (opcional)
+    const inputFotosEvento = document.getElementById('imagens-evento');
+    if (inputFotosEvento?.files?.length > 0) {
+        for (let i = 0; i < inputFotosEvento.files.length; i++) {
+            formData.append('imagens', inputFotosEvento.files[i]);
         }
     }
 
