@@ -96,6 +96,35 @@ window.toggleInteresse = async function(eventoId, btnElement) {
         return;
     }
 
+    // Atualização otimista: inverter estado imediatamente
+    const estavaInteressado = btnElement.classList.contains('demonstrou-interesse');
+    const novoEstado = !estavaInteressado;
+
+    // Desabilitar botão temporariamente
+    btnElement.disabled = true;
+    btnElement.style.opacity = '0.6';
+
+    // Atualizar UI otimisticamente
+    const botoes = document.querySelectorAll(`button[data-evento-id="${eventoId}"]`);
+    botoes.forEach(btn => {
+        if (novoEstado) {
+            btn.classList.add('demonstrou-interesse');
+            btn.innerHTML = '⭐';
+            btn.title = 'Remover interesse';
+        } else {
+            btn.classList.remove('demonstrou-interesse');
+            btn.innerHTML = '☆';
+            btn.title = 'Demonstrar interesse';
+        }
+    });
+
+    // Atualizar cache otimisticamente
+    if (novoEstado) {
+        interessesCache[eventoId] = true;
+    } else {
+        delete interessesCache[eventoId];
+    }
+
     try {
         const response = await fetch(`${window.API_URL}/interesses`, {
             method: 'POST',
@@ -108,6 +137,23 @@ window.toggleInteresse = async function(eventoId, btnElement) {
 
         if (isAuthError(response)) {
             forcarLogoutPorTokenInvalido();
+            // Reverter otimista
+            botoes.forEach(btn => {
+                if (!novoEstado) {
+                    btn.classList.add('demonstrou-interesse');
+                    btn.innerHTML = '⭐';
+                    btn.title = 'Remover interesse';
+                } else {
+                    btn.classList.remove('demonstrou-interesse');
+                    btn.innerHTML = '☆';
+                    btn.title = 'Demonstrar interesse';
+                }
+            });
+            if (!novoEstado) {
+                interessesCache[eventoId] = true;
+            } else {
+                delete interessesCache[eventoId];
+            }
             return;
         }
 
@@ -116,7 +162,7 @@ window.toggleInteresse = async function(eventoId, btnElement) {
             const temInteresse = data.acao === 'adicionado';
             const contador = data.contador;
 
-            // Atualizar cache
+            // Atualizar cache final
             if (temInteresse) {
                 interessesCache[eventoId] = true;
             } else {
@@ -125,8 +171,7 @@ window.toggleInteresse = async function(eventoId, btnElement) {
 
             contadorCache[eventoId] = contador;
 
-            // Atualiza o estado de botões em todo o app (cards + modal)
-            const botoes = document.querySelectorAll(`button[data-evento-id="${eventoId}"]`);
+            // Garantir UI final (caso otimista estivesse errado)
             botoes.forEach(btn => {
                 if (temInteresse) {
                     btn.classList.add('demonstrou-interesse');
@@ -156,10 +201,48 @@ window.toggleInteresse = async function(eventoId, btnElement) {
         } else {
             const error = await response.json();
             window.showNotification(error.erro || 'Erro ao processar interesse', 'error');
+            // Reverter otimista em caso de erro
+            botoes.forEach(btn => {
+                if (!novoEstado) {
+                    btn.classList.add('demonstrou-interesse');
+                    btn.innerHTML = '⭐';
+                    btn.title = 'Remover interesse';
+                } else {
+                    btn.classList.remove('demonstrou-interesse');
+                    btn.innerHTML = '☆';
+                    btn.title = 'Demonstrar interesse';
+                }
+            });
+            if (!novoEstado) {
+                interessesCache[eventoId] = true;
+            } else {
+                delete interessesCache[eventoId];
+            }
         }
     } catch (err) {
         console.error('Erro ao toggle interesse:', err);
         window.showNotification('Erro de conexão', 'error');
+        // Reverter otimista em caso de erro
+        botoes.forEach(btn => {
+            if (!novoEstado) {
+                btn.classList.add('demonstrou-interesse');
+                btn.innerHTML = '⭐';
+                btn.title = 'Remover interesse';
+            } else {
+                btn.classList.remove('demonstrou-interesse');
+                btn.innerHTML = '☆';
+                btn.title = 'Demonstrar interesse';
+            }
+        });
+        if (!novoEstado) {
+            interessesCache[eventoId] = true;
+        } else {
+            delete interessesCache[eventoId];
+        }
+    } finally {
+        // Reabilitar botão
+        btnElement.disabled = false;
+        btnElement.style.opacity = '';
     }
 };
 
