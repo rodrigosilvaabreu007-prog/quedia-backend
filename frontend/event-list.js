@@ -45,11 +45,11 @@ async function carregarEventos() {
       container.appendChild(card);
 
       // Buscar contador de interessados real do banco
-      fetch(`${window.API_URL}/interesses/${evento._id}`)
+      fetch(`${window.API_URL}/interesses/contador/${evento._id}`)
         .then(res => res.json())
         .then(data => {
           const countEl = document.getElementById(`interest-count-${evento._id}`);
-          if (countEl) countEl.textContent = `${data.total || 0} interessados`;
+          if (countEl) countEl.textContent = `${data.contador || 0} interessados`;
         })
         .catch(() => {
           const countEl = document.getElementById(`interest-count-${evento._id}`);
@@ -77,17 +77,18 @@ document.getElementById('event-cards')?.addEventListener('click', async e => {
 
     try {
       btn.disabled = true;
-      const resposta = await fetch(`${window.API_URL}/interesses/${eventoId}`, {
+      const resposta = await fetch(`${window.API_URL}/interesses`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}` 
-        }
+        },
+        body: JSON.stringify({ evento_id: eventoId })
       });
 
       const data = await resposta.json();
       const countEl = document.getElementById(`interest-count-${eventoId}`);
-      if (countEl) countEl.textContent = `${data.total} interessados`;
+      if (countEl) countEl.textContent = `${data.contador} interessados`;
       
       btn.style.backgroundColor = "#28a745";
       btn.textContent = "✅ Marcado!";

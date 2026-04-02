@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 
 let isConnected = false; // Flag para evitar reconexões desnecessárias

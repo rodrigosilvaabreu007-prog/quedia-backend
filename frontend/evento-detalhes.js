@@ -163,16 +163,72 @@ if (imagemZoom) {
 }
 
 function formatarData(dataString) {
-    const data = new Date(dataString);
+    if (!dataString) return 'Data não informada';
+
+    // Evitar shift de fuso horário: parsear como data local, não UTC
+    const isoMatch = dataString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    let data;
+    if (isoMatch) {
+        const ano = parseInt(isoMatch[1], 10);
+        const mes = parseInt(isoMatch[2], 10);
+        const dia = parseInt(isoMatch[3], 10);
+        // Usar UTC para evitar mudanças de fuso
+        data = new Date(Date.UTC(ano, mes - 1, dia));
+    } else {
+        data = new Date(dataString);
+    }
+
+    if (Number.isNaN(data.getTime())) {
+        return dataString;
+    }
     return data.toLocaleDateString('pt-BR');
 }
 
+function toggleInteresseClique(button) {
+    // Pega ID da URL, não do objeto que pode ser undefined
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventoId = urlParams.get('id');
+    
+    if (!eventoId || !window.eventoAtual) {
+        console.error('eventoId=', eventoId, 'eventoAtual=', window.eventoAtual);
+        alert('ID do evento não encontrado. Atualize a página e tente de novo.');
+        return;
+    }
+    
+    toggleInteresse(eventoId, button);
+}
+
 async function toggleInteresse(eventoId, button) {
-    const usuario = JSON.parse(localStorage.getItem('eventhub-usuario'));
-    if (!usuario) {
+    console.log('=== toggleInteresse START ===');
+    console.log('eventoId:', eventoId);
+    console.log('button:', button);
+    console.log('button classe:', button?.className);
+    
+    if (!eventoId) {
+        alert('ID do evento não encontrado. Atualize a página e tente de novo.');
+        return;
+    }
+
+    const usuarioStr = localStorage.getItem('eventhub-usuario');
+    const token = localStorage.getItem('eventhub-token');
+    
+    console.log('token exists:', !!token);
+    console.log('usuarioStr exists:', !!usuarioStr);
+
+    let usuario = null;
+    try {
+        usuario = JSON.parse(usuarioStr);
+    } catch (e) {
+        console.error('Erro parse usuario:', e);
+    }
+
+    if (!usuario || !token) {
         alert('Você precisa estar logado para demonstrar interesse.');
         return;
     }
+    
+    console.log('usuario:', usuario);
+    console.log('usuario.id:', usuario.id, 'usuario._id:', usuario._id);
 
     // Atualização otimista
     const demonstrouInteresse = button.classList.contains('demonstrou-interesse');
@@ -195,22 +251,45 @@ async function toggleInteresse(eventoId, button) {
     if (interessesCountTopo) interessesCountTopo.textContent = novoTextoContador;
 
     try {
+        console.debug('toggleInteresse: eventoId=', eventoId, 'tokenExists=', Boolean(token), 'usuario=', usuario);
+
         const response = await fetch(`${window.API_URL}/interesses`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${usuario.token}`
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ evento_id: eventoId })
         });
 
         if (!response.ok) {
-            throw new Error('Erro ao atualizar interesse');
+            const detalhes = await response.text();
+            throw new Error(`Erro ao atualizar interesse (${response.status}): ${detalhes}`);
         }
 
-        // Atualizar evento atual
-        const evento = await response.json();
-        window.eventoAtual = evento;
+        const data = await response.json();
+        const usuarioId = String(usuario.id || usuario._id || '');
+
+        // Atualiza eventoAtual local se possível (manter consistência sem recarregar)
+        if (window.eventoAtual) {
+            if (!window.eventoAtual.interesses || !Array.isArray(window.eventoAtual.interesses)) {
+                window.eventoAtual.interesses = [];
+            }
+
+            if (novoEstado) {
+                if (usuarioId && !window.eventoAtual.interesses.includes(usuarioId)) {
+                    window.eventoAtual.interesses.push(usuarioId);
+                }
+            } else {
+                if (usuarioId) {
+                    window.eventoAtual.interesses = window.eventoAtual.interesses.filter(id => String(id) !== usuarioId);
+                }
+            }
+        }
+
+        const contadorServidor = Number.isFinite(Number(data.contador)) ? Number(data.contador) : count;
+        const interessesCountTopo2 = document.getElementById('interesses-count-top');
+        if (interessesCountTopo2) interessesCountTopo2.textContent = `👥 ${contadorServidor}`;
 
     } catch (error) {
         console.error('Erro ao toggle interesse:', error);
@@ -230,6 +309,6 @@ async function toggleInteresse(eventoId, button) {
             interessesCountTopo.textContent = `👥 ${revertCount}`;
         }
 
-        alert('Erro ao atualizar interesse. Tente novamente.');
+        alert(`Erro ao atualizar interesse. ${error.message}`);
     }
 }

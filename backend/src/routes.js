@@ -7,8 +7,8 @@ const { connectDB } = require('./db');
 const { registrarUsuario, autenticarUsuario, buscarUsuarioPorId, atualizarUsuario, deletarUsuario } = require('./autenticacao');
 
 // 1. IMPORTAÇÃO DOS MODELS (Caminho corrigido para a pasta models)
-const { cadastrarEvento, listarEventos, deletarEvento, buscarEventoPorId } = require('./models/eventos');
-const { adicionarInteresse, removerInteresse, usuarioTemInteresse, contarInteresses, listarInteressesUsuario, removerInteressesPorUsuario } = require('./models/interesses');
+const { cadastrarEvento, listarEventos, listarEventosComInteresses, deletarEvento, buscarEventoPorId } = require('./models/eventos');
+const { adicionarInteresse, removerInteresse, usuarioTemInteresse, contarInteresses, listarInteressesUsuario, removerInteressesPorUsuario, listarInteressesEvento } = require('./models/interesses');
 
 // 2. CONFIGURAÇÃO DO CLOUDINARY
 cloudinary.config({
@@ -92,7 +92,7 @@ router.post('/eventos', upload.any(), async (req, res) => {
 // 5. ROTA GET: LISTAR EVENTOS
 router.get('/eventos', async (req, res) => {
     try {
-        const eventos = await listarEventos(req.query);
+        const eventos = await listarEventosComInteresses(req.query);
         res.json(eventos || []);
     } catch (err) {
         console.error("Erro na rota GET /eventos:", err.message);
@@ -299,24 +299,21 @@ router.post('/interesses', verificarToken, async (req, res) => {
         if (jaTemInteresse) {
             // Remover interesse
             resultado = await removerInteresse(usuario_id, evento_id);
-            return res.json({ 
-                mensagem: 'Interesse removido', 
-                acao: 'removido',
-                contador: await contarInteresses(evento_id)
-            });
         } else {
             // Adicionar interesse
             resultado = await adicionarInteresse(usuario_id, evento_id);
-            if (resultado) {
-                return res.json({ 
-                    mensagem: 'Interesse adicionado', 
-                    acao: 'adicionado',
-                    contador: await contarInteresses(evento_id)
-                });
-            } else {
-                return res.status(409).json({ erro: 'Interesse já existe' });
-            }
         }
+
+        // Retornar dados atualizados
+        const contador = await contarInteresses(evento_id);
+        const interessesIds = await listarInteressesEvento(evento_id);
+        
+        return res.json({ 
+            mensagem: jaTemInteresse ? 'Interesse removido' : 'Interesse adicionado', 
+            acao: jaTemInteresse ? 'removido' : 'adicionado',
+            contador: contador,
+            interesses: interessesIds
+        });
     } catch (err) {
         console.error('Erro na rota POST /interesses:', err.message);
         return res.status(500).json({ erro: err.message || 'Erro ao processar interesse' });

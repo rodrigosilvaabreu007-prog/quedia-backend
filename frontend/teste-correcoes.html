@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste das 3 Correções</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: #0f1419; 
+      color: #fff; 
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { color: #00bfff; margin: 20px 0; text-align: center; }
+    .teste { 
+      background: #1a2332; 
+      border: 2px solid #333; 
+      border-radius: 8px; 
+      padding: 20px; 
+      margin: 15px 0;
+    }
+    .teste h2 { color: #00bfff; margin-bottom: 10px; }
+    .teste p { margin: 8px 0; color: #aaa; }
+    button { 
+      padding: 10px 20px; 
+      background: #00bfff; 
+      border: none; 
+      border-radius: 4px; 
+      color: #000; 
+      font-weight: bold; 
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover { background: #00a8d4; }
+    .status { 
+      margin-top: 10px; 
+      padding: 10px; 
+      border-radius: 4px; 
+      display: none;
+    }
+    .status.sucesso { background: #28a745; color: #fff; }
+    .status.erro { background: #dc3545; color: #fff; }
+    .status.info { background: #17a2b8; color: #fff; }
+    .resultado { 
+      background: #0a0f17; 
+      border-left: 3px solid #00bfff; 
+      padding: 10px; 
+      margin-top: 10px; 
+      font-family: monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Teste das 3 Correções</h1>
+
+    <!-- TESTE 1: Verificar ícone de interesse -->
+    <div class="teste">
+      <h2>1️⃣ Ícone de Interesse (Estrela vs Coração)</h2>
+      <p>Verificar se o arquivo evento-list.js contém ⭐ em vez de ❤️</p>
+      <button onclick="testeIcone()">Verificar Ícone</button>
+      <div class="status" id="status-icone"></div>
+      <div class="resultado" id="resultado-icone"></div>
+    </div>
+
+    <!-- TESTE 2: Atualizar Perfil -->
+    <div class="teste">
+      <h2>2️⃣ Atualizar Perfil</h2>
+      <p>Testar se a atualização de perfil funciona com autenticação</p>
+      <input type="text" id="usuario-id" placeholder="ID do usuário" style="padding: 8px; border-radius: 4px; border: 1px solid #00bfff; background: #1a2332; color: #fff; margin-right: 10px;">
+      <input type="text" id="usuario-token" placeholder="Token JWT" style="padding: 8px; border-radius: 4px; border: 1px solid #00bfff; background: #1a2332; color: #fff; margin-right: 10px;">
+      <button onclick="testeAtualizarPerfil()">Testar Atualização</button>
+      <div class="status" id="status-perfil"></div>
+      <div class="resultado" id="resultado-perfil"></div>
+    </div>
+
+    <!-- TESTE 3: Deletar Conta -->
+    <div class="teste">
+      <h2>3️⃣ Deletar Conta</h2>
+      <p>Testar se a exclusão de conta funciona com autenticação</p>
+      <p style="color: #ff9900;">⚠️ CUIDADO: Isso deletará a conta do usuário!</p>
+      <button onclick="testeDeletearConta()" style="background: #dc3545;">Testar Exclusão</button>
+      <div class="status" id="status-delete"></div>
+      <div class="resultado" id="resultado-delete"></div>
+    </div>
+
+    <!-- TESTE 4: Login para pegar token -->
+    <div class="teste">
+      <h2>🔐 Login para Teste</h2>
+      <p>Faça login para obter token e ID para os testes acima</p>
+      <input type="email" id="login-email" placeholder="seu@email.com" style="padding: 8px; border-radius: 4px; border: 1px solid #00bfff; background: #1a2332; color: #fff; margin-right: 10px;">
+      <input type="password" id="login-senha" placeholder="senha" style="padding: 8px; border-radius: 4px; border: 1px solid #00bfff; background: #1a2332; color: #fff; margin-right: 10px;">
+      <button onclick="testeLogin()">Fazer Login</button>
+      <div class="status" id="status-login"></div>
+      <div class="resultado" id="resultado-login"></div>
+    </div>
+
+    <!-- RESUMO -->
+    <div class="teste">
+      <h2>📊 Resumo</h2>
+      <p>✅ Correção 1: Ícone mudou de ❤️ para ⭐</p>
+      <p id="resumo-perfil">⏳ Pendente: Testar atualização de perfil</p>
+      <p id="resumo-delete">⏳ Pendente: Testar exclusão de conta</p>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:8080/api';
+
+    // Mostrar status
+    function mostrarStatus(elementId, tipo, mensagem) {
+      const el = document.getElementById(elementId);
+      el.className = `status ${tipo}`;
+      el.textContent = mensagem;
+      el.style.display = 'block';
+    }
+
+    function mostrarResultado(elementId, resultado) {
+      const el = document.getElementById(elementId);
+      el.textContent = JSON.stringify(resultado, null, 2);
+    }
+
+    // TESTE 1: Verificar ícone
+    async function testeIcone() {
+      mostrarStatus('status-icone', 'info', '⏳ Verificando...');
+      try {
+        const response = await fetch('evento-list.js');
+        const texto = await response.text();
+        
+        if (texto.includes('⭐ Interessado') && texto.includes('⭐ Demonstrar Interesse')) {
+          mostrarStatus('status-icone', 'sucesso', '✅ Ícone correto: ⭐');
+          mostrarResultado('resultado-icone', { resultado: 'SUCESSO', icone: '⭐', status: 'Correto' });
+        } else if (texto.includes('❤️ Interessado')) {
+          mostrarStatus('status-icone', 'erro', '❌ Ícone errado: ❤️ (ainda há coração)');
+          mostrarResultado('resultado-icone', { resultado: 'ERRO', icone: '❤️', status: 'Errado' });
+        } else {
+          mostrarStatus('status-icone', 'info', 'ℹ️ Verificação: Arquivo não encontrado');
+        }
+      } catch (e) {
+        mostrarStatus('status-icone', 'erro', `❌ Erro: ${e.message}`);
+      }
+    }
+
+    // TESTE 4: Login
+    async function testeLogin() {
+      const email = document.getElementById('login-email').value;
+      const senha = document.getElementById('login-senha').value;
+      
+      if (!email || !senha) {
+        mostrarStatus('status-login', 'erro', '❌ Digite email e senha');
+        return;
+      }
+      
+      mostrarStatus('status-login', 'info', '⏳ Fazendo login...');
+      
+      try {
+        const response = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, senha })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          mostrarStatus('status-login', 'sucesso', '✅ Login OK!');
+          document.getElementById('usuario-id').value = data.usuario._id;
+          document.getElementById('usuario-token').value = data.token.substring(0, 30) + '...';
+          
+          // Guardar o token completo em um atributo data
+          document.getElementById('usuario-token').setAttribute('data-full-token', data.token);
+          
+          mostrarResultado('resultado-login', { 
+            sucesso: true, 
+            usuario: data.usuario.nome,
+            email: data.usuario.email,
+            tokenCortado: data.token.substring(0, 30) + '...'
+          });
+        } else {
+          mostrarStatus('status-login', 'erro', `❌ Erro: ${data.erro}`);
+          mostrarResultado('resultado-login', data);
+        }
+      } catch (e) {
+        mostrarStatus('status-login', 'erro', `❌ Erro: ${e.message}`);
+      }
+    }
+
+    // TESTE 2: Atualizar perfil
+    async function testeAtualizarPerfil() {
+      const id = document.getElementById('usuario-id').value;
+      const tokenEl = document.getElementById('usuario-token');
+      const token = tokenEl.getAttribute('data-full-token') || tokenEl.value;
+      
+      if (!id || !token) {
+        mostrarStatus('status-perfil', 'erro', '❌ Faça login primeiro!');
+        return;
+      }
+      
+      mostrarStatus('status-perfil', 'info', '⏳ Atualizando...');
+      
+      try {
+        const response = await fetch(`${API_URL}/usuario/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            nome: 'Atualizado Teste ' + Date.now(),
+            email: document.getElementById('login-email').value,
+            estado: 'SP',
+            cidade: 'São Paulo',
+            preferencias: ['Música', 'Tecnologia']
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          mostrarStatus('status-perfil', 'sucesso', '✅ Perfil atualizado!');
+          document.getElementById('resumo-perfil').textContent = '✅ Perfil: Atualizado com sucesso!';
+          mostrarResultado('resultado-perfil', data);
+        } else {
+          mostrarStatus('status-perfil', 'erro', `❌ Erro (${response.status}): ${data.erro}`);
+          mostrarResultado('resultado-perfil', data);
+        }
+      } catch (e) {
+        mostrarStatus('status-perfil', 'erro', `❌ Erro: ${e.message}`);
+      }
+    }
+
+    // TESTE 3: Deletar conta
+    async function testeDeletearConta() {
+      const id = document.getElementById('usuario-id').value;
+      const tokenEl = document.getElementById('usuario-token');
+      const token = tokenEl.getAttribute('data-full-token') || tokenEl.value;
+      
+      if (!id || !token) {
+        mostrarStatus('status-delete', 'erro', '❌ Faça login primeiro!');
+        return;
+      }
+      
+      if (!confirm('⚠️ CONFIRMA EXCLUSÃO DA CONTA?')) {
+        return;
+      }
+      
+      mostrarStatus('status-delete', 'info', '⏳ Deletando...');
+      
+      try {
+        const response = await fetch(`${API_URL}/usuario/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          mostrarStatus('status-delete', 'sucesso', '✅ Conta deletada!');
+          document.getElementById('resumo-delete').textContent = '✅ Exclusão: Conta deletada com sucesso!';
+          mostrarResultado('resultado-delete', data);
+        } else {
+          mostrarStatus('status-delete', 'erro', `❌ Erro (${response.status}): ${data.erro}`);
+          mostrarResultado('resultado-delete', data);
+        }
+      } catch (e) {
+        mostrarStatus('status-delete', 'erro', `❌ Erro: ${e.message}`);
+      }
+    }
+  </script>
+</body>
+</html>

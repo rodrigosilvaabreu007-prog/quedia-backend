@@ -7,9 +7,24 @@ let calendarioAno = new Date().getFullYear();
 // 1. Formata a data corrigindo o problema de fuso horário
 function formatarData(dataStr) {
     if (!dataStr) return "A definir";
-    // Adicionamos o horário para evitar que o fuso horário mude o dia
-    const d = new Date(dataStr + "T12:00:00Z"); 
-    return d.toLocaleDateString('pt-BR');
+    
+    // Evitar shift de fuso horário: parsear como data local, não UTC
+    const isoMatch = dataStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    let data;
+    if (isoMatch) {
+        const ano = parseInt(isoMatch[1], 10);
+        const mes = parseInt(isoMatch[2], 10);
+        const dia = parseInt(isoMatch[3], 10);
+        // Usar UTC para evitar mudanças de fuso
+        data = new Date(Date.UTC(ano, mes - 1, dia));
+    } else {
+        data = new Date(dataStr);
+    }
+    
+    if (Number.isNaN(data.getTime())) {
+        return dataStr;
+    }
+    return data.toLocaleDateString('pt-BR');
 }
 
 function normalizarTexto(texto) {

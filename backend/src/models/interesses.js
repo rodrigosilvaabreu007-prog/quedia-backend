@@ -94,11 +94,23 @@ async function removerInteressesPorUsuario(usuario_id) {
     return resultado.deletedCount;
 }
 
+// Função para listar IDs de usuários que tem interesse em um evento
+async function listarInteressesEvento(evento_id) {
+    if (mongoose.connection.readyState !== 1) {
+        throw new Error("Conexão com MongoDB não está pronta.");
+    }
+
+    evento_id = String(evento_id);
+    const interesses = await Interesse.find({ evento_id }, { usuario_id: 1, _id: 0 });
+    return interesses.map(i => String(i.usuario_id));
+}
+
 module.exports = {
     adicionarInteresse,
     removerInteresse,
     usuarioTemInteresse,
     contarInteresses,
     listarInteressesUsuario,
-    removerInteressesPorUsuario
+    removerInteressesPorUsuario,
+    listarInteressesEvento
 };

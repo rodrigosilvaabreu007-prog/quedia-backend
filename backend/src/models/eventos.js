@@ -13,7 +13,8 @@ const EventoSchema = new mongoose.Schema({
     subcategorias: { type: [String], default: [] },
     gratuito: { type: Boolean, default: false },
     preco: { type: Number, default: 0 },
-    imagens: { type: [String], default: [] }, 
+    imagens: { type: [String], default: [] },
+    interesses: { type: [String], default: [] },
     organizador_id: { type: String, default: "sistema" }, 
     criadoEm: { type: Date, default: Date.now }
 }, { 
@@ -95,10 +96,49 @@ async function deletarEvento(id) {
 async function buscarEventoPorId(id) {
     try {
         const evento = await Evento.findById(id);
+        
+        // Se evento existe, popula interesses do banco Interesse
+        if (evento) {
+            const { contarInteresses, listarInteressesEvento } = require('./interesses');
+            try {
+                const interessesIds = await listarInteressesEvento(id);
+                evento.interesses = interessesIds;
+            } catch (err) {
+                console.warn("Aviso: não conseguiu carregar interesses:", err.message);
+                evento.interesses = [];
+            }
+        }
+        
         return evento;
     } catch (err) {
         throw new Error("Erro ao buscar evento: " + err.message);
     }
 }
 
-module.exports = { cadastrarEvento, listarEventos, deletarEvento, buscarEventoPorId, EventoModel: Evento };
+async function listarEventosComInteresses(filtros = {}) {
+    try {
+        let query = {};
+        if (filtros.cidade) query.cidade = new RegExp(filtros.cidade, 'i');
+        if (filtros.categoria) query.categoria = filtros.categoria;
+        
+        const eventos = await Evento.find(query).sort({ criadoEm: -1 });
+        
+        // Popula interesses em todos os eventos
+        const { listarInteressesEvento } = require('./interesses');
+        for (let evento of eventos) {
+            try {
+                const interessesIds = await listarInteressesEvento(evento._id.toString());
+                evento.interesses = interessesIds;
+            } catch (err) {
+                console.warn("Aviso: não conseguiu carregar interesses para", evento._id);
+                evento.interesses = [];
+            }
+        }
+        
+        return eventos;
+    } catch (err) {
+        throw new Error("Erro ao buscar eventos: " + err.message);
+    }
+}
+
+module.exports = { cadastrarEvento, listarEventos, listarEventosComInteresses, deletarEvento, buscarEventoPorId, EventoModel: Evento };
