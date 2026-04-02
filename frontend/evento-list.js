@@ -1083,7 +1083,7 @@ window.mostrarEventosDia = function(data) {
     
     body.innerHTML = `
         <div class="modal-padding" style="padding:20px; color: white;">
-            <h2 style="color:#00bfff; margin-bottom:20px;">Eventos em ${new Date(data).toLocaleDateString('pt-BR')}</h2>
+            <h2 style="color:#00bfff; margin-bottom:20px;">Eventos em ${formatarData(data)}</h2>
             <div class="eventos-calendario-lista">
                 ${eventosHtml}
             </div>
