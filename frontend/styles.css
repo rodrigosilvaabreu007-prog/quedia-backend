@@ -582,12 +582,12 @@ header {
 
 .evento-topo-botoes {
     position: absolute;
-    top: -30px;
-    right: 0;
+    top: 16px;
+    right: 16px;
     display: flex;
     gap: 8px;
     align-items: center;
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(0, 191, 255, 0.6);
     border-radius: 999px;
     padding: 8px 12px;
