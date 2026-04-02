@@ -183,7 +183,7 @@ function formatarData(dataString) {
     return data.toLocaleDateString('pt-BR');
 }
 
-function toggleInteresseClique(button) {
+async function toggleInteresseClique(button) {
     // Pega ID da URL, não do objeto que pode ser undefined
     const urlParams = new URLSearchParams(window.location.search);
     const eventoId = urlParams.get('id');
@@ -210,18 +210,25 @@ function toggleInteresseClique(button) {
     }
     
     // Verificar token em background (não bloqueia)
-    fetch(`${window.API_URL}/auth/check`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-    }).then(r => {
-        console.log('Token check response:', r.status);
-        if (r.status === 403) {
+    try {
+        const checkResp = await fetch(`${window.API_URL}/auth/check`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        console.log('Token check response:', checkResp.status);
+        if (checkResp.status === 403) {
             console.error('Token inválido');
             localStorage.removeItem('eventhub-token');
             localStorage.removeItem('eventhub-usuario');
+            alert('Sessão expirada. Faça login novamente.');
+            window.location.href = 'login.html?redirectTo=evento-detalhes.html%3Fid=' + eventoId;
+            return;
         }
-    }).catch(e => console.warn('Não conseguiu verificar token:', e));
-    
-    toggleInteresse(eventoId, button);
+    } catch (e) {
+        console.warn('Não conseguiu verificar token:', e);
+    }
+
+    await toggleInteresse(eventoId, button);
 }
 
 async function toggleInteresse(eventoId, button) {
