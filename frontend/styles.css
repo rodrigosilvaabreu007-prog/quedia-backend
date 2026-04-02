@@ -226,20 +226,25 @@ header {
   .hamburger {
     display: flex;
   }
+}
 
-/* --- GRID DE EVENTOS (3 por linha PC, 1 Mobile) --- */
+/* --- GRID DE EVENTOS (3 por linha PC, 2 Tablet, 1 Mobile) --- */
 .event-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 colunas fixas no PC */
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 }
 
 @media (max-width: 1024px) {
-  .event-grid { grid-template-columns: repeat(2, 1fr); }
+  .event-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
-  .event-grid { grid-template-columns: 1fr; } /* 1 coluna no celular */
+  .event-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* --- CARD DE EVENTO --- */
