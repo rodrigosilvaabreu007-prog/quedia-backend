@@ -80,8 +80,10 @@ async function carregarDetalhesEvento(eventoId) {
         const usuario = JSON.parse(localStorage.getItem('eventhub-usuario')) || {};
         const idUsuario = usuario._id || usuario.id;
         const demonstrouInteresse = idUsuario && evento.interesses && evento.interesses.includes(idUsuario);
+        const textoInteresse = demonstrouInteresse ? '★' : '☆';
         const btnInteresseTopo = document.getElementById('btn-interesse-top');
         if (btnInteresseTopo) {
+            btnInteresseTopo.textContent = textoInteresse;
             btnInteresseTopo.classList.toggle('demonstrou-interesse', demonstrouInteresse);
         }
 
@@ -107,7 +109,9 @@ async function carregarDetalhesEvento(eventoId) {
 
         // atualizar botão topo só estrela:
         const botaoTopo = document.getElementById('btn-interesse-top');
+        const textoEstrela = demonstrouInteresse ? '★' : '☆';
         if (botaoTopo) {
+            botaoTopo.textContent = textoEstrela;
             botaoTopo.classList.toggle('demonstrou-interesse', demonstrouInteresse);
         }
 
@@ -265,8 +269,10 @@ async function toggleInteresse(eventoId, button) {
 
     // Atualizar UI imediatamente
     const btnInteresseTopo = document.getElementById('btn-interesse-top');
+    const textoEstrela = novoEstado ? '★' : '☆';
     [button, btnInteresseTopo].forEach(b => {
         if (!b) return;
+        b.textContent = textoEstrela;
         b.classList.toggle('demonstrou-interesse', novoEstado);
     });
 
@@ -322,8 +328,10 @@ async function toggleInteresse(eventoId, button) {
         console.error('Erro ao toggle interesse:', error);
         // Reverter UI em caso de erro
         const elementoTopo = document.getElementById('btn-interesse-top');
+        const textoEstrela = demonstrouInteresse ? '★' : '☆';
         [button, elementoTopo].forEach(b => {
             if (!b) return;
+            b.textContent = textoEstrela;
             b.classList.toggle('demonstrou-interesse', demonstrouInteresse);
         });
 

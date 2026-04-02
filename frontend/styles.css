@@ -362,57 +362,42 @@ header {
 
 /* Star Button - Modern Design */
 .btn-interesse-star {
-  width: 48px;
-  height: 48px;
-  border: 2px solid var(--cor-principal);
-  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 6px;
   background: var(--bg-secondary);
+  color: #ffd700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 0 0 0 rgba(0, 191, 255, 0.3);
+  transition: all 0.3s ease;
+  font-size: 24px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   position: relative;
 }
 
 .btn-interesse-star:hover {
-  background: rgba(0, 191, 255, 0.1);
-  box-shadow: 0 0 12px rgba(0, 191, 255, 0.5);
-  transform: scale(1.08);
+  background: var(--cor-principal);
+  color: #ffd700;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 191, 255, 0.4);
 }
 
 .btn-interesse-star:active {
   transform: scale(0.95);
 }
 
-.star-icon {
-  width: 24px;
-  height: 24px;
-  color: var(--cor-principal);
-  transition: all 0.3s ease;
-  filter: drop-shadow(0 0 0px var(--cor-principal));
-}
-
 .btn-interesse-star.demonstrou-interesse {
   background: var(--cor-principal);
-  border-color: #ffd700;
-  box-shadow: 0 0 16px rgba(255, 215, 0, 0.6), inset 0 0 8px rgba(255, 215, 0, 0.3);
+  color: #ffd700;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.5), inset 0 0 4px rgba(255, 215, 0, 0.2);
 }
 
-.btn-interesse-star.demonstrou-interesse .star-icon {
-  color: #000;
-  fill: currentColor;
-  filter: drop-shadow(0 0 4px #ffd700);
-}
-
-@keyframes starPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.15); }
-}
-
-.btn-interesse-star.demonstrou-interesse:not(:disabled) {
-  animation: starPulse 0.4s ease-out;
+.btn-interesse-star.demonstrou-interesse:hover {
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.7), inset 0 0 6px rgba(255, 215, 0, 0.3);
 }
 
 .btn-interesse-star:focus {
