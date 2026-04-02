@@ -514,7 +514,7 @@ window.abrirPrevia = function(evento, imgResolvida) {
             <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
             <p style="color:#ccc; line-height:1.6; white-space: pre-wrap;">${evento.descricao || 'Sem descrição disponível.'}</p>
             <div style="margin-top:20px; text-align:center;">
-                <button onclick="irParaDetalhes()" style="background:#00bfff; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; font-size:16px;">Mais Informações</button>
+                <button class="btn-mais-info" onclick="irParaDetalhes()">Mais Informações</button>
             </div>
         </div>
     `;
