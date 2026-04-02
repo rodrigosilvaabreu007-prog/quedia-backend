@@ -1,21 +1,23 @@
 // evento-detalhes.js
 document.addEventListener('DOMContentLoaded', function() {
-    // Verificar se usuário está logado
-    const usuario = JSON.parse(localStorage.getItem('eventhub-usuario'));
-    if (!usuario) {
-        window.location.href = 'login.html';
-        return;
-    }
+    // Não bloquear acesso para usuário não logado (detalhes podem ser públicos)
+    const usuario = JSON.parse(localStorage.getItem('eventhub-usuario')) || null;
 
-    // Atualizar link de login/logout
+    // Atualizar link de login/logout se disponível
     const loginLink = document.getElementById('login-link');
-    if (usuario) {
-        loginLink.textContent = 'Logout';
-        loginLink.href = '#';
-        loginLink.onclick = function() {
-            localStorage.removeItem('eventhub-usuario');
-            window.location.href = 'index.html';
-        };
+    if (loginLink) {
+        if (usuario) {
+            loginLink.textContent = 'Logout';
+            loginLink.href = '#';
+            loginLink.onclick = function() {
+                localStorage.removeItem('eventhub-usuario');
+                window.location.href = 'index.html';
+            };
+        } else {
+            loginLink.textContent = 'Login';
+            loginLink.href = 'login.html';
+            loginLink.onclick = null;
+        }
     }
 
     // Obter ID do evento da URL
@@ -34,11 +36,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function carregarDetalhesEvento(eventoId) {
     try {
-        const response = await fetch(`${window.API_URL}/eventos/${eventoId}`);
+        let evento = null;
+        let response = await fetch(`${window.API_URL}/eventos/${eventoId}`);
+
         if (!response.ok) {
-            throw new Error('Erro ao carregar evento');
+            // Fallback para versão que só lista eventos
+            const lista = await fetch(`${window.API_URL}/eventos`);
+            if (lista.ok) {
+                const todos = await lista.json();
+                evento = todos.find(e => e._id === eventoId || e.id === eventoId);
+            }
+            if (!evento) {
+                throw new Error('Evento não encontrado');
+            }
+        } else {
+            evento = await response.json();
         }
-        const evento = await response.json();
 
         // Armazenar evento atual para uso no toggle
         window.eventoAtual = evento;
@@ -64,12 +77,15 @@ async function carregarDetalhesEvento(eventoId) {
         const interessesCount = evento.interesses ? evento.interesses.length : 0;
         document.getElementById('interesses-count').textContent = `👥 ${interessesCount} pessoa${interessesCount !== 1 ? 's' : ''} interessada${interessesCount !== 1 ? 's' : ''}`;
 
-        // Verificar se usuário demonstrou interesse
-        const usuario = JSON.parse(localStorage.getItem('eventhub-usuario'));
-        const demonstrouInteresse = evento.interesses && evento.interesses.includes(usuario._id);
+        // Verificar se usuário demonstrou interesse (se houver evento.interesses)
+        const usuario = JSON.parse(localStorage.getItem('eventhub-usuario')) || {};
+        const idUsuario = usuario._id || usuario.id;
+        const demonstrouInteresse = idUsuario && evento.interesses && evento.interesses.includes(idUsuario);
         const btnInteresse = document.getElementById('btn-interesse');
-        btnInteresse.textContent = demonstrouInteresse ? '★ Interesse Demonstrado' : '☆ Demonstrar Interesse';
-        btnInteresse.classList.toggle('demonstrou-interesse', demonstrouInteresse);
+        if (btnInteresse) {
+            btnInteresse.textContent = demonstrouInteresse ? '★ Interesse Demonstrado' : '☆ Demonstrar Interesse';
+            btnInteresse.classList.toggle('demonstrou-interesse', demonstrouInteresse);
+        }
 
         // Configurar mapa
         configurarMapa(evento.local, evento.endereco);
@@ -118,7 +134,7 @@ async function toggleInteresse(eventoId, button) {
     interessesCountEl.textContent = `👥 ${count} pessoa${count !== 1 ? 's' : ''} interessada${count !== 1 ? 's' : ''}`;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/eventos/${eventoId}/interesse`, {
+        const response = await fetch(`${window.API_URL}/eventos/${eventoId}/interesse`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
