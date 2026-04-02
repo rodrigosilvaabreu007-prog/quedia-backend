@@ -195,13 +195,13 @@ async function toggleInteresse(eventoId, button) {
     if (interessesCountTopo) interessesCountTopo.textContent = novoTextoContador;
 
     try {
-        const response = await fetch(`${window.API_URL}/eventos/${eventoId}/interesse`, {
+        const response = await fetch(`${window.API_URL}/interesses`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${usuario.token}`
             },
-            body: JSON.stringify({ usuarioId: usuario._id })
+            body: JSON.stringify({ evento_id: eventoId })
         });
 
         if (!response.ok) {
