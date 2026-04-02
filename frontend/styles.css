@@ -506,19 +506,36 @@ header {
   margin-right: 14px;
   font-weight: 700;
   position: relative;
+  justify-content: flex-start;
 }
 
 .radio-item input[type="radio"] {
-  margin-right: 6px;
+  appearance: radio;
+  -webkit-appearance: radio;
+  margin: 0;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  line-height: 1;
+  position: relative;
+  z-index: 2;
   vertical-align: middle;
-  transform: none;
-  position: static;
 }
 
-.radio-item label, .radio-item span {
+.radio-item input[type="radio"] + span,
+.radio-item input[type="radio"] + label,
+.radio-item input[type="radio"] ~ span,
+.radio-item input[type="radio"] ~ label {
+  margin-left: 6px;
+}
+
+.radio-item label,
+.radio-item span {
   margin: 0;
   padding: 0;
   line-height: 1.2;
+  cursor: pointer;
 }
 
 .preco-container input {
