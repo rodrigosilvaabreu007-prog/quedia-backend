@@ -168,11 +168,21 @@ async function toggleInteresse(eventoId, button) {
     } catch (error) {
         console.error('Erro ao toggle interesse:', error);
         // Reverter UI em caso de erro
-        button.textContent = demonstrouInteresse ? '★ Interesse Demonstrado' : '☆ Demonstrar Interesse';
-        button.classList.toggle('demonstrou-interesse', demonstrouInteresse);
-        const count = parseInt(interessesCountEl.textContent.match(/\d+/)[0]);
-        const revertCount = demonstrouInteresse ? count + 1 : count - 1;
-        interessesCountEl.textContent = `👥 ${revertCount} pessoa${revertCount !== 1 ? 's' : ''} interessada${revertCount !== 1 ? 's' : ''}`;
+        const elementoTopo = document.getElementById('btn-interesse-top');
+        const textoEstrela = demonstrouInteresse ? '★' : '☆';
+        [button, elementoTopo].forEach(b => {
+            if (!b) return;
+            b.textContent = textoEstrela;
+            b.classList.toggle('demonstrou-interesse', demonstrouInteresse);
+        });
+
+        const interessesCountTopo = document.getElementById('interesses-count-top');
+        if (interessesCountTopo) {
+            let count = parseInt(interessesCountTopo.textContent.match(/\d+/)?.[0] || '0');
+            const revertCount = demonstrouInteresse ? count + 1 : Math.max(0, count - 1);
+            interessesCountTopo.textContent = `👥 ${revertCount}`;
+        }
+
         alert('Erro ao atualizar interesse. Tente novamente.');
     }
 }
