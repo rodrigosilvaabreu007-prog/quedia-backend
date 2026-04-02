@@ -105,7 +105,7 @@ async function carregarDetalhesEvento(eventoId) {
         }
 
         // Configurar mapa
-        configurarMapa(evento.local, evento.endereco);
+        configurarMapa(evento.local, evento.endereco, evento.latitude, evento.longitude);
 
         // atualizar botão topo só estrela:
         const botaoTopo = document.getElementById('btn-interesse-top');
@@ -122,14 +122,35 @@ async function carregarDetalhesEvento(eventoId) {
     }
 }
 
-function configurarMapa(local, endereco) {
-    const enderecoCompleto = endereco || local;
+function configurarMapa(local, endereco, latitude, longitude) {
+    const enderecoCompleto = endereco || local || 'Local não informado';
     document.getElementById('endereco-completo').textContent = enderecoCompleto;
 
-    // Usar Google Maps embed
     const mapaIframe = document.getElementById('mapa-iframe');
-    const enderecoEncoded = encodeURIComponent(enderecoCompleto);
-    mapaIframe.src = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dOMLD0k8XKTQ&zoom=15&q=${enderecoEncoded}`;
+    const mapaLeafletContainer = document.getElementById('mapa-leaflet');
+
+    if (latitude && longitude && mapaLeafletContainer && window.L) {
+        mapaIframe.style.display = 'none';
+        mapaLeafletContainer.style.display = 'block';
+
+        mapaLeafletContainer.innerHTML = '';
+        const map = L.map('mapa-leaflet').setView([parseFloat(latitude), parseFloat(longitude)], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        L.marker([parseFloat(latitude), parseFloat(longitude)]).addTo(map)
+            .bindPopup(enderecoCompleto)
+            .openPopup();
+        return;
+    }
+
+    // fallback para iframe do Google Maps
+    if (mapaLeafletContainer) mapaLeafletContainer.style.display = 'none';
+    if (mapaIframe) {
+        mapaIframe.style.display = 'block';
+        const enderecoEncoded = encodeURIComponent(enderecoCompleto);
+        mapaIframe.src = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dOMLD0k8XKTQ&zoom=15&q=${enderecoEncoded}`;
+    }
 }
 
 function abrirModalImagem(src) {

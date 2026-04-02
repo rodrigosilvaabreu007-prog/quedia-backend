@@ -6,6 +6,7 @@
   <title>Cadastrar Evento - EventHub</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 <body>
   <div class="container">
@@ -57,23 +58,32 @@
         </div>
 
         <label>Endereço / Local <input type="text" id="endereco" required></label>
+        <button id="btn-geolocalizar" class="btn-geolocalizar">📍 Geolocalizar endereço</button>
+        <div id="geo-status" style="font-size: 0.9rem; color: #ccc; margin-bottom: 8px;">Informe endereço para mapear.</div>
+
+        <div id="mapa-evento" class="mapa-evento"></div>
+        <div class="coordenadas-container">
+          <label>Latitude <input type="text" id="latitude" placeholder="-23.564" readonly></label>
+          <label>Longitude <input type="text" id="longitude" placeholder="-46.654" readonly></label>
+        </div>
 
         <label>Categorias</label>
-        <div id="categorias-evento" class="categorias-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;"></div>
+        <div id="categorias-evento" class="categorias-grid"></div>
 
         <fieldset class="form-section">
           <legend>Entrada</legend>
-          <label><input type="radio" name="gratuito" id="gratuito-sim" checked onchange="window.togglePreco()"> Gratuito</label>
-          <label><input type="radio" name="gratuito" id="gratuito-nao" onchange="window.togglePreco()"> Pago</label>
-          <div id="container-preco" style="display: none; margin-top: 10px;">
+          <label class="radio-item"><input type="radio" name="gratuito" id="gratuito-sim" checked onchange="window.togglePreco()"> Gratuito</label>
+          <label class="radio-item"><input type="radio" name="gratuito" id="gratuito-nao" onchange="window.togglePreco()"> Pago</label>
+          <div id="container-preco" class="preco-container" style="display: none; margin-top: 10px;">
             <input type="number" id="preco" placeholder="Preço R$" step="0.01" value="0">
           </div>
         </fieldset>
 
         <fieldset class="form-section">
           <legend>Imagem do Evento</legend>
-          <input type="file" id="imagens" accept="image/*" onchange="window.mostrarPreviewImagens()">
-          <div id="preview-imagens" style="margin-top: 10px;"></div>
+          <label class="file-label" for="imagens">Escolher imagens (até 8)</label>
+          <input type="file" id="imagens" accept="image/*" onchange="window.mostrarPreviewImagens()" multiple>
+          <div id="preview-imagens" class="preview-imagens"></div>
         </fieldset>
 
         <button type="submit" id="btn-submit">🚀 PUBLICAR EVENTO</button>
@@ -86,6 +96,7 @@
     <img id="icone-perfil-img" src="caminho-da-sua-foto.jpg" alt="Foto do Perfil">
   </div>
 
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="theme.js"></script>
   <script src="global.js"></script>
   <script src="event-form.js"></script>

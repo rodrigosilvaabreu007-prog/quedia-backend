@@ -6,6 +6,8 @@
     <title>Detalhes do Evento - Quedia</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="theme.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="global.js"></script>
     <script src="theme.js"></script>
 </head>
@@ -80,6 +82,7 @@
             <div class="evento-localizacao">
                 <h2>Localização</h2>
                 <div id="mapa-container">
+                    <div id="mapa-leaflet" style="width:100%;height:300px;display:none;"></div>
                     <iframe id="mapa-iframe" src="" width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                 </div>
                 <p id="endereco-completo">Endereço completo será carregado...</p>
