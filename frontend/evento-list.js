@@ -8,15 +8,14 @@ let calendarioAno = new Date().getFullYear();
 function formatarData(dataStr) {
     if (!dataStr) return "A definir";
     
-    // Evitar shift de fuso horário: parsear como data local, não UTC
+    // Parsear data ISO (YYYY-MM-DD) como LOCAL timezone, não UTC
     const isoMatch = dataStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
     let data;
     if (isoMatch) {
         const ano = parseInt(isoMatch[1], 10);
         const mes = parseInt(isoMatch[2], 10);
         const dia = parseInt(isoMatch[3], 10);
-        // Usar UTC para evitar mudanças de fuso
-        data = new Date(Date.UTC(ano, mes - 1, dia));
+        data = new Date(ano, mes - 1, dia); // Cria data em timezone LOCAL
     } else {
         data = new Date(dataStr);
     }
