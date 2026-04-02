@@ -27,15 +27,15 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage: storage });
 
-// 3. MIDDLEWARE DE CONEXÃO (Garante banco ativo em cada chamada)
+// 3. MIDDLEWARE DE CONEXÃO (Tenta conectar, mas permite próximas rotas)
 router.use(async (req, res, next) => {
     try {
         await connectDB();
-        next();
     } catch (err) {
-        console.error("Erro de conexão no middleware:", err.message);
-        res.status(500).json({ erro: "Erro de conexão com o banco de dados" });
+        console.error("⚠️ Conexão com banco não disponível no middleware:", err.message);
+        // Continua mesmo se banco não conectar - algumas rotas podem funcionar sem banco
     }
+    next();
 });
 
 // 4. ROTA POST: CRIAR EVENTO
