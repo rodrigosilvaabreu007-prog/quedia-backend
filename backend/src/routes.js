@@ -7,7 +7,7 @@ const { connectDB } = require('./db');
 const { registrarUsuario, autenticarUsuario, buscarUsuarioPorId, atualizarUsuario, deletarUsuario } = require('./autenticacao');
 
 // 1. IMPORTAÇÃO DOS MODELS (Caminho corrigido para a pasta models)
-const { cadastrarEvento, listarEventos, deletarEvento } = require('./models/eventos');
+const { cadastrarEvento, listarEventos, deletarEvento, buscarEventoPorId } = require('./models/eventos');
 const { adicionarInteresse, removerInteresse, usuarioTemInteresse, contarInteresses, listarInteressesUsuario, removerInteressesPorUsuario } = require('./models/interesses');
 
 // 2. CONFIGURAÇÃO DO CLOUDINARY
@@ -97,6 +97,26 @@ router.get('/eventos', async (req, res) => {
     } catch (err) {
         console.error("Erro na rota GET /eventos:", err.message);
         res.status(500).json({ erro: 'Erro ao buscar eventos.' });
+    }
+});
+
+// 5.1. ROTA GET: BUSCAR EVENTO POR ID
+router.get('/eventos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ erro: 'ID do evento é obrigatório' });
+        }
+
+        const evento = await buscarEventoPorId(id);
+        if (!evento) {
+            return res.status(404).json({ erro: 'Evento não encontrado' });
+        }
+
+        return res.json(evento);
+    } catch (err) {
+        console.error('Erro na rota GET /eventos/:id:', err.message);
+        res.status(500).json({ erro: 'Erro ao buscar evento.' });
     }
 });
 

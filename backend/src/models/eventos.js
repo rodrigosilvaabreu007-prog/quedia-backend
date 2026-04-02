@@ -92,4 +92,13 @@ async function deletarEvento(id) {
     }
 }
 
-module.exports = { cadastrarEvento, listarEventos, deletarEvento, EventoModel: Evento };
+async function buscarEventoPorId(id) {
+    try {
+        const evento = await Evento.findById(id);
+        return evento;
+    } catch (err) {
+        throw new Error("Erro ao buscar evento: " + err.message);
+    }
+}
+
+module.exports = { cadastrarEvento, listarEventos, deletarEvento, buscarEventoPorId, EventoModel: Evento };
