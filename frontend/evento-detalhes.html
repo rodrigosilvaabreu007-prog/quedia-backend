@@ -34,7 +34,7 @@
             </div>
 
             <div class="evento-header">
-                <img id="evento-imagem" src="" alt="Imagem do Evento" class="evento-imagem-principal">
+                <img id="evento-imagem" src="" alt="Imagem do Evento" class="evento-imagem-principal" onclick="abrirModalImagem(this.src)">
                 <div class="evento-info-principal">
                     <div class="evento-meta">
                         <p id="evento-data">📅 Data: --/--/----</p>
@@ -51,6 +51,11 @@
                 <p id="evento-descricao">Carregando descrição...</p>
             </div>
 
+            <div id="evento-fotos" class="evento-fotos" style="display: none;">
+                <h2>Fotos do Evento</h2>
+                <div id="galeria-fotos" class="galeria-fotos"></div>
+            </div>
+
             <div class="evento-localizacao">
                 <h2>Localização</h2>
                 <div id="mapa-container">
@@ -65,6 +70,10 @@
         <p>&copy; 2026 Quedia. Todos os direitos reservados.</p>
     </footer>
 
+    <div id="modal-imagem" class="modal-imagem" style="display: none;" onclick="fecharModalImagem(event)">
+      <img id="imagem-modal-force" src="" alt="Imagem ampliada" class="imagem-modal">
+      <button class="close-modal-btn" onclick="fecharModalImagem(event)">✕</button>
+    </div>
     <script src="evento-detalhes.js"></script>
 </body>
 </html>

@@ -87,6 +87,23 @@ async function carregarDetalhesEvento(eventoId) {
             btnInteresseTopo.classList.toggle('demonstrou-interesse', demonstrouInteresse);
         }
 
+        // Gallery
+        const galeria = document.getElementById('evento-fotos');
+        const galeriaContainer = document.getElementById('galeria-fotos');
+        galeriaContainer.innerHTML = '';
+
+        if (evento.imagens && evento.imagens.length > 1) {
+            galeria.style.display = 'block';
+            evento.imagens.slice(1).forEach(url => {
+                const item = document.createElement('div');
+                item.className = 'galeria-foto-item';
+                item.innerHTML = `<img src="${url}" alt="Foto do evento" onclick="abrirModalImagem('${url}')">`;
+                galeriaContainer.appendChild(item);
+            });
+        } else {
+            galeria.style.display = 'none';
+        }
+
         // Configurar mapa
         configurarMapa(evento.local, evento.endereco);
 
@@ -113,6 +130,36 @@ function configurarMapa(local, endereco) {
     const mapaIframe = document.getElementById('mapa-iframe');
     const enderecoEncoded = encodeURIComponent(enderecoCompleto);
     mapaIframe.src = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dOMLD0k8XKTQ&zoom=15&q=${enderecoEncoded}`;
+}
+
+function abrirModalImagem(src) {
+    const modal = document.getElementById('modal-imagem');
+    const img = document.getElementById('imagem-modal-force');
+    if (!modal || !img) return;
+
+    modal.style.display = 'flex';
+    img.src = src;
+    img.style.transform = 'scale(1)';
+    img.dataset.zoom = '1';
+}
+
+function fecharModalImagem(event) {
+    if (event) event.stopPropagation();
+    const modal = document.getElementById('modal-imagem');
+    if (!modal) return;
+    modal.style.display = 'none';
+}
+
+const imagemZoom = document.getElementById('imagem-modal-force');
+if (imagemZoom) {
+    imagemZoom.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        let zoom = parseFloat(imagemZoom.dataset.zoom || '1');
+        zoom += e.deltaY * -0.005;
+        zoom = Math.min(Math.max(1, zoom), 3);
+        imagemZoom.style.transform = `scale(${zoom})`;
+        imagemZoom.dataset.zoom = zoom.toString();
+    });
 }
 
 function formatarData(dataString) {
