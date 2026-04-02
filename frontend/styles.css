@@ -517,6 +517,41 @@ header {
   margin-bottom: 20px;
 }
 
+/*⚠️ Overrides importantes para não deixar campos empilharem*/
+.card-form .form-grid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: flex-start;
+  gap: 14px !important;
+  padding: 0;
+}
+
+.card-form .form-grid label {
+  flex: 1 1 calc(50% - 14px) !important;
+  min-width: 220px !important;
+  max-width: calc(50% - 14px) !important;
+}
+
+.coordenadas-container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+}
+
+.coordenadas-container label {
+  flex: 1 1 calc(50% - 12px) !important;
+  min-width: 180px !important;
+  max-width: calc(50% - 12px) !important;
+}
+
+@media (max-width: 900px) {
+  .card-form .form-grid label,
+  .coordenadas-container label {
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+  }
+}
+
 .card-form .categoria-item {
   display: flex;
   align-items: center;
