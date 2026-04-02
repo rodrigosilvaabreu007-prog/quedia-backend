@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function carregarDetalhesEvento(eventoId) {
     try {
-        const response = await fetch(`${API_BASE_URL}/eventos/${eventoId}`);
+        const response = await fetch(`${window.API_URL}/eventos/${eventoId}`);
         if (!response.ok) {
             throw new Error('Erro ao carregar evento');
         }
