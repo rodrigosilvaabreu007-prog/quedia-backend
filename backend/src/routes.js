@@ -67,6 +67,7 @@ router.post('/eventos', upload.any(), async (req, res) => {
         const dadosEvento = {
             nome: req.body.nome || "Evento sem nome",
             descricao: req.body.descricao || "",
+            organizador: req.body.organizador || "Não informado",
             cidade: req.body.cidade || "",
             estado: req.body.estado || "",
             local: req.body.local || "", // Mapeado do campo 'endereco' do frontend

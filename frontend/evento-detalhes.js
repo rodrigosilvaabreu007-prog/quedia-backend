@@ -32,48 +32,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Carregar detalhes do evento
     carregarDetalhesEvento(eventoId);
-    
-    // DEBUG: Função para visualizar dados na página
-    window.verDebug = function() {
-        const debugDiv = document.createElement('div');
-        debugDiv.style.cssText = `
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: black;
-            color: #0f0;
-            padding: 15px;
-            border: 2px solid #0f0;
-            font-family: monospace;
-            font-size: 11px;
-            max-width: 400px;
-            max-height: 600px;
-            overflow: auto;
-            z-index: 99999;
-            border-radius: 5px;
-        `;
-        
-        let html = '<strong>DEBUG INFO</strong><br>';
-        if (window.DEBUG_EVENTO) {
-            html += `ID: ${window.DEBUG_EVENTO._id || window.DEBUG_EVENTO.id}<br>`;
-            html += `Nome: ${window.DEBUG_EVENTO.nome}<br>`;
-            html += `Latitude: <span style="color: yellow">${window.DEBUG_EVENTO.latitude}</span> (${typeof window.DEBUG_EVENTO.latitude})<br>`;
-            html += `Longitude: <span style="color: yellow">${window.DEBUG_EVENTO.longitude}</span> (${typeof window.DEBUG_EVENTO.longitude})<br>`;
-            html += `Local: ${window.DEBUG_EVENTO.local}<br>`;
-            html += `Endereco: ${window.DEBUG_EVENTO.endereco}<br><br>`;
-            html += `<button onclick="this.parentElement.remove()" style="padding:5px;background:#0f0;color:black;border:none;cursor:pointer;">Fechar</button>`;
-        } else {
-            html += 'DEBUG_EVENTO não disponível';
-        }
-        
-        debugDiv.innerHTML = html;
-        document.body.appendChild(debugDiv);
-    };
-    
-    // Debug box removido - comentado
-    // setTimeout(() => {
-    //     window.verDebug();
-    // }, 2000);
 });
 
 async function carregarDetalhesEvento(eventoId) {
@@ -110,7 +68,6 @@ async function carregarDetalhesEvento(eventoId) {
         console.log('  - longitude:', evento.longitude, '(type:', typeof evento.longitude + ')');
         console.log('  - local:', evento.local);
         console.log('  - endereco:', evento.endereco);
-        window.DEBUG_EVENTO = evento;
 
         // Armazenar evento atual para uso no toggle
         window.eventoAtual = evento;
