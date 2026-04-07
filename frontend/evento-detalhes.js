@@ -36,10 +36,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function carregarDetalhesEvento(eventoId) {
     try {
+        console.log('\\n==================== INICIO CARREGAMENTO ====================');
+        console.log('[PASSO 1] eventoId:', eventoId);
+        
         let evento = null;
-        let response = await fetch(`${window.API_URL}/eventos/${eventoId}`);
+        const urlEvento = `${window.API_URL}/eventos/${eventoId}`;
+        console.log('[PASSO 2] URL fetch:', urlEvento);
+        
+        let response = await fetch(urlEvento);
+        console.log('[PASSO 3] Response status:', response.status, response.statusText);
 
         if (!response.ok) {
+            console.warn('[PASSO 4] GET por ID falhou, usando fallback');
             // Fallback para versão que só lista eventos
             const lista = await fetch(`${window.API_URL}/eventos`);
             if (lista.ok) {
@@ -52,7 +60,15 @@ async function carregarDetalhesEvento(eventoId) {
         } else {
             evento = await response.json();
         }
-        console.log('[DEBUG] evento-detalhes carregou evento:', { id: evento._id || evento.id, latitude: evento.latitude, longitude: evento.longitude });
+        
+        console.log('[PASSO 5] Evento recebido do servidor:');
+        console.log('  - _id:', evento._id);
+        console.log('  - nome:', evento.nome);
+        console.log('  - latitude:', evento.latitude, '(type:', typeof evento.latitude + ')');
+        console.log('  - longitude:', evento.longitude, '(type:', typeof evento.longitude + ')');
+        console.log('  - local:', evento.local);
+        console.log('  - endereco:', evento.endereco);
+        window.DEBUG_EVENTO = evento;
 
         // Armazenar evento atual para uso no toggle
         window.eventoAtual = evento;
@@ -106,7 +122,11 @@ async function carregarDetalhesEvento(eventoId) {
         }
 
         // Configurar mapa
-        console.log('[DEBUG] Chamando configurarMapa com:', { local: evento.local, endereco: evento.endereco, latitude: evento.latitude, longitude: evento.longitude });
+        console.log('[PASSO 6] Sobre chamada configurarMapa:');
+        console.log('  - local:', evento.local);
+        console.log('  - endereco:', evento.endereco);
+        console.log('  - latitude:', evento.latitude);
+        console.log('  - longitude:', evento.longitude);
         await configurarMapa(evento.local, evento.endereco, evento.latitude, evento.longitude);
 
         // atualizar botão topo só estrela:
@@ -142,14 +162,20 @@ async function buscarCoordenadasDetalhes(endereco) {
 }
 
 async function configurarMapa(local, endereco, latitude, longitude) {
+    console.log('========== CONFIGURAR MAPA ==========');
+    console.log('[MAPA-01] Parametros recebidos:', { local, endereco, latitude, longitude });
+    
     const enderecoCompleto = (endereco || local || 'Local não informado').trim();
     document.getElementById('endereco-completo').textContent = enderecoCompleto;
+    console.log('[MAPA-02] Endereco completo:', enderecoCompleto);
 
     const mapaIframe = document.getElementById('mapa-iframe');
     const mapaLeafletContainer = document.getElementById('mapa-leaflet');
+    console.log('[MAPA-03] Elementos:', { mapaIframe: !!mapaIframe, mapaLeafletContainer: !!mapaLeafletContainer, L: !!window.L });
 
     if (mapaIframe) mapaIframe.style.display = 'none';
     if (!mapaLeafletContainer || !window.L) {
+        console.warn('[MAPA-04] Leaflet não disponível ou container ausente');
         if (mapaIframe) {
             mapaIframe.style.display = 'block';
             mapaIframe.src = 'https://www.openstreetmap.org/export/embed.html?bbox=-54,-33,-46,-23&layer=mapnik';
@@ -158,11 +184,13 @@ async function configurarMapa(local, endereco, latitude, longitude) {
     }
 
     mapaLeafletContainer.style.display = 'block';
+    console.log('[MAPA-05] Container Leaflet exibido');
 
     if (window.mapDetalhes) {
         window.mapDetalhes.remove();
         window.mapDetalhes = null;
     }
+    console.log('[MAPA-06] Mapa anterior removido se existia');
 
     window.mapDetalhes = L.map('mapa-leaflet', {
         zoomControl: true,
@@ -170,21 +198,24 @@ async function configurarMapa(local, endereco, latitude, longitude) {
         scrollWheelZoom: true,
         tap: true
     }).setView([-15.7801, -47.9292], 4);
+    console.log('[MAPA-07] Mapa Leaflet criado');
+    
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(window.mapDetalhes);
+    console.log('[MAPA-08] Tile layer adicionado');
 
     setTimeout(() => {
         if (window.mapDetalhes) window.mapDetalhes.invalidateSize();
+        console.log('[MAPA-09] invalidateSize executado');
     }, 300);
 
     // Parsing com validação correta
     let lat = Number(latitude);
     let lon = Number(longitude);
-    console.log('[DEBUG] configurarMapa raw input:', { latitude, longitude });
-    console.log('[DEBUG] configurarMapa parsed:', { lat, lon });
+    console.log('[MAPA-10] Valores parseados:', { latitude, longitude, lat, lon });
     
-    // Validação forte: latitude e longitude devem ser números válidos E não serem 0 (caso tenha sido null convertido)
+    // Validação forte: latitude e longitude devem ser números válidos E não serem 0
     // Para Brasil: lat entre -33 e 5, lon entre -74 e -34
     const isValidBrazilCoords = 
         Number.isFinite(lat) && 
@@ -194,25 +225,39 @@ async function configurarMapa(local, endereco, latitude, longitude) {
         lat >= -33 && lat <= 5 && 
         lon >= -74 && lon <= -34;
     
-    console.log('[DEBUG] isValidBrazilCoords:', isValidBrazilCoords);
+    console.log('[MAPA-11] Validacao Brasil:', {
+        isFinite_lat: Number.isFinite(lat),
+        isFinite_lon: Number.isFinite(lon),
+        lat_not_0: lat !== 0,
+        lon_not_0: lon !== 0,
+        lat_range: lat >= -33 && lat <= 5,
+        lon_range: lon >= -74 && lon <= -34,
+        resultado: isValidBrazilCoords
+    });
 
     if (!isValidBrazilCoords) {
-        console.log('[DEBUG] Coordenadas inválidas ou não informadas, tentando geocoding do endereço');
+        console.log('[MAPA-12] Coordenadas inválidas, tentando geocoding...');
         const geolocal = await buscarCoordenadasDetalhes(enderecoCompleto);
         if (geolocal) {
             lat = geolocal.lat;
             lon = geolocal.lon;
-            console.log('[DEBUG] Geocoding encontrou:', { lat, lon });
+            console.log('[MAPA-13] Geocoding sucesso:', { lat, lon });
+        } else {
+            console.warn('[MAPA-13] Geocoding falhou');
         }
+    } else {
+        console.log('[MAPA-12] Coordenadas válidas, usando direto');
     }
 
     // Renderizar marcador se coordenadas forem válidas
+    console.log('[MAPA-14] Checagem final antes de renderizar:', { lat, lon, isFinite: Number.isFinite(lat) && Number.isFinite(lon) });
     if (Number.isFinite(lat) && Number.isFinite(lon)) {
-        console.log('[DEBUG] Renderizando marcador em:', [lat, lon]);
+        console.log('[MAPA-15] RENDERIZANDO MARCADOR EM:', [lat, lon]);
         window.mapDetalhes.setView([lat, lon], 13);
         L.marker([lat, lon]).addTo(window.mapDetalhes).bindPopup(enderecoCompleto).openPopup();
+        console.log('[MAPA-16] MARCADOR RENDERIZADO COM SUCESSO');
     } else {
-        console.log('[DEBUG] Nenhuma coordenada válida encontrada');
+        console.error('[MAPA-15] ERRO: Coordenadas inválidas para renderizar marcador. lat:', lat, 'lon:', lon);
     }
 }}
 
