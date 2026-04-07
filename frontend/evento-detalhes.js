@@ -32,6 +32,48 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Carregar detalhes do evento
     carregarDetalhesEvento(eventoId);
+    
+    // DEBUG: Função para visualizar dados na página
+    window.verDebug = function() {
+        const debugDiv = document.createElement('div');
+        debugDiv.style.cssText = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: black;
+            color: #0f0;
+            padding: 15px;
+            border: 2px solid #0f0;
+            font-family: monospace;
+            font-size: 11px;
+            max-width: 400px;
+            max-height: 600px;
+            overflow: auto;
+            z-index: 99999;
+            border-radius: 5px;
+        `;
+        
+        let html = '<strong>DEBUG INFO</strong><br>';
+        if (window.DEBUG_EVENTO) {
+            html += `ID: ${window.DEBUG_EVENTO._id || window.DEBUG_EVENTO.id}<br>`;
+            html += `Nome: ${window.DEBUG_EVENTO.nome}<br>`;
+            html += `Latitude: <span style="color: yellow">${window.DEBUG_EVENTO.latitude}</span> (${typeof window.DEBUG_EVENTO.latitude})<br>`;
+            html += `Longitude: <span style="color: yellow">${window.DEBUG_EVENTO.longitude}</span> (${typeof window.DEBUG_EVENTO.longitude})<br>`;
+            html += `Local: ${window.DEBUG_EVENTO.local}<br>`;
+            html += `Endereco: ${window.DEBUG_EVENTO.endereco}<br><br>`;
+            html += `<button onclick="this.parentElement.remove()" style="padding:5px;background:#0f0;color:black;border:none;cursor:pointer;">Fechar</button>`;
+        } else {
+            html += 'DEBUG_EVENTO não disponível';
+        }
+        
+        debugDiv.innerHTML = html;
+        document.body.appendChild(debugDiv);
+    };
+    
+    // Mostrar debug na tela automaticamente após 2 segundos
+    setTimeout(() => {
+        window.verDebug();
+    }, 2000);
 });
 
 async function carregarDetalhesEvento(eventoId) {
@@ -210,33 +252,17 @@ async function configurarMapa(local, endereco, latitude, longitude) {
         console.log('[MAPA-09] invalidateSize executado');
     }, 300);
 
-    // Parsing com validação correta
+    // Parsing com VALIDAÇÃO SIMPLES
     let lat = Number(latitude);
     let lon = Number(longitude);
     console.log('[MAPA-10] Valores parseados:', { latitude, longitude, lat, lon });
     
-    // Validação forte: latitude e longitude devem ser números válidos E não serem 0
-    // Para Brasil: lat entre -33 e 5, lon entre -74 e -34
-    const isValidBrazilCoords = 
-        Number.isFinite(lat) && 
-        Number.isFinite(lon) && 
-        lat !== 0 && 
-        lon !== 0 && 
-        lat >= -33 && lat <= 5 && 
-        lon >= -74 && lon <= -34;
-    
-    console.log('[MAPA-11] Validacao Brasil:', {
-        isFinite_lat: Number.isFinite(lat),
-        isFinite_lon: Number.isFinite(lon),
-        lat_not_0: lat !== 0,
-        lon_not_0: lon !== 0,
-        lat_range: lat >= -33 && lat <= 5,
-        lon_range: lon >= -74 && lon <= -34,
-        resultado: isValidBrazilCoords
-    });
+    // VALIDAÇÃO SIMPLES: apenas verificar se são números finitos
+    const hasFiniteCoords = Number.isFinite(lat) && Number.isFinite(lon);
+    console.log('[MAPA-11] hasFiniteCoords:', hasFiniteCoords);
 
-    if (!isValidBrazilCoords) {
-        console.log('[MAPA-12] Coordenadas inválidas, tentando geocoding...');
+    if (!hasFiniteCoords) {
+        console.log('[MAPA-12] Coordenadas não são numéricas, tentando geocoding...');
         const geolocal = await buscarCoordenadasDetalhes(enderecoCompleto);
         if (geolocal) {
             lat = geolocal.lat;
@@ -246,16 +272,16 @@ async function configurarMapa(local, endereco, latitude, longitude) {
             console.warn('[MAPA-13] Geocoding falhou');
         }
     } else {
-        console.log('[MAPA-12] Coordenadas válidas, usando direto');
+        console.log('[MAPA-12] Coordenadas são números finitos. lat=', lat, 'lon=', lon);
     }
 
-    // Renderizar marcador se coordenadas forem válidas
-    console.log('[MAPA-14] Checagem final antes de renderizar:', { lat, lon, isFinite: Number.isFinite(lat) && Number.isFinite(lon) });
+    // Renderizar marcador se coordenadas forem números finitos
+    console.log('[MAPA-14] Checagem final:', { lat, lon, isFinite: (Number.isFinite(lat) && Number.isFinite(lon)) });
     if (Number.isFinite(lat) && Number.isFinite(lon)) {
         console.log('[MAPA-15] RENDERIZANDO MARCADOR EM:', [lat, lon]);
         window.mapDetalhes.setView([lat, lon], 13);
         L.marker([lat, lon]).addTo(window.mapDetalhes).bindPopup(enderecoCompleto).openPopup();
-        console.log('[MAPA-16] MARCADOR RENDERIZADO COM SUCESSO');
+        console.log('[MAPA-16] MARCADOR RENDERIZADO');
     } else {
         console.error('[MAPA-15] ERRO: Coordenadas inválidas para renderizar marcador. lat:', lat, 'lon:', lon);
     }
