@@ -190,10 +190,12 @@ async function buscarCoordenadasDetalhes(endereco) {
     if (!endereco) return null;
     try {
         const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)}&limit=1&countrycodes=br`;
+        console.log('[MAPA-GEO] Fazendo geocoding para:', endereco);
         const res = await fetch(url, {
             headers: { 'Accept-Language': 'pt-BR,pt;q=0.9', 'User-Agent': 'EventHub-Detalhes/1.0' }
         });
         const dados = await res.json();
+        console.log('[MAPA-GEO] Geocoding resposta:', dados);
         if (Array.isArray(dados) && dados.length > 0) {
             return { lat: parseFloat(dados[0].lat), lon: parseFloat(dados[0].lon), display_name: dados[0].display_name };
         }
@@ -258,17 +260,17 @@ async function configurarMapa(local, endereco, latitude, longitude) {
         }, 100);
     });
 
-    // Parsing com VALIDAÇÃO SIMPLES
-    let lat = Number(latitude);
-    let lon = Number(longitude);
-    console.log('[MAPA-10] Valores parseados:', { latitude, longitude, lat, lon });
+    // Parsing com VALIDAÇÃO SIMPLES, evitando tratar null como 0
+    let lat = latitude === null || latitude === undefined || latitude === '' ? NaN : Number(latitude);
+    let lon = longitude === null || longitude === undefined || longitude === '' ? NaN : Number(longitude);
+    console.log('[MAPA-10] Valores parseados:', { latitude, longitude, lat, lon, latitudeType: typeof latitude, longitudeType: typeof longitude });
     
-    // VALIDAÇÃO SIMPLES: apenas verificar se são números finitos
-    const hasFiniteCoords = Number.isFinite(lat) && Number.isFinite(lon);
+    // VALIDAÇÃO CORRETA: latitude e longitude não devem ser null/'' e devem ser finitos
+    const hasFiniteCoords = latitude !== null && longitude !== null && latitude !== '' && longitude !== '' && Number.isFinite(lat) && Number.isFinite(lon);
     console.log('[MAPA-11] hasFiniteCoords:', hasFiniteCoords);
 
     if (!hasFiniteCoords) {
-        console.log('[MAPA-12] Coordenadas não são numéricas, tentando geocoding...');
+        console.log('[MAPA-12] Coordenadas inválidas ou ausentes, tentando geocoding...');
         const geolocal = await buscarCoordenadasDetalhes(enderecoCompleto);
         if (geolocal) {
             lat = geolocal.lat;
@@ -278,20 +280,34 @@ async function configurarMapa(local, endereco, latitude, longitude) {
             console.warn('[MAPA-13] Geocoding falhou');
         }
     } else {
-        console.log('[MAPA-12] Coordenadas são números finitos. lat=', lat, 'lon=', lon);
+        console.log('[MAPA-12] Coordenadas são válidas. lat=', lat, 'lon=', lon);
     }
 
     // Renderizar marcador se coordenadas forem números finitos
     console.log('[MAPA-14] Checagem final:', { lat, lon, isFinite: (Number.isFinite(lat) && Number.isFinite(lon)) });
     if (Number.isFinite(lat) && Number.isFinite(lon)) {
         console.log('[MAPA-15] RENDERIZANDO MARCADOR EM:', [lat, lon]);
+        window.mapDetalhes.invalidateSize(true);
         window.mapDetalhes.setView([lat, lon], 13);
-        L.marker([lat, lon]).addTo(window.mapDetalhes).bindPopup(enderecoCompleto).openPopup();
+
+        const pinIcon = L.divIcon({
+            className: 'custom-marker-icon',
+            html: '<div style="width:24px;height:24px;border-radius:50%;background:#1493ff;border:3px solid white;box-shadow:0 0 10px rgba(20,147,255,0.8);"></div>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+            popupAnchor: [0, -12]
+        });
+
+        L.marker([lat, lon], { icon: pinIcon, title: 'Local do evento' })
+            .addTo(window.mapDetalhes)
+            .bindPopup(enderecoCompleto)
+            .openPopup();
+
         console.log('[MAPA-16] MARCADOR RENDERIZADO');
     } else {
         console.error('[MAPA-15] ERRO: Coordenadas inválidas para renderizar marcador. lat:', lat, 'lon:', lon);
     }
-}}
+}
 
 function abrirModalImagem(src) {
     const modal = document.getElementById('modal-imagem');
