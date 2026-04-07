@@ -481,22 +481,7 @@ header {
   border: 1px solid rgba(0, 191, 255, 0.4);
   margin-bottom: 14px;
   min-height: 320px;
-}
-
-.btn-geolocalizar {
-  border: 1px solid #00bfff;
-  background: rgba(0, 191, 255, 0.2);
-  color: #fff;
-  font-weight: 700;
-  padding: 10px 14px;
-  border-radius: 10px;
-  cursor: pointer;
-  margin-bottom: 14px;
-  transition: 0.2s ease;
-}
-
-.btn-geolocalizar:hover {
-  background: rgba(0, 191, 255, 0.3);
+  cursor: crosshair;
 }
 
 .radio-item {

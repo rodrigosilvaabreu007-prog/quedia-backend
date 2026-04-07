@@ -7,6 +7,8 @@ const EventoSchema = new mongoose.Schema({
     cidade: { type: String, default: "" },
     estado: { type: String, default: "" },
     local: { type: String, default: "" }, 
+    latitude: { type: Number, default: null },
+    longitude: { type: Number, default: null },
     data: { type: String, default: "" },
     horario: { type: String, default: "" },
     categoria: { type: String, default: "Outros" },
@@ -50,11 +52,17 @@ async function cadastrarEvento(dados) {
     }
 
     try {
+        const latitude = Number(dados.latitude);
+        const longitude = Number(dados.longitude);
+        console.log('[DEBUG] cadastrarEvento recebeu:', { latitude, longitude, isFiniteLatitude: Number.isFinite(latitude), isFiniteLongitude: Number.isFinite(longitude) });
         const dadosTratados = {
             ...dados,
             preco: Number(String(dados.preco).replace(',', '.')) || 0,
-            gratuito: String(dados.gratuito) === 'true'
+            gratuito: String(dados.gratuito) === 'true',
+            latitude: Number.isFinite(latitude) ? latitude : null,
+            longitude: Number.isFinite(longitude) ? longitude : null
         };
+        console.log('[DEBUG] dadosTratados:', { latitude: dadosTratados.latitude, longitude: dadosTratados.longitude });
 
         const novoEvento = new Evento(dadosTratados);
         
@@ -65,6 +73,7 @@ async function cadastrarEvento(dados) {
                 setTimeout(() => reject(new Error('Timeout ao salvar evento')), 10000)
             )
         ]);
+        console.log('[DEBUG] Evento salvo:', { id: savedEvento._id, latitude: savedEvento.latitude, longitude: savedEvento.longitude });
         
         return savedEvento;
     } catch (err) {

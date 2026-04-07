@@ -54,12 +54,24 @@ router.post('/eventos', upload.any(), async (req, res) => {
         }
 
         // Montagem do objeto conforme o Schema do MongoDB
+        const latitude = Number(req.body.latitude);
+        const longitude = Number(req.body.longitude);
+        console.log('[DEBUG] Backend recebeu:', {
+            latitude: req.body.latitude,
+            longitude: req.body.longitude,
+            latitudeNumber: latitude,
+            longitudeNumber: longitude,
+            isFiniteLatitude: Number.isFinite(latitude),
+            isFiniteLongitude: Number.isFinite(longitude)
+        });
         const dadosEvento = {
             nome: req.body.nome || "Evento sem nome",
             descricao: req.body.descricao || "",
             cidade: req.body.cidade || "",
             estado: req.body.estado || "",
             local: req.body.local || "", // Mapeado do campo 'endereco' do frontend
+            latitude: Number.isFinite(latitude) ? latitude : null,
+            longitude: Number.isFinite(longitude) ? longitude : null,
             data: req.body.data || "",
             horario: req.body.horario || "",
             categoria: req.body.categoria || "Outros",

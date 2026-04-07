@@ -52,6 +52,7 @@ async function carregarDetalhesEvento(eventoId) {
         } else {
             evento = await response.json();
         }
+        console.log('[DEBUG] evento-detalhes carregou evento:', { id: evento._id || evento.id, latitude: evento.latitude, longitude: evento.longitude });
 
         // Armazenar evento atual para uso no toggle
         window.eventoAtual = evento;
@@ -105,6 +106,7 @@ async function carregarDetalhesEvento(eventoId) {
         }
 
         // Configurar mapa
+        console.log('[DEBUG] Chamando configurarMapa com:', { local: evento.local, endereco: evento.endereco, latitude: evento.latitude, longitude: evento.longitude });
         await configurarMapa(evento.local, evento.endereco, evento.latitude, evento.longitude);
 
         // atualizar botão topo só estrela:
@@ -162,15 +164,26 @@ async function configurarMapa(local, endereco, latitude, longitude) {
         window.mapDetalhes = null;
     }
 
-    window.mapDetalhes = L.map('mapa-leaflet').setView([-15.7801, -47.9292], 4);
+    window.mapDetalhes = L.map('mapa-leaflet', {
+        zoomControl: true,
+        attributionControl: true,
+        scrollWheelZoom: true,
+        tap: true
+    }).setView([-15.7801, -47.9292], 4);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(window.mapDetalhes);
 
-    let lat = parseFloat(latitude);
-    let lon = parseFloat(longitude);
+    setTimeout(() => {
+        if (window.mapDetalhes) window.mapDetalhes.invalidateSize();
+    }, 300);
 
-    if (!lat || !lon) {
+    let lat = Number(latitude);
+    let lon = Number(longitude);
+    const hasCoords = Number.isFinite(lat) && Number.isFinite(lon);
+    console.log('[DEBUG] configurarMapa parseou coords:', { lat, lon, hasCoords });
+
+    if (!hasCoords) {
         const geolocal = await buscarCoordenadasDetalhes(enderecoCompleto);
         if (geolocal) {
             lat = geolocal.lat;
@@ -178,9 +191,12 @@ async function configurarMapa(local, endereco, latitude, longitude) {
         }
     }
 
-    if (lat && lon) {
+    if (Number.isFinite(lat) && Number.isFinite(lon)) {
+        console.log('[DEBUG] Renderizando marcador em:', [lat, lon]);
         window.mapDetalhes.setView([lat, lon], 13);
         L.marker([lat, lon]).addTo(window.mapDetalhes).bindPopup(enderecoCompleto).openPopup();
+    } else {
+        console.log('[DEBUG] Coordenadas inválidas, tentando geocoding');
     }
 }
 

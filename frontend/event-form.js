@@ -155,32 +155,50 @@ async function atualizarMapaPorEndereco() {
 
 function inicializarMapaEvento() {
     if (!window.L || !document.getElementById('mapa-evento')) return;
-    mapaEvento = L.map('mapa-evento').setView([-15.7801, -47.9292], 4);
+    mapaEvento = L.map('mapa-evento', {
+        zoomControl: true,
+        attributionControl: true,
+        scrollWheelZoom: true,
+        tap: true
+    }).setView([-15.7801, -47.9292], 4);
+
     marcadorIcon = L.icon({
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
         shadowSize: [41, 41]
     });
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(mapaEvento);
 
+    setTimeout(() => {
+        if (mapaEvento) mapaEvento.invalidateSize();
+    }, 300);
+
     mapaEvento.on('click', function(event) {
         const lat = event.latlng.lat;
         const lon = event.latlng.lng;
-        document.getElementById('latitude').value = lat.toFixed(6);
-        document.getElementById('longitude').value = lon.toFixed(6);
-        document.getElementById('geo-status').textContent = `📍 Local definido em: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+        const latitudeInput = document.getElementById('latitude');
+        const longitudeInput = document.getElementById('longitude');
+        const geoStatus = document.getElementById('geo-status');
+
+        if (latitudeInput) latitudeInput.value = lat.toFixed(6);
+        if (longitudeInput) longitudeInput.value = lon.toFixed(6);
+        if (geoStatus) geoStatus.textContent = `📍 Local definido em: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
 
         mapaEvento.setView([lat, lon], 16);
 
         if (marcadorEvento) {
             marcadorEvento.setLatLng([lat, lon]);
-            if (marcadorIcon) marcadorEvento.setIcon(marcadorIcon);
+            marcadorEvento.setIcon(marcadorIcon);
+            marcadorEvento.setPopupContent('Local do evento');
+            marcadorEvento.openPopup();
         } else {
-            marcadorEvento = L.marker([lat, lon], { icon: marcadorIcon }).addTo(mapaEvento);
+            marcadorEvento = L.marker([lat, lon], { icon: marcadorIcon, title: 'Local do evento' }).addTo(mapaEvento);
+            marcadorEvento.bindPopup('Local do evento').openPopup();
         }
     });
 }
@@ -278,6 +296,12 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
     formData.append('local', endereco);
     formData.append('latitude', latitude);
     formData.append('longitude', longitude);
+    console.log('[DEBUG] FormData enviado:', {
+        latitude: latitude,
+        longitude: longitude,
+        latitudeType: typeof latitude,
+        longitudeType: typeof longitude
+    });
 
     const precoVal = document.getElementById('preco').value;
     formData.append('preco', precoVal || 0);
