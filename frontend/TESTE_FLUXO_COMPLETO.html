@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste: Fluxo Completo de Coordenadas</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #0f0; padding: 20px; }
+        .test { border: 1px solid #0f0; padding: 10px; margin: 10px 0; }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        .info { color: #00bfff; }
+        .warning { color: #ff0; }
+        button { padding: 10px 20px; background: #0f0; color: black; cursor: pointer; font-weight: bold; }
+        button:hover { background: #00ff00; }
+        pre { background: #000; padding: 10px; overflow: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 TESTE COMPLETO: FLUXO DE COORDENADAS</h1>
+    <div id="resultado"></div>
+    <button onclick="testarFluxoCompleto()">Executar Teste Completo</button>
+
+    <script>
+        // Simular global.js
+        window.API_URL = 'https://eventhub-api-d2456da27bcd.herokuapp.com';
+
+        async function testarFluxoCompleto() {
+            const res = document.getElementById('resultado');
+            res.innerHTML = '';
+            
+            function log(msg, tipo = 'info') {
+                console.log(msg);
+                const p = document.createElement('div');
+                p.className = tipo;
+                p.textContent = msg;
+                res.appendChild(p);
+            }
+
+            log('='.repeat(60), 'info');
+            log('🧪 INICIANDO TESTE COMPLETO DE COORDENADAS', 'info');
+            log('='.repeat(60), 'info');
+
+            try {
+                // PASSO 1: Simular dados do formulário (como se usuário preenchesse)
+                log('\n[PASSO 1] Simulando preenchimento do formulário...', 'info');
+                const dadosFormulario = {
+                    nome: 'TESTE AUTO ' + new Date().toISOString(),
+                    descricao: 'Evento de teste automático para validar coordenadas',
+                    organizador: 'Bot Teste',
+                    data: new Date().toISOString().split('T')[0],
+                    horario: '15:00',
+                    estado: 'ES',
+                    cidade: 'Cachoeiro de Itapemirim',
+                    local: 'Av. Jones dos Santos Neves',
+                    latitude: '-20.847831',  // STRING (como vem do input.value)
+                    longitude: '-41.146524',  // STRING (como vem do input.value)
+                    categoria: 'Teste',
+                    subcategorias: [],
+                    preco: '0',
+                    gratuito: 'true',
+                    organizador_id: 'teste-user-id'
+                };
+                log(`✓ Latitude: ${dadosFormulario.latitude} (type: ${typeof dadosFormulario.latitude})`, 'success');
+                log(`✓ Longitude: ${dadosFormulario.longitude} (type: ${typeof dadosFormulario.longitude})`, 'success');
+
+                // PASSO 2: Simular FormData (como faz o JavaScript do frontend)
+                log('\n[PASSO 2] Criando FormData (como o frontend envia)...', 'info');
+                const formData = new FormData();
+                Object.entries(dadosFormulario).forEach(([key, val]) => {
+                    if (Array.isArray(val)) {
+                        val.forEach(v => formData.append(key, v));
+                    } else {
+                        formData.append(key, val);
+                    }
+                });
+                log('✓ FormData criado com todos os campos', 'success');
+
+                // PASSO 3: Simular POST para backend
+                log('\n[PASSO 3] Enviando POST para backend...', 'info');
+                const urlCriar = `${window.API_URL}/eventos`;
+                log(`URL: ${urlCriar}`, 'info');
+
+                const respCriar = await fetch(urlCriar, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!respCriar.ok) {
+                    throw new Error(`POST falhou: ${respCriar.status} ${respCriar.statusText}`);
+                }
+
+                const resultCriar = await respCriar.json();
+                const eventoId = resultCriar.evento._id;
+                log(`✅ Evento criado com ID: ${eventoId}`, 'success');
+                log(`   Latitude retornada: ${resultCriar.evento.latitude} (type: ${typeof resultCriar.evento.latitude})`, 'success');
+                log(`   Longitude retornada: ${resultCriar.evento.longitude} (type: ${typeof resultCriar.evento.longitude})`, 'success');
+
+                // PASSO 4: Aguardar 2 segundos (replicação de atraso)
+                log('\n[PASSO 4] Aguardando 2 segundos (replicação de atraso do servidor)...', 'info');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // PASSO 5: Fazer GET do evento (como faz evento-detalhes.js)
+                log('\n[PASSO 5] Consultando evento pelo ID (GET)...', 'info');
+                const urlDetalhes = `${window.API_URL}/eventos/${eventoId}`;
+                log(`URL: ${urlDetalhes}`, 'info');
+
+                const respDetalhes = await fetch(urlDetalhes);
+                if (!respDetalhes.ok) {
+                    throw new Error(`GET falhou: ${respDetalhes.status} ${respDetalhes.statusText}`);
+                }
+
+                const eventoRecuperado = await respDetalhes.json();
+                log('✅ Evento recuperado:', 'success');
+                log(`   ID: ${eventoRecuperado._id}`, 'success');
+                log(`   Nome: ${eventoRecuperado.nome}`, 'success');
+                log(`   Latitude: ${eventoRecuperado.latitude} (type: ${typeof eventoRecuperado.latitude})`, 'success');
+                log(`   Longitude: ${eventoRecuperado.longitude} (type: ${typeof eventoRecuperado.longitude})`, 'success');
+
+                // PASSO 6: Simular validação do frontend (evento-detalhes.js)
+                log('\n[PASSO 6] Simulando validação do frontend para renderizar marcador...', 'info');
+                let lat = Number(eventoRecuperado.latitude);
+                let lon = Number(eventoRecuperado.longitude);
+                const hasFiniteCoords = Number.isFinite(lat) && Number.isFinite(lon);
+
+                log(`   lat = ${lat}`, 'info');
+                log(`   lon = ${lon}`, 'info');
+                log(`   Number.isFinite(lat) = ${Number.isFinite(lat)}`, 'info');
+                log(`   Number.isFinite(lon) = ${Number.isFinite(lon)}`, 'info');
+                log(`   hasFiniteCoords = ${hasFiniteCoords}`, 'info');
+
+                if (hasFiniteCoords) {
+                    log(`\n✅ MARCADOR DEVERIA APARECER NO MAPA:`, 'success');
+                    log(`   L.marker([${lat}, ${lon}]).addTo(mapa)`, 'success');
+                } else {
+                    log(`\n❌ MARCADOR NÃO VAI APARECER - COORDENADAS INVÁLIDAS`, 'error');
+                }
+
+                // PASSO 7: Resumo
+                log('\n='.repeat(60), 'info');
+                log('✅ TESTE CONCLUÍDO COM SUCESSO', 'success');
+                log('='.repeat(60), 'info');
+                log(`\nRESUMO:`, 'info');
+                log(`- Evento criado: ${eventoId}`, 'success');
+                log(`- Coordenadas enviadas: ${dadosFormulario.latitude}, ${dadosFormulario.longitude}`, 'success');
+                log(`- Coordenadas salvas: ${eventoRecuperado.latitude}, ${eventoRecuperado.longitude}`, 'success');
+                log(`- Validação passou: ${hasFiniteCoords}`, hasFiniteCoords ? 'success' : 'error');
+                log(`\n🔗 Link para visualizar: https://quedia.com.br/evento-detalhes.html?id=${eventoId}`, 'info');
+
+            } catch (err) {
+                log(`\n❌ ERRO: ${err.message}`, 'error');
+                log(err.stack, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
