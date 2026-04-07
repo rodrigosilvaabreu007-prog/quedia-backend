@@ -57,6 +57,7 @@ async function cadastrarEvento(dados) {
         console.log('[DEBUG] cadastrarEvento recebeu:', { latitude, longitude, isFiniteLatitude: Number.isFinite(latitude), isFiniteLongitude: Number.isFinite(longitude) });
         const dadosTratados = {
             ...dados,
+            organizador: dados.organizador || 'Não informado',
             preco: Number(String(dados.preco).replace(',', '.')) || 0,
             gratuito: String(dados.gratuito) === 'true',
             latitude: Number.isFinite(latitude) ? latitude : null,

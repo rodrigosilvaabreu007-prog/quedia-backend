@@ -70,10 +70,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(debugDiv);
     };
     
-    // Mostrar debug na tela automaticamente após 2 segundos
-    setTimeout(() => {
-        window.verDebug();
-    }, 2000);
+    // Debug box removido - comentado
+    // setTimeout(() => {
+    //     window.verDebug();
+    // }, 2000);
 });
 
 async function carregarDetalhesEvento(eventoId) {
@@ -288,20 +288,26 @@ async function configurarMapa(local, endereco, latitude, longitude) {
     if (Number.isFinite(lat) && Number.isFinite(lon)) {
         console.log('[MAPA-15] RENDERIZANDO MARCADOR EM:', [lat, lon]);
         window.mapDetalhes.invalidateSize(true);
-        window.mapDetalhes.setView([lat, lon], 13);
+        
+        // Centralizar view com padding para dar espaço
+        window.mapDetalhes.setView([lat, lon], 14, { animate: true, duration: 0.5 });
 
         const pinIcon = L.divIcon({
             className: 'custom-marker-icon',
-            html: '<div style="width:24px;height:24px;border-radius:50%;background:#1493ff;border:3px solid white;box-shadow:0 0 10px rgba(20,147,255,0.8);"></div>',
-            iconSize: [24, 24],
-            iconAnchor: [12, 12],
-            popupAnchor: [0, -12]
+            html: '<div style="width:28px;height:28px;border-radius:50%;background:#1493ff;border:4px solid white;box-shadow:0 0 12px rgba(20,147,255,0.9);"></div>',
+            iconSize: [28, 28],
+            iconAnchor: [14, 14],
+            popupAnchor: [0, -14]
         });
 
-        L.marker([lat, lon], { icon: pinIcon, title: 'Local do evento' })
+        const marcador = L.marker([lat, lon], { icon: pinIcon, title: 'Local do evento' })
             .addTo(window.mapDetalhes)
-            .bindPopup(enderecoCompleto)
-            .openPopup();
+            .bindPopup(enderecoCompleto);
+        
+        // Abrir popup após um pequeno delay para garantir que o mapa renderizou
+        setTimeout(() => {
+            marcador.openPopup();
+        }, 300);
 
         console.log('[MAPA-16] MARCADOR RENDERIZADO');
     } else {
