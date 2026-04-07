@@ -102,6 +102,7 @@ window.atualizarCidades = async () => {
 // --- MAPA E LOCALIZAÇÃO ---
 let mapaEvento = null;
 let marcadorEvento = null;
+let marcadorIcon = null;
 
 async function buscarCoordenadas(endereco) {
     if (!endereco) return null;
@@ -155,6 +156,13 @@ async function atualizarMapaPorEndereco() {
 function inicializarMapaEvento() {
     if (!window.L || !document.getElementById('mapa-evento')) return;
     mapaEvento = L.map('mapa-evento').setView([-15.7801, -47.9292], 4);
+    marcadorIcon = L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(mapaEvento);
@@ -170,8 +178,9 @@ function inicializarMapaEvento() {
 
         if (marcadorEvento) {
             marcadorEvento.setLatLng([lat, lon]);
+            if (marcadorIcon) marcadorEvento.setIcon(marcadorIcon);
         } else {
-            marcadorEvento = L.marker([lat, lon]).addTo(mapaEvento);
+            marcadorEvento = L.marker([lat, lon], { icon: marcadorIcon }).addTo(mapaEvento);
         }
     });
 }
@@ -182,7 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const estSelect = document.getElementById('evento-estado');
     if (estSelect) {
         estSelect.innerHTML = '<option value="">Estado</option>' + ESTADOS_BRASIL.map(estado => `<option value="${estado.uf}">${estado.nome} (${estado.uf})</option>`).join('');
-        estSelect.addEventListener('change', atualizarMapaPorEndereco);
     }
 
     const catDiv = document.getElementById('categorias-evento');
@@ -212,19 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     inicializarMapaEvento();
-
-    const botaoGeo = document.getElementById('btn-definir-endereco');
-    if (botaoGeo) {
-        botaoGeo.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (marcadorEvento) {
-                mapaEvento.setView(marcadorEvento.getLatLng(), 16);
-                document.getElementById('geo-status').textContent = `📍 Local atual centralizado: ${marcadorEvento.getLatLng().lat.toFixed(6)}, ${marcadorEvento.getLatLng().lng.toFixed(6)}`;
-            } else {
-                document.getElementById('geo-status').textContent = 'Clique no mapa para definir o local exato do evento.';
-            }
-        });
-    }
 });
 
 // --- ENVIO DO FORMULÁRIO (BLINDADO) ---
