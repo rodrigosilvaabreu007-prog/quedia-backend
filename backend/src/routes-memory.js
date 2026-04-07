@@ -96,6 +96,8 @@ router.post('/eventos', (req, res) => {
     if (!nome || !descricao || !cidade || !categoria) {
       return res.status(400).json({ erro: 'Campos obrigatórios faltando' });
     }
+    const lat = Number(latitude);
+    const lon = Number(longitude);
     const novoEvento = {
       id: db.eventos.length + 1,
       nome,
@@ -103,8 +105,8 @@ router.post('/eventos', (req, res) => {
       estado: estado || 'Não informado',
       cidade,
       endereco: endereco || '',
-      latitude: Number(latitude) || null,
-      longitude: Number(longitude) || null,
+      latitude: Number.isFinite(lat) ? lat : null,
+      longitude: Number.isFinite(lon) ? lon : null,
       data,
       horario,
       gratuito: gratuito === 'on' || gratuito === true,

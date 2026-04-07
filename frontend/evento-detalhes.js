@@ -178,27 +178,43 @@ async function configurarMapa(local, endereco, latitude, longitude) {
         if (window.mapDetalhes) window.mapDetalhes.invalidateSize();
     }, 300);
 
+    // Parsing com validação correta
     let lat = Number(latitude);
     let lon = Number(longitude);
-    const hasCoords = Number.isFinite(lat) && Number.isFinite(lon);
-    console.log('[DEBUG] configurarMapa parseou coords:', { lat, lon, hasCoords });
+    console.log('[DEBUG] configurarMapa raw input:', { latitude, longitude });
+    console.log('[DEBUG] configurarMapa parsed:', { lat, lon });
+    
+    // Validação forte: latitude e longitude devem ser números válidos E não serem 0 (caso tenha sido null convertido)
+    // Para Brasil: lat entre -33 e 5, lon entre -74 e -34
+    const isValidBrazilCoords = 
+        Number.isFinite(lat) && 
+        Number.isFinite(lon) && 
+        lat !== 0 && 
+        lon !== 0 && 
+        lat >= -33 && lat <= 5 && 
+        lon >= -74 && lon <= -34;
+    
+    console.log('[DEBUG] isValidBrazilCoords:', isValidBrazilCoords);
 
-    if (!hasCoords) {
+    if (!isValidBrazilCoords) {
+        console.log('[DEBUG] Coordenadas inválidas ou não informadas, tentando geocoding do endereço');
         const geolocal = await buscarCoordenadasDetalhes(enderecoCompleto);
         if (geolocal) {
             lat = geolocal.lat;
             lon = geolocal.lon;
+            console.log('[DEBUG] Geocoding encontrou:', { lat, lon });
         }
     }
 
+    // Renderizar marcador se coordenadas forem válidas
     if (Number.isFinite(lat) && Number.isFinite(lon)) {
         console.log('[DEBUG] Renderizando marcador em:', [lat, lon]);
         window.mapDetalhes.setView([lat, lon], 13);
         L.marker([lat, lon]).addTo(window.mapDetalhes).bindPopup(enderecoCompleto).openPopup();
     } else {
-        console.log('[DEBUG] Coordenadas inválidas, tentando geocoding');
+        console.log('[DEBUG] Nenhuma coordenada válida encontrada');
     }
-}
+}}
 
 function abrirModalImagem(src) {
     const modal = document.getElementById('modal-imagem');

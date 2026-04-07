@@ -132,6 +132,24 @@ router.get('/eventos/:id', async (req, res) => {
     }
 });
 
+// DEBUG: Inspecionar últimos eventos
+router.get('/debug/ultimos-eventos', async (req, res) => {
+    try {
+        const eventos = await listarEventos({});
+        const ultimos = eventos.slice(-3).map(e => ({
+            _id: e._id,
+            nome: e.nome,
+            latitude: e.latitude,
+            longitude: e.longitude,
+            latitudeType: typeof e.latitude,
+            longitudeType: typeof e.longitude
+        }));
+        res.json({ ultimos });
+    } catch (err) {
+        res.status(500).json({ erro: err.message });
+    }
+});
+
 // 6. ROTA DELETE: DELETAR EVENTO
 router.delete('/eventos/:id', async (req, res) => {
     try {
