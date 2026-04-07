@@ -166,6 +166,8 @@ function inicializarMapaEvento() {
         document.getElementById('longitude').value = lon.toFixed(6);
         document.getElementById('geo-status').textContent = `📍 Local definido em: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
 
+        mapaEvento.setView([lat, lon], 16);
+
         if (marcadorEvento) {
             marcadorEvento.setLatLng([lat, lon]);
         } else {
@@ -197,27 +199,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const enderecoInput = document.getElementById('endereco');
     if (enderecoInput) {
-        enderecoInput.addEventListener('change', atualizarMapaPorEndereco);
-        enderecoInput.addEventListener('blur', atualizarMapaPorEndereco);
+        enderecoInput.addEventListener('blur', () => {
+            document.getElementById('geo-status').textContent = 'Clique no mapa para marcar o local exato.';
+        });
     }
 
     const cidadeSelect = document.getElementById('evento-cidade');
     if (cidadeSelect) {
-        cidadeSelect.addEventListener('change', atualizarMapaPorEndereco);
+        cidadeSelect.addEventListener('change', () => {
+            document.getElementById('geo-status').textContent = 'Clique no mapa para marcar o local exato.';
+        });
     }
 
     inicializarMapaEvento();
 
     const botaoGeo = document.getElementById('btn-definir-endereco');
     if (botaoGeo) {
-        botaoGeo.addEventListener('click', async (e) => {
+        botaoGeo.addEventListener('click', (e) => {
             e.preventDefault();
-            const endereco = document.getElementById('endereco').value;
-            if (!endereco) {
-                document.getElementById('geo-status').textContent = 'Informe o endereço antes de definir.';
-                return;
+            if (marcadorEvento) {
+                mapaEvento.setView(marcadorEvento.getLatLng(), 16);
+                document.getElementById('geo-status').textContent = `📍 Local atual centralizado: ${marcadorEvento.getLatLng().lat.toFixed(6)}, ${marcadorEvento.getLatLng().lng.toFixed(6)}`;
+            } else {
+                document.getElementById('geo-status').textContent = 'Clique no mapa para definir o local exato do evento.';
             }
-            await atualizarMapaPorEndereco();
         });
     }
 });
