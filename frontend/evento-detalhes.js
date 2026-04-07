@@ -247,10 +247,16 @@ async function configurarMapa(local, endereco, latitude, longitude) {
     }).addTo(window.mapDetalhes);
     console.log('[MAPA-08] Tile layer adicionado');
 
-    setTimeout(() => {
-        if (window.mapDetalhes) window.mapDetalhes.invalidateSize();
-        console.log('[MAPA-09] invalidateSize executado');
-    }, 300);
+    // Aguardar o mapa renderizar antes de adicionar marcador
+    await new Promise(resolve => {
+        setTimeout(() => {
+            if (window.mapDetalhes) {
+                window.mapDetalhes.invalidateSize();
+                console.log('[MAPA-09] invalidateSize executado');
+            }
+            resolve();
+        }, 100);
+    });
 
     // Parsing com VALIDAÇÃO SIMPLES
     let lat = Number(latitude);
