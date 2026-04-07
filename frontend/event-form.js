@@ -154,7 +154,13 @@ async function atualizarMapaPorEndereco() {
 }
 
 function inicializarMapaEvento() {
-    if (!window.L || !document.getElementById('mapa-evento')) return;
+    console.log('[MAPA-FORM-01] Inicializando mapa do formulário');
+    if (!window.L || !document.getElementById('mapa-evento')) {
+        console.error('[MAPA-FORM-02] ERRO: Leaflet não disponível ou container não existe');
+        return;
+    }
+    
+    console.log('[MAPA-FORM-03] Leaflet disponível, criando mapa');
     mapaEvento = L.map('mapa-evento', {
         zoomControl: true,
         attributionControl: true,
@@ -169,25 +175,48 @@ function inicializarMapaEvento() {
         popupAnchor: [1, -34],
         shadowSize: [41, 41]
     });
+    console.log('[MAPA-FORM-04] Ícone do marcador criado');
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(mapaEvento);
+    console.log('[MAPA-FORM-05] Tile layer adicionado');
 
     setTimeout(() => {
-        if (mapaEvento) mapaEvento.invalidateSize();
+        if (mapaEvento) {
+            mapaEvento.invalidateSize();
+            console.log('[MAPA-FORM-06] invalidateSize chamado');
+        }
     }, 300);
 
+    console.log('[MAPA-FORM-07] Registrando click listener no mapa');
     mapaEvento.on('click', function(event) {
         const lat = event.latlng.lat;
         const lon = event.latlng.lng;
+        console.log('[MAPA-FORM-CLICK] Usuário clicou no mapa:', { lat, lon });
+        
         const latitudeInput = document.getElementById('latitude');
         const longitudeInput = document.getElementById('longitude');
         const geoStatus = document.getElementById('geo-status');
 
-        if (latitudeInput) latitudeInput.value = lat.toFixed(6);
-        if (longitudeInput) longitudeInput.value = lon.toFixed(6);
-        if (geoStatus) geoStatus.textContent = `📍 Local definido em: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+        console.log('[MAPA-FORM-CLICK-02] Inputs encontrados:', { 
+            latitudeInput: !!latitudeInput, 
+            longitudeInput: !!longitudeInput, 
+            geoStatus: !!geoStatus 
+        });
+
+        if (latitudeInput) {
+            latitudeInput.value = lat.toFixed(6);
+            console.log('[MAPA-FORM-CLICK-03] Latitude preenchida:', latitudeInput.value);
+        }
+        if (longitudeInput) {
+            longitudeInput.value = lon.toFixed(6);
+            console.log('[MAPA-FORM-CLICK-04] Longitude preenchida:', longitudeInput.value);
+        }
+        if (geoStatus) {
+            geoStatus.textContent = `📍 Local definido em: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+            console.log('[MAPA-FORM-CLICK-05] Mensagem de status atualizada');
+        }
 
         mapaEvento.setView([lat, lon], 16);
 
@@ -196,10 +225,13 @@ function inicializarMapaEvento() {
             marcadorEvento.setIcon(marcadorIcon);
             marcadorEvento.setPopupContent('Local do evento');
             marcadorEvento.openPopup();
+            console.log('[MAPA-FORM-CLICK-06] Marcador existente movido');
         } else {
             marcadorEvento = L.marker([lat, lon], { icon: marcadorIcon, title: 'Local do evento' }).addTo(mapaEvento);
             marcadorEvento.bindPopup('Local do evento').openPopup();
+            console.log('[MAPA-FORM-CLICK-07] Novo marcador criado e adicionado ao mapa');
         }
+        console.log('[MAPA-FORM-CLICK-FIM] Click handler completado');
     });
 }
 
