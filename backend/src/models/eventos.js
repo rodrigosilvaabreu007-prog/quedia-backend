@@ -17,6 +17,7 @@ const EventoSchema = new mongoose.Schema({
     preco: { type: Number, default: 0 },
     imagens: { type: [String], default: [] },
     interesses: { type: [String], default: [] },
+    organizador: { type: String, default: 'Não informado' },
     organizador_id: { type: String, default: "sistema" }, 
     criadoEm: { type: Date, default: Date.now }
 }, { 

@@ -92,7 +92,7 @@ router.get('/eventos', (req, res) => {
 // Rota para cadastrar evento
 router.post('/eventos', (req, res) => {
   try {
-    const { nome, descricao, estado, cidade, endereco, data, horario, gratuito, preco, organizador_id, categoria, subcategorias, imagem, latitude, longitude } = req.body;
+    const { nome, descricao, estado, cidade, endereco, data, horario, gratuito, preco, organizador, organizador_id, categoria, subcategorias, imagem, latitude, longitude } = req.body;
     if (!nome || !descricao || !cidade || !categoria) {
       return res.status(400).json({ erro: 'Campos obrigatórios faltando' });
     }
@@ -111,6 +111,7 @@ router.post('/eventos', (req, res) => {
       horario,
       gratuito: gratuito === 'on' || gratuito === true,
       preco: Number(preco) || 0,
+      organizador: organizador || 'Não informado',
       organizador_id: organizador_id || 1,
       categoria: categoria,
       subcategorias: Array.isArray(subcategorias) ? subcategorias : [subcategorias || ''],

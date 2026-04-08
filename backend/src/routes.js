@@ -81,6 +81,7 @@ router.post('/eventos', upload.any(), async (req, res) => {
             imagens: linksImagens,
             preco: precoLimpo,
             gratuito: String(req.body.gratuito) === 'true' || precoLimpo === 0,
+            organizador: req.body.organizador || 'Não informado',
             organizador_id: req.body.organizador_id || "sistema"
         };
 

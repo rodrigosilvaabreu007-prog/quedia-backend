@@ -117,7 +117,8 @@ async function carregarDetalhesEvento(eventoId) {
 
         // Preencher dados na página
         document.getElementById('evento-nome').textContent = evento.nome;
-        document.getElementById('subtitulo-organizador').textContent = `Organizador: ${evento.organizador || 'Não informado'}`;
+        const organizadorExibicao = evento.organizador || evento.organizador_id || 'Não informado';
+        document.getElementById('subtitulo-organizador').textContent = `Organizador: ${organizadorExibicao}`;
         document.getElementById('evento-data').textContent = `📅 Data: ${formatarData(evento.data)}`;
         document.getElementById('evento-horario').textContent = `⏰ Horário: ${evento.horario}`;
         document.getElementById('evento-local').textContent = `📍 Local: ${evento.local}`;
@@ -288,8 +289,6 @@ async function configurarMapa(local, endereco, latitude, longitude) {
     if (Number.isFinite(lat) && Number.isFinite(lon)) {
         console.log('[MAPA-15] RENDERIZANDO MARCADOR EM:', [lat, lon]);
         window.mapDetalhes.invalidateSize(true);
-        
-        // Centralizar view com padding para dar espaço
         window.mapDetalhes.setView([lat, lon], 14, { animate: true, duration: 0.5 });
 
         const pinIcon = L.divIcon({
@@ -303,11 +302,11 @@ async function configurarMapa(local, endereco, latitude, longitude) {
         const marcador = L.marker([lat, lon], { icon: pinIcon, title: 'Local do evento' })
             .addTo(window.mapDetalhes)
             .bindPopup(enderecoCompleto);
-        
-        // Abrir popup após um pequeno delay para garantir que o mapa renderizou
-        setTimeout(() => {
+
+        window.mapDetalhes.whenReady(() => {
+            window.mapDetalhes.invalidateSize(true);
             marcador.openPopup();
-        }, 300);
+        });
 
         console.log('[MAPA-16] MARCADOR RENDERIZADO');
     } else {

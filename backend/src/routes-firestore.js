@@ -127,7 +127,7 @@ router.get('/eventos', (req, res) => {
 // Criar evento
 router.post('/eventos', verificarToken, async (req, res) => {
   try {
-    const { nome, descricao, estado, cidade, endereco, data, horario, gratuito, preco, categoria, subcategorias, imagem } = req.body;
+    const { nome, descricao, estado, cidade, endereco, data, horario, gratuito, preco, categoria, subcategorias, imagem, organizador } = req.body;
     if (!nome || !descricao || !cidade || !categoria) {
       return res.status(400).json({ erro: 'Campos obrigatórios faltando' });
     }
@@ -142,6 +142,7 @@ router.post('/eventos', verificarToken, async (req, res) => {
       horario,
       gratuito: gratuito === 'on' || gratuito === true,
       preco: Number(preco) || 0,
+      organizador: organizador || 'Não informado',
       organizador_id: req.usuario_id,
       categoria,
       subcategorias,
