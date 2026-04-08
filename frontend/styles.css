@@ -1517,9 +1517,10 @@ header {
     font-size: 1rem;
 }
 
-#datas-container {
-    background: transparent;
-    border: none;
+#datas-container.form-section {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
     padding: 16px;
     border-radius: 12px;
     margin-bottom: 20px;
@@ -1558,7 +1559,7 @@ header {
 
 .schedule-row input[type='date'],
 .schedule-row input[type='time'] {
-    background: transparent !important;
+    background: rgba(5, 10, 20, 0.8) !important;
     border-color: rgba(0, 191, 255, 0.45);
 }
 
@@ -1576,6 +1577,7 @@ header {
     cursor: pointer;
     height: fit-content;
     align-self: flex-start;
+    margin-top: 20px;
 }
 
 @media (max-width: 1024px) {
