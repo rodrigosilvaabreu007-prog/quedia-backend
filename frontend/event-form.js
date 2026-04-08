@@ -403,16 +403,53 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
     const datas = validacaoDatas.dados;
     const primeiraData = datas[0];
 
-    if (!nome || !descricao || !organizador || !estado || !cidade || !endereco || !latitude || !longitude) {
+    if (!nome) {
         msg.style.color = 'red';
-        msg.textContent = '🚨 Preencha todos os campos obrigatórios e defina a localização no mapa.';
+        msg.textContent = '🚨 Insira o nome do evento.';
+        return;
+    }
+    if (!descricao) {
+        msg.style.color = 'red';
+        msg.textContent = '🚨 Insira a descrição do evento.';
+        return;
+    }
+    if (!organizador) {
+        msg.style.color = 'red';
+        msg.textContent = '🚨 Insira o organizador do evento.';
+        return;
+    }
+    if (!estado) {
+        msg.style.color = 'red';
+        msg.textContent = '🚨 Insira o estado do evento.';
+        return;
+    }
+    if (!cidade) {
+        msg.style.color = 'red';
+        msg.textContent = '🚨 Insira a cidade do evento.';
+        return;
+    }
+    if (!endereco) {
+        msg.style.color = 'red';
+        msg.textContent = '🚨 Insira o endereço ou local do evento.';
+        return;
+    }
+    if (!latitude || !longitude) {
+        msg.style.color = 'red';
+        msg.textContent = '🚨 Defina a localização no mapa clicando no mapa.';
+        return;
+    }
+
+    const selecionadas = Array.from(document.querySelectorAll('input[name="subcat"]:checked')).map(el => el.value);
+    if (selecionadas.length === 0) {
+        msg.style.color = 'red';
+        msg.textContent = '🚨 Insira pelo menos uma categoria para o evento.';
         return;
     }
 
     const capaInput = document.getElementById('imagem-capa');
     if (!capaInput || !capaInput.files || capaInput.files.length === 0) {
         msg.style.color = 'red';
-        msg.textContent = '🚨 Imagem de capa é obrigatória.';
+        msg.textContent = '🚨 Selecione a imagem de capa do evento.';
         return;
     }
 
@@ -421,7 +458,7 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
     formData.append('organizador', organizador);
     formData.append('cidade', cidade);
     formData.append('estado', estado);
-    formData.append('local', endereco);
+    formData.append('endereco', endereco);
     formData.append('latitude', latitude);
     formData.append('longitude', longitude);
     formData.append('datas', JSON.stringify(datas));
@@ -476,7 +513,7 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
 
         if (res.ok) {
             msg.style.color = "lightgreen";
-            msg.textContent = "✅ EVENTO PUBLICADO COM SUCESSO!";
+            msg.textContent = "✅ Evento publicado";
             setTimeout(() => window.location.href = 'index.html', 2000);
         } else {
             msg.style.color = "red";
