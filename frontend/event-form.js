@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const adicionarDataBtn = document.getElementById('btn-adicionar-data');
     if (adicionarDataBtn) {
-        adicionarDataBtn.addEventListener('click', adicionarLinhaData);
+        adicionarDataBtn.onclick = adicionarLinhaData;
     }
     atualizarBotoesRemoverData();
     inicializarMapaEvento();

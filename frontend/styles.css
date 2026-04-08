@@ -1519,7 +1519,7 @@ header {
 
 #datas-container {
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: none;
     padding: 16px;
     border-radius: 12px;
     margin-bottom: 20px;
@@ -1551,7 +1551,7 @@ header {
     padding: 10px 12px;
     border-radius: 8px;
     border: 1px solid rgba(0, 191, 255, 0.45);
-    background: transparent !important;
+    background: rgba(5, 10, 20, 0.8) !important;
     color: #fff;
     box-sizing: border-box;
 }
@@ -1575,6 +1575,7 @@ header {
     padding: 10px 14px;
     cursor: pointer;
     height: fit-content;
+    align-self: flex-start;
 }
 
 @media (max-width: 1024px) {
