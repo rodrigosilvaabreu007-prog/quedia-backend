@@ -1573,7 +1573,7 @@ header {
     cursor: pointer;
     height: fit-content;
     align-self: start;
-    margin-top: 30px;
+    margin-top: 34px;
 }
 
 @media (max-width: 1024px) {
