@@ -795,13 +795,18 @@ header {
 
 .modal-content {
   background: #1a1a1a;
-  width: 95%; max-width: 760px;
+  width: 95%; max-width: 880px;
   border-radius: 20px;
   padding: 0; /* Tiramos o padding para a imagem colar no topo se quiser */
   border: 1px solid var(--cor-principal);
   position: relative;
   overflow: hidden;
   animation: modalSobe 0.3s ease-out;
+}
+
+.modal-body {
+  max-height: calc(100vh - 170px);
+  overflow-y: auto;
 }
 
 .evento-calendario-item {
@@ -816,9 +821,17 @@ header {
   flex-wrap: wrap;
 }
 
+.evento-calendario-img {
+  width: 90px;
+  min-width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
 .evento-calendario-info {
   min-width: 0;
-  flex: 1;
+  flex: 1 1 220px;
 }
 
 .evento-calendario-info h3 {
@@ -826,6 +839,10 @@ header {
   color: var(--cor-principal);
   font-size: 18px;
   word-break: break-word;
+}
+
+.evento-calendario-info p {
+  margin: 4px 0;
 }
 
 /* --- CALENDÁRIO --- */
@@ -1484,7 +1501,7 @@ header {
 
 .schedule-row {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) auto;
     gap: 12px;
     align-items: flex-end;
     margin-bottom: 14px;
@@ -1496,14 +1513,20 @@ header {
     gap: 6px;
     font-size: 0.95rem;
     color: #ddd;
+    min-width: 0;
 }
 
 .schedule-row input {
     padding: 10px 12px;
     border-radius: 8px;
     border: 1px solid rgba(255,255,255,0.12);
-    background: rgba(255,255,255,0.04);
+    background: transparent;
     color: #fff;
+}
+
+.schedule-row input::-webkit-calendar-picker-indicator,
+.schedule-row input::-webkit-clear-button {
+    filter: invert(1);
 }
 
 .schedule-row .btn-remover-data {
@@ -1516,6 +1539,15 @@ header {
     height: fit-content;
 }
 
+@media (max-width: 1024px) {
+    .schedule-row {
+        grid-template-columns: 1fr;
+    }
+    .schedule-row .btn-remover-data {
+        width: 100%;
+    }
+}
+
 .btn-adicionar-data {
     background: rgba(0, 191, 255, 0.15);
     color: #00bfff;
@@ -1524,6 +1556,12 @@ header {
     padding: 10px 16px;
     cursor: pointer;
     margin-top: 8px;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.btn-adicionar-data:hover {
+    background: rgba(0, 191, 255, 0.25);
+    transform: translateY(-1px);
 }
 
 .nota {
