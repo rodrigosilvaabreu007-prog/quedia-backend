@@ -1420,7 +1420,7 @@ header {
 
 #mapa-container {
     width: 100%;
-    height: 500px;
+    height: 650px;
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
@@ -1437,6 +1437,111 @@ header {
     color: var(--text-secondary, #ccc);
     font-size: 1rem;
 }
+
+#datas-container {
+    background: rgba(0, 191, 255, 0.05);
+    border: 1px solid rgba(0, 191, 255, 0.2);
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+#datas-container h3 {
+    margin: 0 0 12px 0;
+    color: var(--cor-principal, #00bfff);
+}
+
+.schedule-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 14px;
+}
+
+.schedule-row label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.95rem;
+    color: #ddd;
+}
+
+.schedule-row input {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: #fff;
+}
+
+.schedule-row .btn-remover-data {
+    background: rgba(255, 69, 58, 0.15);
+    color: #ff6660;
+    border: 1px solid rgba(255, 69, 58, 0.3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    height: fit-content;
+}
+
+.btn-adicionar-data {
+    background: rgba(0, 191, 255, 0.15);
+    color: #00bfff;
+    border: 1px solid rgba(0, 191, 255, 0.3);
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.nota {
+    margin-top: 12px;
+    color: #ccc;
+    font-size: 0.95rem;
+}
+
+.modal-body {
+    padding: 24px;
+    max-height: calc(80vh - 120px);
+    overflow-y: auto;
+}
+
+.eventos-calendario-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 55vh;
+    overflow-y: auto;
+    padding-right: 12px;
+}
+
+.evento-calendario-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    align-items: center;
+    width: 100%;
+}
+
+.evento-calendario-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.evento-calendario-info h3 {
+    margin: 0 0 5px 0;
+    color: var(--cor-principal);
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 
 .evento-organizador p {
     color: var(--text-secondary, #ccc);

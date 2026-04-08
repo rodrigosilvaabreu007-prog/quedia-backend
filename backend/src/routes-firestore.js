@@ -127,9 +127,21 @@ router.get('/eventos', (req, res) => {
 // Criar evento
 router.post('/eventos', verificarToken, async (req, res) => {
   try {
-    const { nome, descricao, estado, cidade, endereco, data, horario, gratuito, preco, categoria, subcategorias, imagem, organizador } = req.body;
+    const { nome, descricao, estado, cidade, endereco, data, horario, horario_fim, gratuito, preco, categoria, subcategorias, imagem, organizador, datas } = req.body;
     if (!nome || !descricao || !cidade || !categoria) {
       return res.status(400).json({ erro: 'Campos obrigatórios faltando' });
+    }
+
+    let datasRecebidas = [];
+    if (datas) {
+      try {
+        datasRecebidas = typeof datas === 'string' ? JSON.parse(datas) : datas;
+      } catch (err) {
+        datasRecebidas = [];
+      }
+    }
+    if (!Array.isArray(datasRecebidas) || datasRecebidas.length === 0) {
+      datasRecebidas = [{ data: data || '', horario_inicio: horario || '', horario_fim: horario_fim || '' }];
     }
 
     const id = await dbFirestore.cadastrarEvento({
@@ -138,15 +150,17 @@ router.post('/eventos', verificarToken, async (req, res) => {
       estado: estado || 'Não informado',
       cidade,
       endereco: endereco || '',
-      data,
-      horario,
+      data: datasRecebidas[0].data || data,
+      horario: datasRecebidas[0].horario_inicio || horario,
+      horario_fim: datasRecebidas[0].horario_fim || horario_fim || '',
       gratuito: gratuito === 'on' || gratuito === true,
       preco: Number(preco) || 0,
       organizador: organizador || 'Não informado',
       organizador_id: req.usuario_id,
       categoria,
       subcategorias,
-      imagem
+      imagem,
+      datas: datasRecebidas
     });
 
     res.status(201).json({ mensagem: 'Evento cadastrado com sucesso!', id });

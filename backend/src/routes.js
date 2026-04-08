@@ -64,6 +64,24 @@ router.post('/eventos', upload.any(), async (req, res) => {
             isFiniteLatitude: Number.isFinite(latitude),
             isFiniteLongitude: Number.isFinite(longitude)
         });
+        let datasRecebidas = [];
+        if (req.body.datas) {
+            if (Array.isArray(req.body.datas)) {
+                datasRecebidas = req.body.datas;
+            } else if (typeof req.body.datas === 'string') {
+                try {
+                    const parsed = JSON.parse(req.body.datas);
+                    if (Array.isArray(parsed)) datasRecebidas = parsed;
+                } catch (err) {
+                    datasRecebidas = [];
+                }
+            }
+        }
+
+        const primeiraData = Array.isArray(datasRecebidas) && datasRecebidas.length > 0
+            ? datasRecebidas[0]
+            : { data: req.body.data || '', horario_inicio: req.body.horario || '', horario_fim: req.body.horario_fim || '' };
+
         const dadosEvento = {
             nome: req.body.nome || "Evento sem nome",
             descricao: req.body.descricao || "",
@@ -72,8 +90,10 @@ router.post('/eventos', upload.any(), async (req, res) => {
             local: req.body.local || "", // Mapeado do campo 'endereco' do frontend
             latitude: Number.isFinite(latitude) ? latitude : null,
             longitude: Number.isFinite(longitude) ? longitude : null,
-            data: req.body.data || "",
-            horario: req.body.horario || "",
+            data: primeiraData.data || req.body.data || "",
+            horario: primeiraData.horario_inicio || req.body.horario || "",
+            horario_fim: primeiraData.horario_fim || req.body.horario_fim || "",
+            datas: datasRecebidas,
             categoria: req.body.categoria || "Outros",
             subcategorias: Array.isArray(req.body.subcategorias) 
                 ? req.body.subcategorias 

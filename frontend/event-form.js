@@ -99,6 +99,98 @@ window.atualizarCidades = async () => {
     }
 };
 
+function atualizarBotoesRemoverData() {
+    const linhas = Array.from(document.querySelectorAll('.schedule-row'));
+    linhas.forEach((linha) => {
+        const botao = linha.querySelector('.btn-remover-data');
+        if (botao) {
+            botao.style.display = linhas.length > 1 ? 'inline-flex' : 'none';
+        }
+    });
+}
+
+function criarLinhaData() {
+    const row = document.createElement('div');
+    row.className = 'schedule-row';
+    row.dataset.index = Date.now().toString();
+    row.innerHTML = `
+        <label>Data <input type="date" class="data-item" required></label>
+        <label>Início <input type="time" class="horario-inicio-item" required></label>
+        <label>Fim (opcional) <input type="time" class="horario-fim-item"></label>
+        <button type="button" class="btn-remover-data" onclick="removerLinhaData(this)">Remover</button>
+    `;
+    return row;
+}
+
+window.adicionarLinhaData = function() {
+    const lista = document.getElementById('datas-list');
+    if (!lista) return;
+    if (lista.querySelectorAll('.schedule-row').length >= 8) return;
+    lista.appendChild(criarLinhaData());
+    atualizarBotoesRemoverData();
+};
+
+window.removerLinhaData = function(button) {
+    const row = button.closest('.schedule-row');
+    const lista = document.getElementById('datas-list');
+    if (!row || !lista) return;
+    if (lista.querySelectorAll('.schedule-row').length <= 1) return;
+    row.remove();
+    atualizarBotoesRemoverData();
+};
+
+function obterDatasDoFormulario() {
+    const rows = Array.from(document.querySelectorAll('.schedule-row'));
+    return rows.map(row => {
+        return {
+            data: row.querySelector('.data-item')?.value || '',
+            horario_inicio: row.querySelector('.horario-inicio-item')?.value || '',
+            horario_fim: row.querySelector('.horario-fim-item')?.value || ''
+        };
+    }).filter(entry => entry.data && entry.horario_inicio);
+}
+
+function validarDatasFormulario() {
+    const rows = Array.from(document.querySelectorAll('.schedule-row'));
+    if (rows.length === 0) {
+        return { valido: false, mensagem: 'Adicione ao menos uma data com horário de início.' };
+    }
+
+    for (const row of rows) {
+        const dataItem = row.querySelector('.data-item')?.value;
+        const inicioItem = row.querySelector('.horario-inicio-item')?.value;
+        const fimItem = row.querySelector('.horario-fim-item')?.value;
+        const anyFilled = dataItem || inicioItem || fimItem;
+
+        if (!anyFilled) {
+            continue;
+        }
+        if (!dataItem) {
+            return { valido: false, mensagem: 'Cada linha precisa informar a data.' };
+        }
+        if (!inicioItem) {
+            return { valido: false, mensagem: 'Cada linha precisa informar o horário de início.' };
+        }
+        if (fimItem && inicioItem && fimItem < inicioItem) {
+            return { valido: false, mensagem: 'O horário de término não pode ser anterior ao horário de início.' };
+        }
+        const inicioData = new Date(`${dataItem}T${inicioItem}`);
+        if (Number.isNaN(inicioData.getTime())) {
+            return { valido: false, mensagem: 'Data ou horário inválido em uma das linhas.' };
+        }
+        if (inicioData < new Date()) {
+            return { valido: false, mensagem: 'Datas e horários não podem estar no passado.' };
+        }
+    }
+
+    const dadosValidos = obterDatasDoFormulario();
+    if (dadosValidos.length === 0) {
+        return { valido: false, mensagem: 'Adicione ao menos uma data com horário de início.' };
+    }
+
+    return { valido: true, dados: dadosValidos };
+}
+
 // --- MAPA E LOCALIZAÇÃO ---
 let mapaEvento = null;
 let marcadorEvento = null;
@@ -269,6 +361,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const adicionarDataBtn = document.getElementById('btn-adicionar-data');
+    if (adicionarDataBtn) {
+        adicionarDataBtn.addEventListener('click', adicionarLinhaData);
+    }
+    atualizarBotoesRemoverData();
     inicializarMapaEvento();
 });
 
@@ -291,15 +388,22 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
     const nome = document.getElementById('nome').value.trim();
     const descricao = document.getElementById('descricao').value.trim();
     const organizador = document.getElementById('organizador').value.trim();
-    const data = document.getElementById('data').value;
-    const horario = document.getElementById('horario').value;
     const estado = document.getElementById('evento-estado').value;
     const cidade = document.getElementById('evento-cidade').value;
     const endereco = document.getElementById('endereco').value.trim();
     const latitude = document.getElementById('latitude').value;
     const longitude = document.getElementById('longitude').value;
 
-    if (!nome || !descricao || !organizador || !data || !horario || !estado || !cidade || !endereco || !latitude || !longitude) {
+    const validacaoDatas = validarDatasFormulario();
+    if (!validacaoDatas.valido) {
+        msg.style.color = 'red';
+        msg.textContent = `🚨 ${validacaoDatas.mensagem}`;
+        return;
+    }
+    const datas = validacaoDatas.dados;
+    const primeiraData = datas[0];
+
+    if (!nome || !descricao || !organizador || !estado || !cidade || !endereco || !latitude || !longitude) {
         msg.style.color = 'red';
         msg.textContent = '🚨 Preencha todos os campos obrigatórios e defina a localização no mapa.';
         return;
@@ -312,27 +416,26 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
         return;
     }
 
-    if (new Date(`${data}T${horario}`) < new Date()) {
-        msg.style.color = 'red';
-        msg.textContent = '🚫 Data e horário não podem ser no passado.';
-        return;
-    }
-
     formData.append('nome', nome);
     formData.append('descricao', descricao);
     formData.append('organizador', organizador);
-    formData.append('data', data);
-    formData.append('horario', horario);
     formData.append('cidade', cidade);
     formData.append('estado', estado);
     formData.append('local', endereco);
     formData.append('latitude', latitude);
     formData.append('longitude', longitude);
+    formData.append('datas', JSON.stringify(datas));
+    formData.append('data', primeiraData.data);
+    formData.append('horario', primeiraData.horario_inicio);
+    if (primeiraData.horario_fim) {
+        formData.append('horario_fim', primeiraData.horario_fim);
+    }
     console.log('[DEBUG] FormData enviado:', {
         latitude: latitude,
         longitude: longitude,
         latitudeType: typeof latitude,
-        longitudeType: typeof longitude
+        longitudeType: typeof longitude,
+        datasCount: datas.length
     });
 
     const precoVal = document.getElementById('preco').value;

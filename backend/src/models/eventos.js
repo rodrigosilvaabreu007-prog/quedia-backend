@@ -11,6 +11,15 @@ const EventoSchema = new mongoose.Schema({
     longitude: { type: Number, default: null },
     data: { type: String, default: "" },
     horario: { type: String, default: "" },
+    horario_fim: { type: String, default: "" },
+    datas: {
+        type: [{
+            data: { type: String, default: "" },
+            horario_inicio: { type: String, default: "" },
+            horario_fim: { type: String, default: "" }
+        }],
+        default: []
+    },
     categoria: { type: String, default: "Outros" },
     subcategorias: { type: [String], default: [] },
     gratuito: { type: Boolean, default: false },
@@ -27,6 +36,63 @@ const EventoSchema = new mongoose.Schema({
 });
 
 const Evento = mongoose.models.Evento || mongoose.model('Evento', EventoSchema);
+
+function normalizarDatasEntrada(datasInput) {
+    if (!datasInput) return [];
+    let lista = [];
+    if (Array.isArray(datasInput)) {
+        lista = datasInput;
+    } else if (typeof datasInput === 'string') {
+        try {
+            const parsed = JSON.parse(datasInput);
+            if (Array.isArray(parsed)) lista = parsed;
+        } catch (err) {
+            lista = [];
+        }
+    }
+    return lista
+        .filter(item => item && item.data)
+        .map(item => ({
+            data: item.data,
+            horario_inicio: item.horario_inicio || item.horario || '',
+            horario_fim: item.horario_fim || ''
+        }))
+        .sort((a, b) => {
+            const aTime = new Date(`${a.data}T${a.horario_inicio || '00:00'}`).getTime();
+            const bTime = new Date(`${b.data}T${b.horario_inicio || '00:00'}`).getTime();
+            return aTime - bTime;
+        });
+}
+
+function eventoEstaAtivo(evento) {
+    const datas = normalizarDatasEntrada(evento.datas || []);
+    if (datas.length === 0 && evento.data) {
+        datas.push({
+            data: evento.data,
+            horario_inicio: evento.horario || '00:00',
+            horario_fim: evento.horario_fim || ''
+        });
+    }
+
+    const agora = new Date();
+    return datas.some(item => {
+        const dataHora = new Date(`${item.data}T${item.horario_inicio || '00:00'}`);
+        return !Number.isNaN(dataHora.getTime()) && dataHora >= agora;
+    });
+}
+
+async function removerEventosExpirados() {
+    try {
+        const todos = await Evento.find({});
+        const expirados = todos.filter(e => !eventoEstaAtivo(e));
+        if (expirados.length > 0) {
+            const ids = expirados.map(e => e._id);
+            await Evento.deleteMany({ _id: { $in: ids } });
+        }
+    } catch (err) {
+        console.warn('Não foi possível limpar eventos expirados:', err.message);
+    }
+}
 
 async function cadastrarEvento(dados) {
     // 1. Verificação de segurança: O banco está mesmo conectado?
@@ -55,14 +121,27 @@ async function cadastrarEvento(dados) {
     try {
         const latitude = Number(dados.latitude);
         const longitude = Number(dados.longitude);
-        console.log('[DEBUG] cadastrarEvento recebeu:', { latitude, longitude, isFiniteLatitude: Number.isFinite(latitude), isFiniteLongitude: Number.isFinite(longitude) });
+        const datasNormalizadas = normalizarDatasEntrada(dados.datas || []);
+        if (datasNormalizadas.length === 0 && dados.data) {
+            datasNormalizadas.push({
+                data: dados.data,
+                horario_inicio: dados.horario || '',
+                horario_fim: dados.horario_fim || ''
+            });
+        }
+
+        console.log('[DEBUG] cadastrarEvento recebeu:', { latitude, longitude, isFiniteLatitude: Number.isFinite(latitude), isFiniteLongitude: Number.isFinite(longitude), datasCount: datasNormalizadas.length });
         const dadosTratados = {
             ...dados,
             organizador: dados.organizador || 'Não informado',
             preco: Number(String(dados.preco).replace(',', '.')) || 0,
             gratuito: String(dados.gratuito) === 'true',
             latitude: Number.isFinite(latitude) ? latitude : null,
-            longitude: Number.isFinite(longitude) ? longitude : null
+            longitude: Number.isFinite(longitude) ? longitude : null,
+            datas: datasNormalizadas,
+            data: datasNormalizadas[0]?.data || dados.data || '',
+            horario: datasNormalizadas[0]?.horario_inicio || dados.horario || '',
+            horario_fim: datasNormalizadas[0]?.horario_fim || dados.horario_fim || ''
         };
         console.log('[DEBUG] dadosTratados:', { latitude: dadosTratados.latitude, longitude: dadosTratados.longitude });
 
@@ -86,10 +165,12 @@ async function cadastrarEvento(dados) {
 
 async function listarEventos(filtros = {}) {
     try {
+        await removerEventosExpirados();
         let query = {};
         if (filtros.cidade) query.cidade = new RegExp(filtros.cidade, 'i');
         if (filtros.categoria) query.categoria = filtros.categoria;
-        return await Evento.find(query).sort({ criadoEm: -1 });
+        const eventos = await Evento.find(query).sort({ criadoEm: -1 });
+        return eventos.filter(eventoEstaAtivo);
     } catch (err) {
         throw new Error("Erro ao buscar eventos: " + err.message);
     }
@@ -107,6 +188,10 @@ async function deletarEvento(id) {
 async function buscarEventoPorId(id) {
     try {
         const evento = await Evento.findById(id);
+        if (evento && !eventoEstaAtivo(evento)) {
+            await Evento.findByIdAndDelete(id);
+            return null;
+        }
         
         // Se evento existe, popula interesses do banco Interesse
         if (evento) {
@@ -128,6 +213,7 @@ async function buscarEventoPorId(id) {
 
 async function listarEventosComInteresses(filtros = {}) {
     try {
+        await removerEventosExpirados();
         let query = {};
         if (filtros.cidade) query.cidade = new RegExp(filtros.cidade, 'i');
         if (filtros.categoria) query.categoria = filtros.categoria;
@@ -146,7 +232,7 @@ async function listarEventosComInteresses(filtros = {}) {
             }
         }
         
-        return eventos;
+        return eventos.filter(eventoEstaAtivo);
     } catch (err) {
         throw new Error("Erro ao buscar eventos: " + err.message);
     }

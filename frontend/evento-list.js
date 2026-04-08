@@ -31,6 +31,33 @@ function normalizarTexto(texto) {
     return texto.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
 
+function extrairDatasEvento(evento) {
+    const datas = [];
+    if (Array.isArray(evento.datas) && evento.datas.length > 0) {
+        evento.datas.forEach(item => {
+            if (item && item.data) {
+                datas.push({
+                    data: item.data,
+                    horario_inicio: item.horario_inicio || item.horario || '',
+                    horario_fim: item.horario_fim || ''
+                });
+            }
+        });
+    }
+    if (datas.length === 0 && evento.data) {
+        datas.push({
+            data: evento.data,
+            horario_inicio: evento.horario || '',
+            horario_fim: evento.horario_fim || ''
+        });
+    }
+    return datas.sort((a, b) => {
+        const aTime = new Date(`${a.data}T${a.horario_inicio || '00:00'}`).getTime();
+        const bTime = new Date(`${b.data}T${b.horario_inicio || '00:00'}`).getTime();
+        return aTime - bTime;
+    });
+}
+
 // 2. Cria o elemento HTML do Card
 function criarCardEvento(evento, mostrarFavorito = true) {
     const div = document.createElement('div');
@@ -52,6 +79,12 @@ function criarCardEvento(evento, mostrarFavorito = true) {
         imagemFinal = evento.imagem_url;
     }
 
+    const datasEvento = extrairDatasEvento(evento);
+    const primeiraData = datasEvento.find(d => {
+        const dt = new Date(`${d.data}T${d.horario_inicio || '00:00'}`);
+        return dt >= new Date();
+    }) || datasEvento[0] || { data: evento.data || '', horario_inicio: evento.horario || '' };
+
     // Preço formatado
     const preco = parseFloat(evento.preco) || 0;
     const precoTexto = (evento.gratuito || preco === 0) ? 'GRATUITO' : `R$ ${preco.toFixed(2)}`;
@@ -71,7 +104,8 @@ function criarCardEvento(evento, mostrarFavorito = true) {
             <h3>${evento.nome || 'Evento sem Nome'}</h3>
             <span class="category-tag">${evento.categoria || 'Geral'}</span>
             <div class="event-details">
-                <span>📅 ${formatarData(evento.data)}</span><br>
+                <span>📅 ${formatarData(primeiraData.data)}</span><br>
+                <span>⏰ ${primeiraData.horario_inicio || '--:--'}</span><br>
                 <span>📍 ${evento.cidade || 'Local não informado'}</span>
             </div>
             <div class="event-stats">
@@ -968,12 +1002,13 @@ function renderizarCalendario() {
             (ev.gratuito && termo.includes('gratuito')) ||
             filtrarPorPrecoTexto(ev, termo);
         
+        const datasEvento = extrairDatasEvento(ev);
         const matchesEstado = estado === "" || ev.estado === estado;
         const matchesCidade = cidade === "" || ev.cidade === cidade;
         const matchesCat = categoria === "" || ev.categoria === categoria;
         const matchesPreco = ev.gratuito ? true : (parseFloat(ev.preco) <= precoMax);
-        const matchesData = dataFiltro === "" || ev.data === dataFiltro;
-        const matchesHorario = horarioFiltro === "" || ev.horario?.startsWith(horarioFiltro);
+        const matchesData = dataFiltro === "" || datasEvento.some(d => d.data === dataFiltro);
+        const matchesHorario = horarioFiltro === "" || datasEvento.some(d => d.horario_inicio?.startsWith(horarioFiltro));
         
         return matchesBusca && matchesEstado && matchesCidade && matchesCat && matchesPreco && matchesData && matchesHorario;
     });
@@ -981,9 +1016,14 @@ function renderizarCalendario() {
     // Agrupar eventos por data
     const eventosPorData = {};
     eventosFiltrados.forEach(ev => {
-        const data = ev.data;
-        if (!eventosPorData[data]) eventosPorData[data] = [];
-        eventosPorData[data].push(ev);
+        const datasEvento = extrairDatasEvento(ev);
+        datasEvento.forEach(dataItem => {
+            if (!dataItem.data) return;
+            if (!eventosPorData[dataItem.data]) eventosPorData[dataItem.data] = [];
+            if (!eventosPorData[dataItem.data].some(eventoExistente => eventoExistente._id === ev._id)) {
+                eventosPorData[dataItem.data].push(ev);
+            }
+        });
     });
     
     // Data atual
@@ -1053,7 +1093,7 @@ window.mudarMes = function(delta) {
 };
 
 window.mostrarEventosDia = function(data) {
-    const eventosDia = todosEventos.filter(ev => ev.data === data);
+    const eventosDia = todosEventos.filter(ev => extrairDatasEvento(ev).some(d => d.data === data));
     if (eventosDia.length === 0) return;
     
     const modal = document.getElementById('event-modal');
@@ -1067,6 +1107,8 @@ window.mostrarEventosDia = function(data) {
         const preco = parseFloat(ev.preco) || 0;
         const precoTexto = (ev.gratuito || preco === 0) ? 'GRATUITO' : `R$ ${preco.toFixed(2)}`;
         const interessado = interessesCache[ev._id];
+        const datasEvento = extrairDatasEvento(ev);
+        const dataInfo = datasEvento[0] || { data: ev.data || '', horario_inicio: ev.horario || '' };
 
         return `
             <div class="evento-calendario-item" onclick="window.abrirPreviaCalendario(${idx})">
@@ -1074,8 +1116,8 @@ window.mostrarEventosDia = function(data) {
                 <div class="evento-calendario-info">
                     <h3>${ev.nome}</h3>
                     <p class="evento-categoria">${ev.categoria || 'Geral'}</p>
-                    <p class="evento-data">📅 ${formatarData(ev.data)}</p>
-                    <p class="evento-horario">🕒 ${ev.horario || '--:--'}</p>
+                    <p class="evento-data">📅 ${formatarData(dataInfo.data)}</p>
+                    <p class="evento-horario">🕒 ${dataInfo.horario_inicio || '--:--'}</p>
                     <p class="evento-preco">${precoTexto}</p>
                 </div>
                 <button class="btn-calendario-fav ${interessado ? 'demonstrou-interesse' : ''}" data-evento-id="${ev._id}" onclick="event.stopPropagation(); toggleInteresse('${ev._id}', this)" title="${interessado ? 'Remover interesse' : 'Demonstrar interesse'}">${interessado ? '⭐' : '☆'}</button>

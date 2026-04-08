@@ -47,6 +47,20 @@
         <label>Descrição <textarea id="descricao" required></textarea></label>
         <label>Organizador <input type="text" id="organizador" required></label>
 
+        <div class="form-section" id="datas-container">
+          <h3>Datas e horários</h3>
+          <div id="datas-list">
+            <div class="schedule-row" data-index="0">
+              <label>Data <input type="date" class="data-item" required></label>
+              <label>Início <input type="time" class="horario-inicio-item" required></label>
+              <label>Fim (opcional) <input type="time" class="horario-fim-item"></label>
+              <button type="button" class="btn-remover-data" onclick="removerLinhaData(this)" style="display:none;">Remover</button>
+            </div>
+          </div>
+          <button type="button" id="btn-adicionar-data" class="btn-adicionar-data">+ Adicionar outra data</button>
+          <p class="nota">Preencha pelo menos uma data. Horário de término é opcional; datas adicionais são opcionais.</p>
+        </div>
+
         <div class="form-grid">
           <label>Estado
             <select id="evento-estado" required onchange="window.atualizarCidades()"></select>
@@ -54,8 +68,6 @@
           <label>Cidade
             <select id="evento-cidade" required disabled><option value="">Selecione o estado</option></select>
           </label>
-          <label>Data <input type="date" id="data" required></label>
-          <label>Horário <input type="time" id="horario" required></label>
         </div>
 
         <label>Endereço / Local <input type="text" id="endereco" required></label>

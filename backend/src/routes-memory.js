@@ -92,12 +92,25 @@ router.get('/eventos', (req, res) => {
 // Rota para cadastrar evento
 router.post('/eventos', (req, res) => {
   try {
-    const { nome, descricao, estado, cidade, endereco, data, horario, gratuito, preco, organizador, organizador_id, categoria, subcategorias, imagem, latitude, longitude } = req.body;
+    const { nome, descricao, estado, cidade, endereco, data, horario, horario_fim, gratuito, preco, organizador, organizador_id, categoria, subcategorias, imagem, latitude, longitude } = req.body;
     if (!nome || !descricao || !cidade || !categoria) {
       return res.status(400).json({ erro: 'Campos obrigatórios faltando' });
     }
     const lat = Number(latitude);
     const lon = Number(longitude);
+    let datasRecebidas = [];
+    if (req.body.datas) {
+      try {
+        const parsed = typeof req.body.datas === 'string' ? JSON.parse(req.body.datas) : req.body.datas;
+        if (Array.isArray(parsed)) datasRecebidas = parsed;
+      } catch (err) {
+        datasRecebidas = [];
+      }
+    }
+    if (datasRecebidas.length === 0 && data) {
+      datasRecebidas = [{ data, horario_inicio: horario || '', horario_fim: horario_fim || '' }];
+    }
+    const primeiraData = datasRecebidas[0] || { data: data || '', horario_inicio: horario || '' };
     const novoEvento = {
       id: db.eventos.length + 1,
       nome,
@@ -107,8 +120,10 @@ router.post('/eventos', (req, res) => {
       endereco: endereco || '',
       latitude: Number.isFinite(lat) ? lat : null,
       longitude: Number.isFinite(lon) ? lon : null,
-      data,
-      horario,
+      data: primeiraData.data,
+      horario: primeiraData.horario_inicio,
+      horario_fim: primeiraData.horario_fim || '',
+      datas: datasRecebidas,
       gratuito: gratuito === 'on' || gratuito === true,
       preco: Number(preco) || 0,
       organizador: organizador || 'Não informado',

@@ -119,12 +119,31 @@ async function carregarDetalhesEvento(eventoId) {
         document.getElementById('evento-nome').textContent = evento.nome;
         const organizadorExibicao = evento.organizador || evento.organizador_id || 'Não informado';
         document.getElementById('subtitulo-organizador').textContent = `Organizador: ${organizadorExibicao}`;
-        document.getElementById('evento-data').textContent = `📅 Data: ${formatarData(evento.data)}`;
-        document.getElementById('evento-horario').textContent = `⏰ Horário: ${evento.horario}`;
+
+        const datasEvento = normalizarDatasEvento(evento);
+        const agora = new Date();
+        const proximaData = datasEvento.find(d => {
+            const tentativa = new Date(`${d.data}T${d.horario_inicio || '00:00'}`);
+            return tentativa >= agora;
+        }) || datasEvento[0] || { data: '', horario_inicio: '', horario_fim: '' };
+
+        document.getElementById('evento-data').textContent = `📅 Data: ${formatarData(proximaData.data)}`;
+        document.getElementById('evento-horario').textContent = `⏰ Horário: ${formatarHorario(proximaData.horario_inicio)}${proximaData.horario_fim ? ' - ' + proximaData.horario_fim : ''}`;
         document.getElementById('evento-local').textContent = `📍 Local: ${evento.local}`;
         document.getElementById('evento-categoria').textContent = `🏷️ Categoria: ${evento.categoria || 'Geral'}`;
         document.getElementById('evento-preco').textContent = `💰 Preço: ${evento.preco || 'GRATUITO'}`;
         document.getElementById('evento-descricao').textContent = evento.descricao || 'Sem descrição disponível.';
+
+        const listaDatas = document.getElementById('evento-datas-list');
+        if (listaDatas) {
+            if (datasEvento.length > 1) {
+                listaDatas.innerHTML = datasEvento.map(d => {
+                    return `<p>📅 ${formatarData(d.data)} ${d.horario_inicio ? `⏰ ${formatarHorario(d.horario_inicio)}${d.horario_fim ? ' - ' + d.horario_fim : ''}` : ''}</p>`;
+                }).join('');
+            } else {
+                listaDatas.innerHTML = '';
+            }
+        }
 
         // Imagem
         const imagemUrl = (evento.imagens && evento.imagens.length > 0) ? evento.imagens[0] : (evento.imagem || 'https://via.placeholder.com/800x450?text=Evento');
@@ -363,6 +382,41 @@ function formatarData(dataString) {
         return dataString;
     }
     return data.toLocaleDateString('pt-BR');
+}
+
+function formatarHorario(horario) {
+    if (!horario) return 'A definir';
+    return horario;
+}
+
+function normalizarDatasEvento(evento) {
+    let datas = [];
+
+    if (Array.isArray(evento.datas) && evento.datas.length > 0) {
+        datas = evento.datas
+            .filter(item => item && item.data)
+            .map(item => ({
+                data: item.data,
+                horario_inicio: item.horario_inicio || item.horario || '',
+                horario_fim: item.horario_fim || ''
+            }));
+    }
+
+    if (datas.length === 0 && evento.data) {
+        datas.push({
+            data: evento.data,
+            horario_inicio: evento.horario || '',
+            horario_fim: evento.horario_fim || ''
+        });
+    }
+
+    datas.sort((a, b) => {
+        const aTime = new Date(`${a.data}T${a.horario_inicio || '00:00'}`).getTime();
+        const bTime = new Date(`${b.data}T${b.horario_inicio || '00:00'}`).getTime();
+        return aTime - bTime;
+    });
+
+    return datas;
 }
 
 async function toggleInteresseClique(button) {
