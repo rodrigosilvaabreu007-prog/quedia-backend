@@ -58,10 +58,19 @@ function normalizarDatasEntrada(datasInput) {
             horario_fim: item.horario_fim || ''
         }))
         .sort((a, b) => {
-            const aTime = new Date(`${a.data}T${a.horario_inicio || '00:00'}`).getTime();
-            const bTime = new Date(`${b.data}T${b.horario_inicio || '00:00'}`).getTime();
+            const aTime = parseBrazilDateTime(a.data, a.horario_inicio || '00:00')?.getTime() || 0;
+            const bTime = parseBrazilDateTime(b.data, b.horario_inicio || '00:00')?.getTime() || 0;
             return aTime - bTime;
         });
+}
+
+function parseBrazilDateTime(data, hora) {
+    if (!data || !hora) return null;
+    const [year, month, day] = data.split('-').map(Number);
+    const [hours, minutes] = hora.split(':').map(Number);
+    if (![year, month, day, hours, minutes].every(Number.isFinite)) return null;
+    // Converte horário local do Brasil (UTC-3) para UTC adicionando 3 horas
+    return new Date(Date.UTC(year, month - 1, day, hours + 3, minutes, 0));
 }
 
 function eventoEstaAtivo(evento) {
@@ -75,10 +84,34 @@ function eventoEstaAtivo(evento) {
     }
 
     const agora = new Date();
-    return datas.some(item => {
-        const dataHora = new Date(`${item.data}T${item.horario_inicio || '00:00'}`);
-        return !Number.isNaN(dataHora.getTime()) && dataHora >= agora;
+    console.log(`[DEBUG eventoEstaAtivo] Verificando evento ${evento._id} - título: ${evento.titulo || evento.nome}`);
+    console.log(`[DEBUG eventoEstaAtivo] Agora: ${agora.toISOString()}`);
+    console.log(`[DEBUG eventoEstaAtivo] Datas do evento:`, datas);
+    
+    const ativo = datas.some(item => {
+        const inicio = parseBrazilDateTime(item.data, item.horario_inicio || '00:00');
+        const fim = item.horario_fim ? parseBrazilDateTime(item.data, item.horario_fim) : null;
+        console.log(`[DEBUG eventoEstaAtivo] Item: data=${item.data}, inicio=${item.horario_inicio}, fim=${item.horario_fim}`);
+        console.log(`[DEBUG eventoEstaAtivo] Parsed: inicio=${inicio?.toISOString()}, fim=${fim?.toISOString()}`);
+        
+        if (!inicio) {
+            console.log(`[DEBUG eventoEstaAtivo] Sem horário de início válido`);
+            return false;
+        }
+
+        if (fim && !Number.isNaN(fim.getTime())) {
+            const result = fim > agora;
+            console.log(`[DEBUG eventoEstaAtivo] Comparação fim > agora: ${fim.toISOString()} > ${agora.toISOString()} = ${result}`);
+            return result;
+        } else {
+            // Se não há horário de fim, o evento aparece sempre (disponível indefinidamente)
+            console.log(`[DEBUG eventoEstaAtivo] Sem horário de fim, evento sempre ativo`);
+            return true;
+        }
     });
+    
+    console.log(`[DEBUG eventoEstaAtivo] Evento ${ativo ? 'ATIVO' : 'INATIVO'}`);
+    return ativo;
 }
 
 async function removerEventosExpirados() {
@@ -129,6 +162,8 @@ async function cadastrarEvento(dados) {
                 horario_fim: dados.horario_fim || ''
             });
         }
+
+        console.log('[DEBUG cadastrarEvento] dados recebidos:', { latitude, longitude, datasNormalizadas, horario_fim: dados.horario_fim });
 
         console.log('[DEBUG] cadastrarEvento recebeu:', { latitude, longitude, isFiniteLatitude: Number.isFinite(latitude), isFiniteLongitude: Number.isFinite(longitude), datasCount: datasNormalizadas.length });
         const dadosTratados = {
@@ -232,10 +267,13 @@ async function listarEventosComInteresses(filtros = {}) {
             }
         }
         
-        return eventos.filter(eventoEstaAtivo);
+        console.log(`[DEBUG listarEventosComInteresses] Antes do filtro: ${eventos.length} eventos`);
+        const filtrados = eventos.filter(eventoEstaAtivo);
+        console.log(`[DEBUG listarEventosComInteresses] Após filtro: ${filtrados.length} eventos`);
+        return filtrados;
     } catch (err) {
         throw new Error("Erro ao buscar eventos: " + err.message);
     }
 }
 
-module.exports = { cadastrarEvento, listarEventos, listarEventosComInteresses, deletarEvento, buscarEventoPorId, EventoModel: Evento };
+module.exports = { cadastrarEvento, listarEventos, listarEventosComInteresses, deletarEvento, buscarEventoPorId, eventoEstaAtivo, EventoModel: Evento };
