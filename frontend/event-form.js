@@ -245,6 +245,18 @@ async function atualizarMapaPorEndereco() {
     }
 }
 
+function limparAvisosFormulario() {
+    ['warning-mapa', 'warning-categorias', 'warning-capa'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '';
+    });
+}
+
+function mostrarAvisoCampo(id, mensagem) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = mensagem;
+}
+
 function inicializarMapaEvento() {
     console.log('[MAPA-FORM-01] Inicializando mapa do formulário');
     if (!window.L || !document.getElementById('mapa-evento')) {
@@ -382,6 +394,7 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
         return;
     }
 
+    limparAvisosFormulario();
     const formData = new FormData();
 
     // Campos obrigatórios
@@ -436,6 +449,7 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
     if (!latitude || !longitude) {
         msg.style.color = 'red';
         msg.textContent = '🚨 Defina a localização no mapa clicando no mapa.';
+        mostrarAvisoCampo('warning-mapa', '📍 Localização obrigatória. Clique no mapa para marcar o ponto do evento.');
         return;
     }
 
@@ -443,6 +457,7 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
     if (selecionadas.length === 0) {
         msg.style.color = 'red';
         msg.textContent = '🚨 Insira pelo menos uma categoria para o evento.';
+        mostrarAvisoCampo('warning-categorias', '📌 Selecione ao menos uma categoria para que o evento seja encontrado.');
         return;
     }
 
@@ -450,6 +465,7 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
     if (!capaInput || !capaInput.files || capaInput.files.length === 0) {
         msg.style.color = 'red';
         msg.textContent = '🚨 Selecione a imagem de capa do evento.';
+        mostrarAvisoCampo('warning-capa', '🖼️ A imagem de capa é obrigatória para publicar o evento.');
         return;
     }
 

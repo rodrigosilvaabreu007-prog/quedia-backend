@@ -73,6 +73,7 @@
         <div id="geo-status" style="font-size: 0.9rem; color: #ccc; margin-bottom: 8px;">Clique no mapa para marcar o local exato do evento.</div>
 
         <div id="mapa-evento" class="mapa-evento"></div>
+        <p id="warning-mapa" class="warning-text"></p>
         <div class="coordenadas-container">
           <label>Latitude <input type="text" id="latitude" placeholder="-23.564" readonly required></label>
           <label>Longitude <input type="text" id="longitude" placeholder="-46.654" readonly required></label>
@@ -80,6 +81,7 @@
 
         <label>Categorias</label>
         <div id="categorias-evento" class="categorias-grid"></div>
+        <p id="warning-categorias" class="warning-text"></p>
 
         <fieldset class="form-section">
           <legend>Entrada</legend>
@@ -97,6 +99,7 @@
           <label class="file-label" for="imagem-capa">📷 Selecionar imagem de capa</label>
           <input type="file" id="imagem-capa" accept="image/*" required onchange="window.mostrarPreviewCapa()">
           <div id="preview-capa" class="preview-imagens"></div>
+          <p id="warning-capa" class="warning-text"></p>
         </fieldset>
 
         <fieldset class="form-section">

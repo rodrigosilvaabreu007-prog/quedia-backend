@@ -352,6 +352,13 @@ header {
   transition: all 0.2s ease;
 }
 
+.warning-text {
+  color: #ff6b6b;
+  margin: 8px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
 /* altura consistente de campos de entrada para equalizar linhas */
 .card-form .form-grid input,
 .card-form .form-grid select,
