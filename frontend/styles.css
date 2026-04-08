@@ -1535,7 +1535,7 @@ header {
     display: grid;
     grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) auto;
     gap: 12px;
-    align-items: flex-end;
+    align-items: center;
     margin-bottom: 14px;
 }
 
@@ -1548,19 +1548,15 @@ header {
     min-width: 0;
 }
 
-.schedule-row input {
+#datas-container .schedule-row input,
+#datas-container .schedule-row input[type='date'],
+#datas-container .schedule-row input[type='time'] {
     padding: 10px 12px;
     border-radius: 8px;
     border: 1px solid rgba(0, 191, 255, 0.45);
-    background: rgba(5, 10, 20, 0.8) !important;
+    background: rgba(5, 10, 20, 0.95) !important;
     color: #fff;
     box-sizing: border-box;
-}
-
-.schedule-row input[type='date'],
-.schedule-row input[type='time'] {
-    background: rgba(5, 10, 20, 0.8) !important;
-    border-color: rgba(0, 191, 255, 0.45);
 }
 
 .schedule-row input::-webkit-calendar-picker-indicator,
@@ -1576,8 +1572,8 @@ header {
     padding: 10px 14px;
     cursor: pointer;
     height: fit-content;
-    align-self: flex-start;
-    margin-top: 20px;
+    align-self: center;
+    margin-top: 0;
 }
 
 @media (max-width: 1024px) {
