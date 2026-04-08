@@ -1535,7 +1535,7 @@ header {
     display: grid;
     grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) auto;
     gap: 12px;
-    align-items: center;
+    align-items: start;
     margin-bottom: 14px;
 }
 
@@ -1572,8 +1572,8 @@ header {
     padding: 10px 14px;
     cursor: pointer;
     height: fit-content;
-    align-self: center;
-    margin-top: 0;
+    align-self: start;
+    margin-top: calc(1.2rem + 6px);
 }
 
 @media (max-width: 1024px) {
