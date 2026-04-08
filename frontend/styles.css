@@ -1518,8 +1518,8 @@ header {
 }
 
 #datas-container {
-    background: rgba(0, 191, 255, 0.05);
-    border: 1px solid rgba(0, 191, 255, 0.2);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     padding: 16px;
     border-radius: 12px;
     margin-bottom: 20px;
@@ -1615,6 +1615,7 @@ header {
     padding: 24px;
     max-height: calc(80vh - 120px);
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .eventos-calendario-lista {
@@ -1623,6 +1624,7 @@ header {
     gap: 15px;
     max-height: 55vh;
     overflow-y: auto;
+    overflow-x: hidden;
     padding-right: 12px;
 }
 
@@ -1636,11 +1638,31 @@ header {
     transition: background 0.2s;
     align-items: center;
     width: 100%;
+    max-width: 100%;
+    flex-wrap: wrap;
 }
 
 .evento-calendario-info {
-    flex: 1;
+    flex: 1 1 220px;
     min-width: 0;
+}
+
+.btn-calendario-fav {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(0, 191, 255, 0.12);
+    color: #fff;
+    cursor: pointer;
+}
+
+.evento-calendario-item img {
+    max-width: 110px;
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
 }
 
 .evento-calendario-info h3 {
