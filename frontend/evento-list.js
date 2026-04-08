@@ -31,6 +31,31 @@ function normalizarTexto(texto) {
     return texto.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
 
+function parseLocalDateTime(dataStr, horaStr) {
+    if (!dataStr || !horaStr) return null;
+    const [ano, mes, dia] = dataStr.split('-').map(Number);
+    const [hora, minuto] = horaStr.split(':').map(Number);
+    if (![ano, mes, dia, hora, minuto].every(Number.isFinite)) return null;
+    return new Date(ano, mes - 1, dia, hora, minuto, 0);
+}
+
+function eventoEstaAtivoFrontend(evento) {
+    const datas = extrairDatasEvento(evento);
+    if (datas.length === 0) return true;
+
+    const agora = new Date();
+    return datas.some(item => {
+        const inicio = parseLocalDateTime(item.data, item.horario_inicio || '00:00');
+        const fim = item.horario_fim ? parseLocalDateTime(item.data, item.horario_fim) : null;
+        if (!inicio) return false;
+
+        if (fim && !Number.isNaN(fim.getTime())) {
+            return fim > agora;
+        }
+        return inicio > agora;
+    });
+}
+
 function extrairDatasEvento(evento) {
     const datas = [];
     if (Array.isArray(evento.datas) && evento.datas.length > 0) {
@@ -60,16 +85,17 @@ function extrairDatasEvento(evento) {
 
 // 2. Cria o elemento HTML do Card
 function criarCardEvento(evento, mostrarFavorito = true) {
+    const eventoId = evento._id || evento.id || '';
     const div = document.createElement('div');
     div.className = 'event-card';
-    div.setAttribute('data-evento-id', evento._id || '');
+    div.setAttribute('data-evento-id', eventoId);
     
     // Verificar se o evento está favoritado pelo usuário atual (localStorage)
     const favoritos = JSON.parse(localStorage.getItem('eventos-favoritos') || '[]');
-    const isFavoritado = favoritos.includes(evento._id);
+    const isFavoritado = favoritos.includes(eventoId);
     
     // Verificar interesse usando cache
-    const isInteressado = interessesCache[evento._id] || false;
+    const isInteressado = interessesCache[eventoId] || false;
     
     // Lógica de Imagem: Pega a primeira do array do Cloudinary
     let imagemFinal = 'https://via.placeholder.com/400x200?text=Sem+Imagem';
@@ -77,6 +103,8 @@ function criarCardEvento(evento, mostrarFavorito = true) {
         imagemFinal = evento.imagens[0]; 
     } else if (evento.imagem_url) {
         imagemFinal = evento.imagem_url;
+    } else if (evento.imagem) {
+        imagemFinal = evento.imagem;
     }
 
     const datasEvento = extrairDatasEvento(evento);
@@ -96,7 +124,7 @@ function criarCardEvento(evento, mostrarFavorito = true) {
         <div class="event-img-container">
             <img src="${imagemFinal}" class="event-img" alt="${evento.nome}" 
                  onerror="this.onerror=null;this.src='https://via.placeholder.com/400x200?text=Imagem+Indisponível';">
-            ${mostrarFavorito ? `<button class="favorito-btn ${isInteressado ? 'demonstrou-interesse' : ''}" data-evento-id="${evento._id}" onclick="event.stopPropagation(); toggleInteresse('${evento._id}', this)" title="${isInteressado ? 'Remover interesse' : 'Demonstrar interesse'}">
+            ${mostrarFavorito ? `<button class="favorito-btn ${isInteressado ? 'demonstrou-interesse' : ''}" data-evento-id="${eventoId}" onclick="event.stopPropagation(); toggleInteresse('${eventoId}', this)" title="${isInteressado ? 'Remover interesse' : 'Demonstrar interesse'}">
                 ${isInteressado ? '⭐' : '☆'}
             </button>` : ''}
         </div>
@@ -116,13 +144,13 @@ function criarCardEvento(evento, mostrarFavorito = true) {
     `;
 
     // Atualiza contador assíncrono após renderizar o card
-    getContadorInteressesEvento(evento._id).then(contador => {
+    getContadorInteressesEvento(eventoId).then(contador => {
         const contadorAtualizado = Math.max(0, contador);
         const interessesEl = div.querySelector('.interesses-count');
         if (interessesEl) {
             interessesEl.textContent = `👥 ${contadorAtualizado} interessados`;
         }
-        contadorCache[evento._id] = contadorAtualizado;
+        contadorCache[eventoId] = contadorAtualizado;
     }).catch(() => {
         const interessesEl = div.querySelector('.interesses-count');
         if (interessesEl) {
@@ -525,6 +553,7 @@ function filtrarEventosParaVoce(eventosBase = todosEventos, termoBusca = '', est
 
 // 3. Modal Detalhado
 window.abrirPrevia = function(evento, imgResolvida) {
+    const eventoId = evento._id || evento.id || '';
     const modal = document.getElementById('event-modal');
     const body = document.getElementById('modal-body');
     if (!modal || !body) return;
@@ -533,11 +562,11 @@ window.abrirPrevia = function(evento, imgResolvida) {
     const localizacao = evento.local || evento.endereco || 'Endereço não informado';
     
     // Verificar se o usuário já demonstrou interesse (usando cache)
-    const jaDemonstrouInteresse = interessesCache[evento._id] || false;
+    const jaDemonstrouInteresse = interessesCache[eventoId] || false;
     
     // Contador de interesses (global por evento) - será atualizado depois
     let contadorInteresses = 0;
-    getContadorInteressesEvento(evento._id).then(contador => {
+    getContadorInteressesEvento(eventoId).then(contador => {
         contadorInteresses = contador;
         const contadorEl = body.querySelector('.interesses-count-modal');
         if (contadorEl) {
@@ -552,7 +581,7 @@ window.abrirPrevia = function(evento, imgResolvida) {
             <h2 style="color:#00bfff; margin-bottom:10px;">${evento.nome}</h2>
             <div class="evento-stats-modal">
                 <span class="interesses-count-modal">👥 ${contadorInteresses} pessoas interessadas</span>
-                <button class="btn-interesse ${jaDemonstrouInteresse ? 'demonstrou-interesse' : ''}" data-evento-id="${evento._id}" onclick="toggleInteresse('${evento._id}', this)" title="${jaDemonstrouInteresse ? 'Remover interesse' : 'Demonstrar interesse'}">
+                <button class="btn-interesse ${jaDemonstrouInteresse ? 'demonstrou-interesse' : ''}" data-evento-id="${eventoId}" onclick="toggleInteresse('${eventoId}', this)" title="${jaDemonstrouInteresse ? 'Remover interesse' : 'Demonstrar interesse'}">
                     ${jaDemonstrouInteresse ? '⭐' : '☆'}
                 </button>
             </div>
@@ -564,7 +593,7 @@ window.abrirPrevia = function(evento, imgResolvida) {
         </div>
     `;
     
-    window.currentEventId = evento._id;
+    window.currentEventId = eventoId;
     const footer = modal.querySelector('.modal-footer');
     if (footer) footer.style.display = 'flex';
     modal.style.display = 'flex';
@@ -611,7 +640,6 @@ function filtrarEventos() {
 
     // Uso de filtro local do perfil: se o usuário estiver logado e não estiver pesquisando por outra cidade/estado
     const usuarioLocal = getLocalizacaoUsuario();
-    const localAplicaPorPadrao = !estado && !cidade && termo && !consegueFiltrarPorLocal(termo, estado, cidade) ? false : !termo;
 
     const filtrados = todosEventos.filter(ev => {
         // Busca por nome, cidade, categoria, estado, data, horário ou preço
@@ -648,14 +676,7 @@ function filtrarEventos() {
         const matchesData = dataFiltro === "" || ev.data === dataFiltro;
         const matchesHorario = horarioFiltro === "" || ev.horario?.startsWith(horarioFiltro);
 
-        let matchesLocal = true;
-        if (!estado && !cidade && !consegueFiltrarPorLocal(termo, estado, cidade) && usuarioLocal.cidade) {
-            matchesLocal = ev.cidade === usuarioLocal.cidade;
-        } else if (!estado && !cidade && !consegueFiltrarPorLocal(termo, estado, cidade) && usuarioLocal.estado) {
-            matchesLocal = ev.estado === usuarioLocal.estado;
-        }
-
-        return matchesBusca && matchesEstado && matchesCidade && matchesCat && matchesPreco && matchesData && matchesHorario && matchesLocal;
+        return matchesBusca && matchesEstado && matchesCidade && matchesCat && matchesPreco && matchesData && matchesHorario && eventoEstaAtivoFrontend(ev);
     });
     
     // Se estiver no calendário, atualizar também
@@ -664,9 +685,9 @@ function filtrarEventos() {
     }
 
     // Dividir eventos entre 'Para Você' e 'Todos'
-    const eventosParaVoce = filtrarEventosParaVoce(filtrados, termo, estado, cidade).filter(ev => filtrados.some(f => f._id === ev._id));
-    const idsParaVoce = new Set(eventosParaVoce.map(ev => ev._id));
-    const eventosDestacados = filtrados.filter(ev => !idsParaVoce.has(ev._id));
+    const eventosParaVoce = filtrarEventosParaVoce(filtrados, termo, estado, cidade).filter(ev => filtrados.some(f => (f._id || f.id) === (ev._id || ev.id)));
+    const idsParaVoce = new Set(eventosParaVoce.map(ev => ev._id || ev.id));
+    const eventosDestacados = filtrados.filter(ev => !idsParaVoce.has(ev._id || ev.id));
 
     const containerParaVoce = document.getElementById('eventos-para-voce');
     const mensagemParaVoce = document.getElementById('mensagem-para-voce');
@@ -764,6 +785,7 @@ async function carregarEventos() {
         
         const dados = await response.json();
         todosEventos = Array.isArray(dados) ? dados : [];
+        todosEventos = todosEventos.filter(eventoEstaAtivoFrontend);
         
         // Carregar eventos para "Eventos para Você"
         const preferenciasAtuais = getPreferenciasUsuario();
@@ -1020,7 +1042,7 @@ function renderizarCalendario() {
         datasEvento.forEach(dataItem => {
             if (!dataItem.data) return;
             if (!eventosPorData[dataItem.data]) eventosPorData[dataItem.data] = [];
-            if (!eventosPorData[dataItem.data].some(eventoExistente => eventoExistente._id === ev._id)) {
+            if (!eventosPorData[dataItem.data].some(eventoExistente => (eventoExistente._id || eventoExistente.id) === (ev._id || ev.id))) {
                 eventosPorData[dataItem.data].push(ev);
             }
         });
@@ -1106,7 +1128,8 @@ window.mostrarEventosDia = function(data) {
         let imagemFinal = ev.imagens && ev.imagens.length > 0 ? ev.imagens[0] : (ev.imagem_url || 'https://via.placeholder.com/400x200?text=Sem+Imagem');
         const preco = parseFloat(ev.preco) || 0;
         const precoTexto = (ev.gratuito || preco === 0) ? 'GRATUITO' : `R$ ${preco.toFixed(2)}`;
-        const interessado = interessesCache[ev._id];
+        const eventoId = ev._id || ev.id || '';
+        const interessado = interessesCache[eventoId];
         const datasEvento = extrairDatasEvento(ev);
         const dataInfo = datasEvento[0] || { data: ev.data || '', horario_inicio: ev.horario || '' };
 
@@ -1120,7 +1143,7 @@ window.mostrarEventosDia = function(data) {
                     <p class="evento-horario">🕒 ${dataInfo.horario_inicio || '--:--'}</p>
                     <p class="evento-preco">${precoTexto}</p>
                 </div>
-                <button class="btn-calendario-fav ${interessado ? 'demonstrou-interesse' : ''}" data-evento-id="${ev._id}" onclick="event.stopPropagation(); toggleInteresse('${ev._id}', this)" title="${interessado ? 'Remover interesse' : 'Demonstrar interesse'}">${interessado ? '⭐' : '☆'}</button>
+                <button class="btn-calendario-fav ${interessado ? 'demonstrou-interesse' : ''}" data-evento-id="${eventoId}" onclick="event.stopPropagation(); toggleInteresse('${eventoId}', this)" title="${interessado ? 'Remover interesse' : 'Demonstrar interesse'}">${interessado ? '⭐' : '☆'}</button>
             </div>
         `;
     }).join('');

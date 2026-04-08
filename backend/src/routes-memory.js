@@ -96,9 +96,21 @@ router.get('/eventos', (req, res) => {
 router.post('/eventos', upload.any(), (req, res) => {
   try {
     const { nome, descricao, estado, cidade, endereco, data, horario, horario_fim, gratuito, preco, organizador, organizador_id, categoria, subcategorias, latitude, longitude } = req.body;
-    const imagens = (req.files || []).filter(file => file.fieldname === 'imagens').map(file => file.originalname);
-    const imagemCapa = (req.files || []).find(file => file.fieldname === 'imagemCapa');
-    const imagemCapaNome = imagemCapa ? imagemCapa.originalname : '';
+    const imagens = [];
+    let imagemCapaUrl = '';
+
+    (req.files || []).forEach(file => {
+      const mime = file.mimetype || 'image/jpeg';
+      const base64 = file.buffer.toString('base64');
+      const dataUrl = `data:${mime};base64,${base64}`;
+
+      if (file.fieldname === 'imagemCapa') {
+        imagemCapaUrl = dataUrl;
+      } else if (file.fieldname === 'imagens') {
+        imagens.push(dataUrl);
+      }
+    });
+
     if (!nome || !descricao || !cidade || !categoria) {
       return res.status(400).json({ erro: 'Campos obrigatórios faltando' });
     }
@@ -137,7 +149,7 @@ router.post('/eventos', upload.any(), (req, res) => {
       organizador_id: organizador_id || 1,
       categoria: categoria,
       subcategorias: Array.isArray(subcategorias) ? subcategorias : [subcategorias || ''],
-      imagem: imagemCapaNome,
+      imagem: imagemCapaUrl,
       imagens: imagens,
       criado_em: new Date()
     };
