@@ -795,7 +795,7 @@ header {
 
 .modal-content {
   background: #1a1a1a;
-  width: 95%; max-width: 880px;
+  width: 98%; max-width: 980px;
   border-radius: 20px;
   padding: 0; /* Tiramos o padding para a imagem colar no topo se quiser */
   border: 1px solid var(--cor-principal);
@@ -805,8 +805,39 @@ header {
 }
 
 .modal-body {
-  max-height: calc(100vh - 170px);
+  max-height: calc(100vh - 150px);
   overflow-y: auto;
+  padding: 24px;
+}
+
+.evento-calendario-item {
+  display: flex;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.evento-calendario-img {
+  width: 110px;
+  min-width: 110px;
+  height: 110px;
+  object-fit: cover;
+}
+
+.evento-calendario-info {
+  min-width: 0;
+  flex: 1 1 300px;
+}
+
+.evento-calendario-info h3 {
+  margin: 0 0 5px 0;
+  color: var(--cor-principal);
+  font-size: 20px;
 }
 
 .evento-calendario-item {
@@ -1519,9 +1550,16 @@ header {
 .schedule-row input {
     padding: 10px 12px;
     border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.12);
-    background: transparent;
+    border: 1px solid rgba(0, 191, 255, 0.45);
+    background: transparent !important;
     color: #fff;
+    box-sizing: border-box;
+}
+
+.schedule-row input[type='date'],
+.schedule-row input[type='time'] {
+    background: transparent !important;
+    border-color: rgba(0, 191, 255, 0.45);
 }
 
 .schedule-row input::-webkit-calendar-picker-indicator,
@@ -1544,6 +1582,9 @@ header {
         grid-template-columns: 1fr;
     }
     .schedule-row .btn-remover-data {
+        width: 100%;
+    }
+    .schedule-row label {
         width: 100%;
     }
 }

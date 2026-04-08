@@ -480,9 +480,9 @@ document.getElementById('cadastro-evento').addEventListener('submit', async (e) 
     formData.append('gratuito', document.getElementById('gratuito-sim').checked);
 
     // Tratamento de categorias
-    const selecionadas = Array.from(document.querySelectorAll('input[name="subcat"]:checked')).map(el => el.value);
-    selecionadas.forEach(s => formData.append('subcategorias', s));
-    formData.append('categoria', selecionadas[0] || 'Outros');
+    const categoriasSelecionadas = Array.from(document.querySelectorAll('input[name="subcat"]:checked')).map(el => el.value);
+    categoriasSelecionadas.forEach(s => formData.append('subcategorias', s));
+    formData.append('categoria', categoriasSelecionadas[0] || 'Outros');
 
     // Imagem de capa
     formData.append('imagemCapa', capaInput.files[0]);
