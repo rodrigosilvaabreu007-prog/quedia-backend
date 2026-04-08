@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcrypt');
+const multer = require('multer');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('./db-memory');
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Rota de verificação de email
 router.get('/verificar-email', (req, res) => {
@@ -90,9 +93,12 @@ router.get('/eventos', (req, res) => {
 });
 
 // Rota para cadastrar evento
-router.post('/eventos', (req, res) => {
+router.post('/eventos', upload.any(), (req, res) => {
   try {
-    const { nome, descricao, estado, cidade, endereco, data, horario, horario_fim, gratuito, preco, organizador, organizador_id, categoria, subcategorias, imagem, latitude, longitude } = req.body;
+    const { nome, descricao, estado, cidade, endereco, data, horario, horario_fim, gratuito, preco, organizador, organizador_id, categoria, subcategorias, latitude, longitude } = req.body;
+    const imagens = (req.files || []).filter(file => file.fieldname === 'imagens').map(file => file.originalname);
+    const imagemCapa = (req.files || []).find(file => file.fieldname === 'imagemCapa');
+    const imagemCapaNome = imagemCapa ? imagemCapa.originalname : '';
     if (!nome || !descricao || !cidade || !categoria) {
       return res.status(400).json({ erro: 'Campos obrigatórios faltando' });
     }
@@ -111,6 +117,7 @@ router.post('/eventos', (req, res) => {
       datasRecebidas = [{ data, horario_inicio: horario || '', horario_fim: horario_fim || '' }];
     }
     const primeiraData = datasRecebidas[0] || { data: data || '', horario_inicio: horario || '' };
+    const parseBoolean = value => value === true || value === 'true' || value === 'on' || value === 1 || value === '1';
     const novoEvento = {
       id: db.eventos.length + 1,
       nome,
@@ -124,13 +131,14 @@ router.post('/eventos', (req, res) => {
       horario: primeiraData.horario_inicio,
       horario_fim: primeiraData.horario_fim || '',
       datas: datasRecebidas,
-      gratuito: gratuito === 'on' || gratuito === true,
+      gratuito: parseBoolean(gratuito),
       preco: Number(preco) || 0,
       organizador: organizador || 'Não informado',
       organizador_id: organizador_id || 1,
       categoria: categoria,
       subcategorias: Array.isArray(subcategorias) ? subcategorias : [subcategorias || ''],
-      imagem: imagem || '',
+      imagem: imagemCapaNome,
+      imagens: imagens,
       criado_em: new Date()
     };
     db.eventos.push(novoEvento);

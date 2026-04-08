@@ -2,9 +2,15 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const apiRoutes = require('./routes');
-const { connectDB } = require('./db');
 const mongoose = require('mongoose');
+const { connectDB } = require('./db');
+
+const useMemoryBackend = !process.env.MONGO_URI || process.env.MONGO_URI.trim() === '';
+const apiRoutes = useMemoryBackend ? require('./routes-memory') : require('./routes');
+
+if (useMemoryBackend) {
+  console.warn('⚠️ MONGO_URI não configurado. Iniciando backend em modo memória (não persistente).');
+}
 
 // Middlewares
 app.use(express.json());
@@ -16,6 +22,17 @@ app.get('/', (req, res) => {
 });
 
 app.get('/debug', async (req, res) => {
+  if (useMemoryBackend) {
+    return res.json({
+      status: 'ok',
+      backend: 'memory',
+      connected: true,
+      message: 'Rodando em modo memoria sem MONGO_URI configurado',
+      hostname: require('os').hostname(),
+      now: new Date().toISOString()
+    });
+  }
+
   try {
     const db = await connectDB();
     return res.json({
