@@ -33,8 +33,10 @@ async function carregarMeusEventos() {
             throw new Error('Erro ao buscar dados do servidor');
         }
 
-        let eventos = await resposta.json();
-        if (!Array.isArray(eventos)) eventos = [];
+        const eventos = await resposta.json();
+        if (!Array.isArray(eventos)) {
+            throw new Error('Resposta inválida do servidor');
+        }
 
         let meusEventos = eventos.filter(ev =>
             String(ev.organizador_id) === usuarioId || String(ev.organizador_id) === String(usuario._id)
