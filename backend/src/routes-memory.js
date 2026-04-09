@@ -86,9 +86,37 @@ router.post('/login', async (req, res) => {
 // Rota para listar eventos
 router.get('/eventos', (req, res) => {
   try {
-    res.json(db.eventos);
+    // Enriquecer cada evento com o array de usuários interessados
+    const eventosComInteresses = db.eventos.map(evento => ({
+      ...evento,
+      interesses: db.interesses
+        .filter(i => i.evento_id === evento.id || i.evento_id === String(evento.id))
+        .map(i => i.usuario_id)
+    }));
+    res.json(eventosComInteresses);
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao listar eventos', detalhes: err.message });
+  }
+});
+
+// Rota para buscar evento por ID
+router.get('/eventos/:id', (req, res) => {
+  try {
+    const id = parseInt(req.params.id) || req.params.id;
+    const evento = db.eventos.find(e => e.id === id || e._id === id);
+    if (!evento) {
+      return res.status(404).json({ erro: 'Evento não encontrado' });
+    }
+    // Enriquecer com os usuários interessados
+    const eventoComInteresses = {
+      ...evento,
+      interesses: db.interesses
+        .filter(i => i.evento_id === evento.id || i.evento_id === String(evento.id))
+        .map(i => i.usuario_id)
+    };
+    res.json(eventoComInteresses);
+  } catch (err) {
+    res.status(400).json({ erro: 'Erro ao buscar evento', detalhes: err.message });
   }
 });
 
@@ -151,6 +179,7 @@ router.post('/eventos', upload.any(), (req, res) => {
       subcategorias: Array.isArray(subcategorias) ? subcategorias : [subcategorias || ''],
       imagem: imagemCapaUrl,
       imagens: imagens,
+      interesses: [],
       criado_em: new Date()
     };
     db.eventos.push(novoEvento);
@@ -258,6 +287,109 @@ router.delete('/usuarios/:id', (req, res) => {
 // Rota de contato
 router.post('/contato', (req, res) => {
   res.json({ mensagem: 'Mensagem recebida! Nos entraremos em contato em breve.' });
+});
+
+// Endpoints de interesses
+// GET /interesses/contador/:eventoId - Contar interesses de um evento
+router.get('/interesses/contador/:eventoId', (req, res) => {
+  try {
+    const eventoId = parseInt(req.params.eventoId) || req.params.eventoId;
+    const contador = db.interesses.filter(i => 
+      i.evento_id === eventoId || i.evento_id === String(eventoId)
+    ).length;
+    res.json({ contador });
+  } catch (err) {
+    res.status(400).json({ erro: 'Erro ao contar interesses', detalhes: err.message });
+  }
+});
+
+// GET /interesses/usuario/:usuarioId - Obter interesses do usuário
+router.get('/interesses/usuario/:usuarioId', (req, res) => {
+  try {
+    const usuarioId = parseInt(req.params.usuarioId) || req.params.usuarioId;
+    const interessesDoUsuario = db.interesses
+      .filter(i => i.usuario_id === usuarioId || i.usuario_id === String(usuarioId))
+      .map(i => i.evento_id);
+    res.json({ interesses: interessesDoUsuario });
+  } catch (err) {
+    res.status(400).json({ erro: 'Erro ao obter interesses do usuário', detalhes: err.message });
+  }
+});
+
+// GET /interesses/:eventoId - Obter contador e interesses de um evento
+router.get('/interesses/:eventoId', (req, res) => {
+  try {
+    const eventoId = parseInt(req.params.eventoId) || req.params.eventoId;
+    const interessados = db.interesses
+      .filter(i => i.evento_id === eventoId || i.evento_id === String(eventoId))
+      .map(i => i.usuario_id);
+    const contador = interessados.length;
+    res.json({ contador, interessados });
+  } catch (err) {
+    res.status(400).json({ erro: 'Erro ao obter interesses', detalhes: err.message });
+  }
+});
+
+// POST /interesses - Adicionar ou remover interesse
+router.post('/interesses', (req, res) => {
+  try {
+    const { evento_id, usuario_id } = req.body;
+    
+    if (!evento_id) {
+      return res.status(400).json({ erro: 'evento_id é obrigatório' });
+    }
+
+    // Se não houver usuario_id no body, tenta extrair do JWT
+    let uid = usuario_id;
+    if (!uid && req.headers.authorization) {
+      try {
+        const token = req.headers.authorization.replace('Bearer ', '');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'chave-secreta');
+        uid = decoded.id;
+      } catch (e) {
+        // Se não conseguir decodificar, vai usar uma ID temporária
+      }
+    }
+
+    // ID genérica para usuários não autenticados
+    if (!uid) {
+      uid = `anon_${Date.now()}`;
+    }
+
+    const eventoIdNum = parseInt(evento_id) || evento_id;
+    const especificacaoId = `${uid}_${eventoIdNum}`;
+
+    // Verificar se interesse já existe
+    const indiceExistente = db.interesses.findIndex(i => 
+      (i.usuario_id === uid || i.usuario_id === String(uid)) && 
+      (i.evento_id === eventoIdNum || i.evento_id === String(eventoIdNum))
+    );
+
+    if (indiceExistente !== -1) {
+      // Remover interesse (toggle off)
+      db.interesses.splice(indiceExistente, 1);
+    } else {
+      // Adicionar interesse (toggle on)
+      db.interesses.push({
+        usuario_id: uid,
+        evento_id: eventoIdNum,
+        data: new Date()
+      });
+    }
+
+    // Retornar novo contador
+    const contador = db.interesses.filter(i => 
+      i.evento_id === eventoIdNum || i.evento_id === String(eventoIdNum)
+    ).length;
+
+    res.json({ 
+      sucesso: true, 
+      contador,
+      mensagem: indiceExistente !== -1 ? 'Interesse removido' : 'Interesse adicionado'
+    });
+  } catch (err) {
+    res.status(400).json({ erro: 'Erro ao atualizar interesse', detalhes: err.message });
+  }
 });
 
 module.exports = router;

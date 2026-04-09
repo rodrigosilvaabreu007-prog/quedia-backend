@@ -30,7 +30,9 @@ const upload = multer({ storage: storage });
 // 3. MIDDLEWARE DE CONEXÃO (Tenta conectar, mas permite próximas rotas)
 router.use(async (req, res, next) => {
     try {
+        console.log('[DEBUG middleware] Tentando conectar ao banco...');
         await connectDB();
+        console.log('[DEBUG middleware] Conexão estabelecida');
     } catch (err) {
         console.error("⚠️ Conexão com banco não disponível no middleware:", err.message);
         // Continua mesmo se banco não conectar - algumas rotas podem funcionar sem banco
@@ -87,7 +89,7 @@ router.post('/eventos', upload.any(), async (req, res) => {
             descricao: req.body.descricao || "",
             cidade: req.body.cidade || "",
             estado: req.body.estado || "",
-            local: req.body.local || "", // Mapeado do campo 'endereco' do frontend
+            local: req.body.local || req.body.endereco || "",
             latitude: Number.isFinite(latitude) ? latitude : null,
             longitude: Number.isFinite(longitude) ? longitude : null,
             data: primeiraData.data || req.body.data || "",
@@ -124,6 +126,7 @@ router.post('/eventos', upload.any(), async (req, res) => {
 
 // 5. ROTA GET: LISTAR EVENTOS
 router.get('/eventos', async (req, res) => {
+    console.log('[DEBUG] Rota /eventos chamada');
     try {
         const eventos = await listarEventosComInteresses(req.query);
         res.json(eventos || []);
@@ -133,8 +136,28 @@ router.get('/eventos', async (req, res) => {
     }
 });
 
+// DEBUG: LISTAR TODOS OS EVENTOS SEM FILTRO
+router.get('/eventos/all', async (req, res) => {
+    console.log('[DEBUG] Rota /eventos/all chamada');
+    try {
+        const { EventoModel } = require('./models/eventos');
+        const eventos = await EventoModel.find({}).sort({ criadoEm: -1 }).limit(10);
+        res.json(eventos || []);
+    } catch (err) {
+        console.error("Erro na rota GET /eventos/all:", err.message);
+        res.status(500).json({ erro: 'Erro ao buscar eventos.' });
+    }
+});
+
+// DEBUG: LISTAR EVENTOS COM STATUS ATIVO
+router.get('/eventos-debug', (req, res) => {
+    console.log('[DEBUG] Rota /eventos-debug foi chamada!');
+    res.json({ status: 'Rota funcionando', timestamp: new Date().toISOString() });
+});
+
 // 5.1. ROTA GET: BUSCAR EVENTO POR ID
 router.get('/eventos/:id', async (req, res) => {
+    console.log(`[DEBUG] Rota /eventos/:id chamada com id: ${req.params.id}`);
     try {
         const { id } = req.params;
         if (!id) {
