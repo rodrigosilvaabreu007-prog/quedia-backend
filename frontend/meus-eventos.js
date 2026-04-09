@@ -69,23 +69,22 @@ async function carregarMeusEventos() {
             const card = document.createElement('div');
             card.className = 'event-card';
             
-            // Tratamento de preço e imagem
             const precoExibicao = evento.gratuito ? 'Gratuito' : `R$ ${evento.preco}`;
             const imagemExibicao = evento.imagem || 'https://via.placeholder.com/400x200?text=Evento+Sem+Foto';
 
             card.innerHTML = `
-                <img src="${imagemExibicao}" alt="${evento.nome}" class="event-img" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px 8px 0 0;">
-                <div class="event-info" style="padding: 15px;">
-                    <h3 style="color: var(--text-primary, #00bfff); margin: 0;">${evento.nome}</h3>
-                    <p style="font-size: 13px; color: #ccc; margin: 8px 0;">${evento.descricao.substring(0, 80)}...</p>
-                    <div style="font-size: 12px; color: #aaa;">
-                        <span>📅 ${evento.data}</span> | <span>📍 ${evento.cidade}</span>
-                    </div>
-                    <div style="margin-top: 10px; font-weight: bold; color: var(--text-primary, #00bfff);">${precoExibicao}</div>
-                    
-                    <div class="card-actions" style="margin-top: 15px; display: flex; gap: 10px;">
-                        <button class="edit-btn" data-id="${evento.id}" style="flex: 1; padding: 8px; cursor: pointer; background: transparent; border: 1px solid #00bfff; color: #00bfff; border-radius: 4px;">Editar</button>
-                        <button class="delete-btn" data-id="${evento.id}" style="flex: 1; padding: 8px; cursor: pointer; background: #ff4444; border: none; color: white; border-radius: 4px;">Excluir</button>
+                <div class="event-img-container">
+                    <img src="${imagemExibicao}" alt="${evento.nome}" class="event-img">
+                </div>
+                <div class="event-info">
+                    <h3>${evento.nome}</h3>
+                    <span class="category-tag">${evento.categoria || 'Sem categoria'}</span>
+                    <p class="event-description">${(evento.descricao || '').substring(0, 100)}...</p>
+                    <div class="event-details">📅 ${evento.data || 'Data não definida'} | 📍 ${evento.cidade || 'Cidade não definida'}</div>
+                    <div class="event-price">${precoExibicao}</div>
+                    <div class="card-actions">
+                        <button class="edit-btn" data-id="${evento.id}">Editar</button>
+                        <button class="delete-btn" data-id="${evento.id}">Excluir</button>
                     </div>
                 </div>
             `;
@@ -97,29 +96,82 @@ async function carregarMeusEventos() {
     }
 }
 
+let pendingDeleteEventoId = null;
+
+function abrirConfirmModal(eventoId, eventoNome) {
+    pendingDeleteEventoId = eventoId;
+    const modal = document.getElementById('confirm-modal');
+    const message = document.getElementById('confirm-delete-message');
+
+    if (message) {
+        message.textContent = `Tem certeza que deseja excluir o evento "${eventoNome}"? Esta ação não pode ser desfeita.`;
+    }
+
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+function fecharConfirmModal() {
+    pendingDeleteEventoId = null;
+    const modal = document.getElementById('confirm-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+async function confirmarExclusao() {
+    if (!pendingDeleteEventoId) {
+        fecharConfirmModal();
+        return;
+    }
+
+    const token = localStorage.getItem('eventhub-token');
+    try {
+        const res = await fetch(`${window.API_URL}/eventos/${pendingDeleteEventoId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+            window.showNotification('Evento excluído com sucesso!', 'success');
+            carregarMeusEventos();
+        } else {
+            window.showNotification('Erro ao excluir evento.', 'error');
+        }
+    } catch (error) {
+        window.showNotification('Erro de conexão ao tentar excluir.', 'error');
+    } finally {
+        fecharConfirmModal();
+    }
+}
+
+function setupConfirmModal() {
+    const modal = document.getElementById('confirm-modal');
+    const btnYes = document.getElementById('confirm-delete-yes');
+    const btnNo = document.getElementById('confirm-delete-no');
+
+    if (btnYes) btnYes.addEventListener('click', confirmarExclusao);
+    if (btnNo) btnNo.addEventListener('click', fecharConfirmModal);
+
+    if (modal) {
+        modal.addEventListener('click', event => {
+            if (event.target === modal) {
+                fecharConfirmModal();
+            }
+        });
+    }
+}
+
 // Delegando eventos para os botões de Editar e Excluir
 document.getElementById('meus-eventos-cards')?.addEventListener('click', async e => {
     const token = localStorage.getItem('eventhub-token');
     const eventoId = e.target.dataset.id;
 
     if (e.target.classList.contains('delete-btn')) {
-        if (confirm('Deseja realmente excluir este evento? Esta ação não pode ser desfeita.')) {
-            try {
-                const res = await fetch(`${window.API_URL}/eventos/${eventoId}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                if (res.ok) {
-                    window.showNotification('Evento excluído com sucesso!', 'success');
-                    carregarMeusEventos();
-                } else {
-                    window.showNotification('Erro ao excluir evento.', 'error');
-                }
-            } catch (error) {
-                window.showNotification('Erro de conexão ao tentar excluir.', 'error');
-            }
-        }
+        const card = e.target.closest('.event-card');
+        const nomeEvento = card?.querySelector('h3')?.textContent || 'este evento';
+        abrirConfirmModal(eventoId, nomeEvento);
     }
 
     if (e.target.classList.contains('edit-btn')) {
@@ -129,4 +181,7 @@ document.getElementById('meus-eventos-cards')?.addEventListener('click', async e
 });
 
 // Inicia a carga
-window.addEventListener('DOMContentLoaded', carregarMeusEventos);
+window.addEventListener('DOMContentLoaded', () => {
+    carregarMeusEventos();
+    setupConfirmModal();
+});
