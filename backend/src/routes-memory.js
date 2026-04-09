@@ -76,7 +76,7 @@ router.post('/login', async (req, res) => {
     
     console.log('✓ Login bem-sucedido:', email);
     const token = jwt.sign({ id: usuario.id, tipo: usuario.tipo }, process.env.JWT_SECRET || 'secret', { expiresIn: '2h' });
-    res.json({ usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email }, token });
+    res.json({ usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email, estado: usuario.estado, cidade: usuario.cidade, preferencias: usuario.preferencias || [] }, token });
   } catch (err) {
     console.error('❌ Erro ao autenticar:', err);
     res.status(400).json({ erro: 'Erro ao autenticar', detalhes: err.message });
@@ -86,8 +86,16 @@ router.post('/login', async (req, res) => {
 // Rota para listar eventos
 router.get('/eventos', (req, res) => {
   try {
-    // Enriquecer cada evento com o array de usuários interessados
-    const eventosComInteresses = db.eventos.map(evento => ({
+    const organizadorId = req.query.organizador_id;
+    let eventosFiltrados = db.eventos;
+
+    if (organizadorId) {
+      eventosFiltrados = eventosFiltrados.filter(evento =>
+        String(evento.organizador_id) === String(organizadorId)
+      );
+    }
+
+    const eventosComInteresses = eventosFiltrados.map(evento => ({
       ...evento,
       interesses: db.interesses
         .filter(i => i.evento_id === evento.id || i.evento_id === String(evento.id))
@@ -126,6 +134,17 @@ router.post('/eventos', upload.any(), (req, res) => {
     const { nome, descricao, estado, cidade, endereco, data, horario, horario_fim, gratuito, preco, organizador, organizador_id, categoria, subcategorias, latitude, longitude } = req.body;
     const imagens = [];
     let imagemCapaUrl = '';
+    let organizadorIdFinal = organizador_id;
+
+    if (req.headers.authorization && !organizadorIdFinal) {
+      try {
+        const token = req.headers.authorization.replace('Bearer ', '');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'chave-secreta');
+        organizadorIdFinal = decoded.id || decoded._id;
+      } catch (e) {
+        console.warn('JWT inválido ao cadastrar evento:', e.message);
+      }
+    }
 
     (req.files || []).forEach(file => {
       const mime = file.mimetype || 'image/jpeg';
@@ -164,6 +183,7 @@ router.post('/eventos', upload.any(), (req, res) => {
       descricao,
       estado: estado || 'Não informado',
       cidade,
+      local: endereco || '',
       endereco: endereco || '',
       latitude: Number.isFinite(lat) ? lat : null,
       longitude: Number.isFinite(lon) ? lon : null,
@@ -174,7 +194,7 @@ router.post('/eventos', upload.any(), (req, res) => {
       gratuito: parseBoolean(gratuito),
       preco: Number(preco) || 0,
       organizador: organizador || 'Não informado',
-      organizador_id: organizador_id || 1,
+      organizador_id: organizadorIdFinal || organizador_id || 1,
       categoria: categoria,
       subcategorias: Array.isArray(subcategorias) ? subcategorias : [subcategorias || ''],
       imagem: imagemCapaUrl,
@@ -190,13 +210,69 @@ router.post('/eventos', upload.any(), (req, res) => {
 });
 
 // Rota para atualizar evento
-router.put('/eventos/:id', (req, res) => {
+router.put('/eventos/:id', upload.any(), (req, res) => {
   try {
     const evento = db.eventos.find(e => e.id === parseInt(req.params.id));
     if (!evento) {
       return res.status(404).json({ erro: 'Evento não encontrado' });
     }
-    Object.assign(evento, req.body);
+
+    const { nome, descricao, estado, cidade, endereco, data, horario, horario_fim, gratuito, preco, organizador, organizador_id, categoria, subcategorias, latitude, longitude } = req.body;
+    const imagens = [];
+    let imagemCapaUrl = '';
+
+    (req.files || []).forEach(file => {
+      const mime = file.mimetype || 'image/jpeg';
+      const base64 = file.buffer.toString('base64');
+      const dataUrl = `data:${mime};base64,${base64}`;
+
+      if (file.fieldname === 'imagemCapa') {
+        imagemCapaUrl = dataUrl;
+      } else if (file.fieldname === 'imagens') {
+        imagens.push(dataUrl);
+      }
+    });
+
+    const parseBoolean = value => value === true || value === 'true' || value === 'on' || value === 1 || value === '1';
+    let datasRecebidas = [];
+    if (req.body.datas) {
+      try {
+        const parsed = typeof req.body.datas === 'string' ? JSON.parse(req.body.datas) : req.body.datas;
+        if (Array.isArray(parsed)) datasRecebidas = parsed;
+      } catch (err) {
+        datasRecebidas = [];
+      }
+    }
+    if (datasRecebidas.length === 0 && data) {
+      datasRecebidas = [{ data, horario_inicio: horario || '', horario_fim: horario_fim || '' }];
+    }
+    const primeiraData = datasRecebidas[0] || { data: data || '', horario_inicio: horario || '', horario_fim: horario_fim || '' };
+
+    const camposAtualizados = {
+      nome: nome || evento.nome,
+      descricao: descricao || evento.descricao,
+      estado: estado || evento.estado,
+      cidade: cidade || evento.cidade,
+      local: endereco || evento.local || evento.endereco || '',
+      endereco: endereco || evento.endereco || '',
+      latitude: Number.isFinite(Number(latitude)) ? Number(latitude) : evento.latitude,
+      longitude: Number.isFinite(Number(longitude)) ? Number(longitude) : evento.longitude,
+      data: primeiraData.data || evento.data,
+      horario: primeiraData.horario_inicio || evento.horario,
+      horario_fim: primeiraData.horario_fim || evento.horario_fim,
+      datas: datasRecebidas.length > 0 ? datasRecebidas : evento.datas,
+      gratuito: parseBoolean(gratuito) || evento.gratuito,
+      preco: Number(preco) || evento.preco,
+      organizador: organizador || evento.organizador,
+      organizador_id: organizador_id || evento.organizador_id,
+      categoria: categoria || evento.categoria,
+      subcategorias: Array.isArray(subcategorias) ? subcategorias : (subcategorias ? [subcategorias] : evento.subcategorias)
+    };
+
+    Object.assign(evento, camposAtualizados);
+    if (imagemCapaUrl) evento.imagem = imagemCapaUrl;
+    if (imagens.length > 0) evento.imagens = imagens;
+
     res.json({ mensagem: 'Evento atualizado com sucesso!' });
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao atualizar evento', detalhes: err.message });
