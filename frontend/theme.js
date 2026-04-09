@@ -60,8 +60,8 @@ function restaurarTema() {
   aplicarTema(tema);
 }
 
-// Função para mostrar notificações
-function showNotification(message, type = 'info') {
+// Função para mostrar notificações do tema
+function showThemeNotification(message, type = 'info') {
   const notification = document.createElement('div');
   notification.className = `notification notification-${type}`;
   notification.textContent = message;
@@ -178,7 +178,7 @@ function initializeThemeModal() {
     if (token && usuarioStr) {
       try {
         const usuario = JSON.parse(usuarioStr);
-        const preferencias = usuario.preferencias || {};
+        let preferencias = usuario.preferencias || {};
         if (typeof preferencias === 'string') {
           preferencias = JSON.parse(preferencias);
         }
@@ -195,7 +195,6 @@ function initializeThemeModal() {
         });
 
         if (response.ok) {
-          // Atualizar dados do usuário no localStorage
           usuario.preferencias = preferencias;
           localStorage.setItem('eventhub-usuario', JSON.stringify(usuario));
         }
@@ -205,7 +204,7 @@ function initializeThemeModal() {
     }
 
     themeModal.style.display = 'none';
-    showNotification('Tema salvo com sucesso!', 'success');
+    showThemeNotification('Tema salvo com sucesso!', 'success');
   };
 
   document.getElementById('reset-theme').onclick = () => {

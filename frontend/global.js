@@ -107,13 +107,16 @@ function irParaPerfil() {
     const usuario = localStorage.getItem('eventhub-usuario');
     
     if (!token || !usuario) {
-        // Se não logado, vai para login
         window.location.href = 'login.html';
         return;
     }
-    
-    // Se logado, mostra modal de perfil
-    mostrarModalPerfil();
+
+    const currentPage = window.location.pathname.split('/').pop();
+    if (currentPage === 'perfil.html' || currentPage === 'perfil') {
+        return;
+    }
+
+    window.location.href = 'perfil.html';
 }
 
 async function mostrarModalPerfil() {
@@ -264,9 +267,9 @@ function showNotification(message, type = 'info') {
     const container = document.createElement('div');
     container.id = 'app-notification';
     container.style.position = 'fixed';
-    container.style.top = '16px';
+    container.style.top = '100px';
     container.style.right = '16px';
-    container.style.zIndex = '9999';
+    container.style.zIndex = '10001';
     container.style.padding = '12px 16px';
     container.style.background = type === 'error' ? 'rgba(255, 68, 68, 0.95)' : type === 'success' ? 'rgba(40, 167, 69, 0.95)' : 'rgba(33, 150, 243, 0.95)';
     container.style.color = '#fff';

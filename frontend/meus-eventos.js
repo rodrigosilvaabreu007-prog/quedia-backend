@@ -69,6 +69,7 @@ async function carregarMeusEventos() {
             const card = document.createElement('div');
             card.className = 'event-card';
             
+            const eventoId = evento.id || evento._id || '';
             const precoExibicao = evento.gratuito ? 'Gratuito' : `R$ ${evento.preco}`;
             const imagemExibicao = evento.imagem || 'https://via.placeholder.com/400x200?text=Evento+Sem+Foto';
 
@@ -83,8 +84,8 @@ async function carregarMeusEventos() {
                     <div class="event-details">📅 ${evento.data || 'Data não definida'} | 📍 ${evento.cidade || 'Cidade não definida'}</div>
                     <div class="event-price">${precoExibicao}</div>
                     <div class="card-actions">
-                        <button class="edit-btn" data-id="${evento.id}">Editar</button>
-                        <button class="delete-btn" data-id="${evento.id}">Excluir</button>
+                        <button class="edit-btn" data-id="${eventoId}">Editar</button>
+                        <button class="delete-btn" data-id="${eventoId}">Excluir</button>
                     </div>
                 </div>
             `;
@@ -175,8 +176,8 @@ document.getElementById('meus-eventos-cards')?.addEventListener('click', async e
     }
 
     if (e.target.classList.contains('edit-btn')) {
-        // Redireciona para a página de edição do evento usando o formulário existente
-        window.location.href = `event-form.html?id=${eventoId}`;
+        // Redireciona para a página de edição dedicada
+        window.location.href = `editar-evento.html?id=${eventoId}`;
     }
 });
 

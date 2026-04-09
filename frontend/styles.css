@@ -170,6 +170,37 @@ header {
   opacity: 0.95;
 }
 
+#app-notification,
+.notification {
+  position: fixed;
+  top: 100px;
+  right: 16px;
+  z-index: 10001;
+  padding: 12px 16px;
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  font-size: 0.9rem;
+  font-weight: 600;
+  max-width: min(90vw, 340px);
+}
+
+#app-notification {
+  background: rgba(40, 167, 69, 0.95);
+}
+
+.notification-error {
+  background: rgba(255, 68, 68, 0.95);
+}
+
+.notification-success {
+  background: rgba(40, 167, 69, 0.95);
+}
+
+.notification-info {
+  background: rgba(33, 150, 243, 0.95);
+}
+
 /* --- HAMBURGER MENU --- */
 .hamburger {
   display: none;
@@ -846,8 +877,8 @@ header {
 }
 
 .confirm-modal {
-  width: min(90%, 420px);
-  max-width: 420px;
+  width: min(90%, 360px);
+  max-width: 360px;
   border-radius: 22px;
   padding: 0;
   border: 1px solid rgba(0, 191, 255, 0.35);
@@ -882,10 +913,14 @@ header {
 
 .confirm-actions {
   display: flex;
-  justify-content: flex-end;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
   gap: 12px;
   margin-top: 24px;
+}
+
+.confirm-actions .btn {
+  width: 100%;
 }
 
 .btn {
