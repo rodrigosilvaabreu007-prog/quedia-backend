@@ -129,10 +129,12 @@ async function carregarDetalhesEvento(eventoId) {
 
         document.getElementById('evento-data').textContent = `📅 Data: ${formatarData(proximaData.data)}`;
         document.getElementById('evento-horario').textContent = `⏰ Horário: ${formatarHorario(proximaData.horario_inicio)}${proximaData.horario_fim ? ' - ' + proximaData.horario_fim : ''}`;
-        document.getElementById('evento-local').textContent = `📍 Local: ${evento.local}`;
         document.getElementById('evento-categoria').textContent = `🏷️ Categoria: ${evento.categoria || 'Geral'}`;
         document.getElementById('evento-preco').textContent = `💰 Preço: ${evento.preco || 'GRATUITO'}`;
         document.getElementById('evento-descricao').textContent = evento.descricao || 'Sem descrição disponível.';
+        const enderecoCompleto = evento.local || evento.endereco || 'Endereço completo não informado.';
+        const enderecoEl = document.getElementById('endereco-completo');
+        if (enderecoEl) enderecoEl.textContent = enderecoCompleto;
 
         const listaDatas = document.getElementById('evento-datas-list');
         if (listaDatas) {

@@ -15,23 +15,46 @@ async function carregarMeusEventos() {
     }
 
     const usuario = JSON.parse(usuarioStr);
-    const usuarioId = usuario.id;
+    const usuarioId = String(usuario.id || usuario._id || '');
+
+    if (!usuarioId) {
+        container.innerHTML = '<p>Usuário não identificado. Faça login novamente.</p>';
+        return;
+    }
 
     try {
-        // 2. Faz a requisição filtrando pelo ID do organizador
-        // Certifique-se que sua rota no backend aceita esse query param ou mude para a rota específica
-        const resposta = await fetch(`${window.API_URL}/eventos?organizador_id=${usuarioId}`, {
+        const resposta = await fetch(`${window.API_URL}/eventos?organizador_id=${encodeURIComponent(usuarioId)}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
 
-        if (!resposta.ok) throw new Error('Erro ao buscar dados do servidor');
+        if (!resposta.ok) {
+            throw new Error('Erro ao buscar dados do servidor');
+        }
 
-        const eventos = await resposta.json();
-        
-        // Filtra no front-end caso o back-end ainda não filtre por organizador_id via query string
-        const meusEventos = eventos.filter(ev => ev.organizador_id == usuarioId);
+        let eventos = await resposta.json();
+        if (!Array.isArray(eventos)) eventos = [];
+
+        let meusEventos = eventos.filter(ev =>
+            String(ev.organizador_id) === usuarioId || String(ev.organizador_id) === String(usuario._id)
+        );
+
+        if (meusEventos.length === 0) {
+            const todos = await fetch(`${window.API_URL}/eventos`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (todos.ok) {
+                const eventosTodos = await todos.json();
+                if (Array.isArray(eventosTodos)) {
+                    meusEventos = eventosTodos.filter(ev =>
+                        String(ev.organizador_id) === usuarioId || String(ev.organizador_id) === String(usuario._id)
+                    );
+                }
+            }
+        }
 
         container.innerHTML = '';
 
@@ -98,8 +121,8 @@ document.getElementById('meus-eventos-cards')?.addEventListener('click', async e
     }
 
     if (e.target.classList.contains('edit-btn')) {
-        // Redireciona para página de edição passando o ID via URL
-        window.location.href = `editar-evento.html?id=${eventoId}`;
+        // Redireciona para a página de edição do evento usando o formulário existente
+        window.location.href = `event-form.html?id=${eventoId}`;
     }
 });
 
