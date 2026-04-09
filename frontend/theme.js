@@ -60,18 +60,6 @@ function restaurarTema() {
   aplicarTema(tema);
 }
 
-// Função para mostrar notificações do tema
-function showThemeNotification(message, type = 'info') {
-  const notification = document.createElement('div');
-  notification.className = `notification notification-${type}`;
-  notification.textContent = message;
-  document.body.appendChild(notification);
-
-  setTimeout(() => {
-    notification.remove();
-  }, 3000);
-}
-
 // Inicializar tema ao carregar a página
 document.addEventListener('DOMContentLoaded', function() {
   restaurarTema();
@@ -204,7 +192,7 @@ function initializeThemeModal() {
     }
 
     themeModal.style.display = 'none';
-    showThemeNotification('Tema salvo com sucesso!', 'success');
+    window.showNotification('Tema salvo com sucesso!', 'success');
   };
 
   document.getElementById('reset-theme').onclick = () => {
