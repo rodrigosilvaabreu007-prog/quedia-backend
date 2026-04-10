@@ -1716,18 +1716,18 @@ header {
 
 .subcategoria-item {
   display: grid;
-  grid-template-columns: 28px 1fr;
-  gap: 14px;
+  grid-template-columns: 30px 1fr;
+  gap: 16px;
   align-items: center;
   padding: 14px 18px;
   min-height: 52px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
-  background: transparent;
+  background: rgba(255,255,255,0.02);
   color: var(--text-primary);
   text-align: left;
-  font-size: 0.96rem;
+  font-size: 0.98rem;
   font-weight: 600;
   width: 100%;
   box-sizing: border-box;
@@ -1738,23 +1738,37 @@ header {
 }
 
 .subcategoria-item:hover {
-  background: rgba(0, 191, 255, 0.14);
+  background: rgba(0, 191, 255, 0.16);
 }
 
 .subcategoria-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   width: 24px;
   height: 24px;
   min-width: 24px;
   min-height: 24px;
-  accent-color: var(--cor-principal);
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
   flex-shrink: 0;
   margin: 0;
-  border: 2px solid rgba(255,255,255,0.18);
-  border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
   background: rgba(255,255,255,0.08);
-  box-shadow: inset 0 1px 1px rgba(0,0,0,0.12);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.18);
+  display: grid;
+  place-items: center;
+}
+
+.subcategoria-item input[type="checkbox"]::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  transform: scale(0);
+  transition: transform 0.15s ease;
+  background: transparent;
 }
 
 .subcategoria-item input[type="checkbox"]:hover {
@@ -1767,10 +1781,15 @@ header {
   border-color: var(--cor-principal);
 }
 
+.subcategoria-item input[type="checkbox"]:checked::after {
+  transform: scale(1);
+  background: var(--bg-primary);
+}
+
 .subcategoria-item span {
   color: var(--text-primary);
-  font-weight: 600;
-  line-height: 1.4;
+  font-weight: 700;
+  line-height: 1.35;
   letter-spacing: 0.01em;
   user-select: none;
 }
