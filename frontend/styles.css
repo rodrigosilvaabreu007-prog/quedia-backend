@@ -1713,6 +1713,10 @@ header {
   display: flex;
 }
 
+.subcategorias-container.hidden {
+  display: none !important;
+}
+
 .subcategoria-item {
   display: flex;
   align-items: center;
@@ -1760,16 +1764,16 @@ header {
 }
 
 .subcategoria-item input[type="checkbox"]::after {
-  content: '';
+  content: '✔';
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 10px;
-  height: 18px;
-  transform: translate(-50%, -62%) rotate(45deg) scale(0);
-  transition: transform 0.15s ease, border-color 0.15s ease;
-  border-right: 2px solid transparent;
-  border-bottom: 2px solid transparent;
+  transform: translate(-50%, -55%) scale(0);
+  color: #ffffff;
+  font-size: 16px;
+  line-height: 1;
+  opacity: 0;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 .subcategoria-item input[type="checkbox"]:hover {
@@ -1783,9 +1787,8 @@ header {
 }
 
 .subcategoria-item input[type="checkbox"]:checked::after {
-  transform: translate(-50%, -62%) rotate(45deg) scale(1);
-  border-right-color: #ffffff;
-  border-bottom-color: #ffffff;
+  transform: translate(-50%, -55%) scale(1);
+  opacity: 1;
 }
 
 .subcategoria-item span {
