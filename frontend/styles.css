@@ -1716,7 +1716,7 @@ header {
 .subcategoria-item {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 36px;
   padding: 14px 18px;
   min-height: 52px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -1781,20 +1781,21 @@ header {
   border-color: var(--cor-principal);
 }
 
-..subcategoria-item input[type="checkbox"]:checked::after {
+.subcategoria-item input[type="checkbox"]:checked::after {
   transform: translate(-50%, -50%) scale(1);
 }
 
 .subcategoria-item span {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  margin-left: 6px;
+  justify-content: flex-start;
+  margin-left: 10px;
   color: var(--text-primary);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: 0.01em;
   user-select: none;
+  min-height: 30px;
 }
 
 /* Scroll customizado */
