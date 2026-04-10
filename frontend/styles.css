@@ -1693,21 +1693,21 @@ header {
   background: rgba(5, 10, 25, 0.8);
   transition: all 0.3s ease;
   flex: 1;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .subcategorias-container.hidden {
-  display: none !important;
-  visibility: hidden;
-  max-height: 0;
-  padding: 0;
   opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .subcategorias-container.visible {
-  display: flex !important;
-  visibility: visible;
-  max-height: 500px;
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .subcategoria-item {
