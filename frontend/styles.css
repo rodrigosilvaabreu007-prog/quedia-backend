@@ -1630,9 +1630,10 @@ header {
   flex-direction: column;
   gap: 0;
   border-radius: 16px;
-  overflow: visible;
+  overflow: hidden;
   border: 1px solid rgba(0, 191, 255, 0.25);
   transition: all 0.3s ease;
+  max-height: 600px;
 }
 
 .categoria-card:hover {
@@ -1641,20 +1642,20 @@ header {
 }
 
 .btn-categoria {
-  background: linear-gradient(135deg, rgba(0, 191, 255, 0.18), rgba(0, 150, 255, 0.08));
-  border: 1px solid rgba(0, 191, 255, 0.4);
+  background: rgba(0, 120, 200, 0.15);
+  border: 2px solid rgba(0, 191, 255, 0.5);
   color: #fff;
-  padding: 16px 18px;
+  padding: 14px 16px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  transition: all 0.25s ease;
   text-align: left;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-radius: 14px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  box-sizing: border-box;
 }
 
 .btn-categoria::after {
@@ -1685,11 +1686,13 @@ header {
   display: flex;
   flex-direction: column;
   gap: 0;
-  max-height: 500px;
+  max-height: 400px;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 0;
   background: rgba(5, 10, 25, 0.8);
   transition: all 0.3s ease;
+  flex: 1;
 }
 
 .subcategorias-container.hidden {
@@ -1708,18 +1711,22 @@ header {
 .subcategoria-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
   border-bottom: 1px solid rgba(0, 191, 255, 0.1);
   cursor: pointer;
   transition: all 0.2s ease;
   background: transparent;
-  border: none;
   color: #fff;
   text-align: left;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
-  flex-direction: row;
+  width: 100%;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .subcategoria-item:last-child {
@@ -1815,7 +1822,6 @@ header {
     padding: 10px 14px;
     font-size: 0.9rem;
   }
-}
 }
 
 .evento-info-principal h1 {
