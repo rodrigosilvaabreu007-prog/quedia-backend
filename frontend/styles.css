@@ -1765,11 +1765,11 @@ header {
   top: 50%;
   left: 50%;
   width: 10px;
-  height: 10px;
-  transform: translate(-50%, -50%) scale(0);
-  transition: transform 0.15s ease;
-  border-radius: 4px;
-  background: var(--bg-primary);
+  height: 18px;
+  transform: translate(-50%, -62%) rotate(45deg) scale(0);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  border-right: 2px solid transparent;
+  border-bottom: 2px solid transparent;
 }
 
 .subcategoria-item input[type="checkbox"]:hover {
@@ -1783,7 +1783,9 @@ header {
 }
 
 .subcategoria-item input[type="checkbox"]:checked::after {
-  transform: translate(-50%, -50%) scale(1);
+  transform: translate(-50%, -62%) rotate(45deg) scale(1);
+  border-right-color: #ffffff;
+  border-bottom-color: #ffffff;
 }
 
 .subcategoria-item span {
