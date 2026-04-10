@@ -4,8 +4,6 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/eventhub-api:$SHORT_SHA'
-      - '-t'
       - 'gcr.io/$PROJECT_ID/eventhub-api:latest'
       - '-f'
       - 'backend/Dockerfile'
@@ -15,7 +13,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/eventhub-api:$SHORT_SHA'
+      - 'gcr.io/$PROJECT_ID/eventhub-api:latest'
 
   # Deploy no Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:latest'
@@ -25,7 +23,7 @@ steps:
       - 'deploy'
       - 'eventhub-api'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/eventhub-api:$SHORT_SHA'
+      - 'gcr.io/$PROJECT_ID/eventhub-api:latest'
       - '--region'
       - 'us-central1'
       - '--platform'
@@ -35,7 +33,6 @@ steps:
       - 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID,NODE_ENV=production'
 
 images:
-  - 'gcr.io/$PROJECT_ID/eventhub-api:$SHORT_SHA'
   - 'gcr.io/$PROJECT_ID/eventhub-api:latest'
 
 timeout: '1800s'
