@@ -173,7 +173,8 @@ function initializeThemeModal() {
 
         preferencias.tema = { corPrincipal, corFundo, corTexto };
 
-        const response = await fetch(`${window.API_URL}/usuario/${usuario._id}`, {
+        const usuarioId = usuario.id || usuario._id || '';
+        const response = await fetch(`${window.API_URL}/usuario/${usuarioId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

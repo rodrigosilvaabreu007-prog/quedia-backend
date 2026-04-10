@@ -28,12 +28,6 @@ const ESTADOS_BRASIL = [
     { uf: 'TO', nome: 'Tocantins' }
 ];
 
-const CATEGORIAS_JSON = {
-    "Musica": ["Sertanejo", "Rock", "Eletronico", "Pagode", "Funk"],
-    "Cultura": ["Teatro", "Exposicao", "Cinema", "Workshop"],
-    "Outros": ["Gastronomia", "Esporte", "Religioso"]
-};
-
 window.togglePreco = () => {
     const isPago = document.getElementById('gratuito-nao')?.checked;
     const containerPreco = document.getElementById('container-preco');
@@ -363,14 +357,6 @@ async function preencherEstadoECidade(estado, cidade) {
     }
 }
 
-function selecionarCategorias(subcategorias) {
-    const checkboxes = document.querySelectorAll('input[name="subcat"]');
-    const selecionadas = Array.isArray(subcategorias) ? subcategorias : [];
-    checkboxes.forEach((cb) => {
-        cb.checked = selecionadas.includes(cb.value);
-    });
-}
-
 function exibirPreviewAtual(imagemUrl) {
     if (!imagemUrl) return;
     const preview = document.getElementById('preview-capa');
@@ -443,8 +429,7 @@ async function carregarEventoEdicao() {
         }
 
         await preencherEstadoECidade(evento.estado, evento.cidade);
-        selecionarCategorias(evento.subcategorias || []);
-        exibirPreviewAtual(evento.imagem || evento.imagemCapa || '');
+    restaurarSubcategoriasEdicao(evento.subcategorias || []);
 
         if (evento.latitude && evento.longitude && mapaEvento) {
             const lat = Number.parseFloat(evento.latitude);
@@ -483,7 +468,8 @@ function construirPayloadEdicao() {
     const longitude = document.getElementById('longitude').value.trim();
     const dadosDatas = validarDatasFormulario();
     const datas = dadosDatas.valido ? dadosDatas.dados : [];
-    const selecionadas = Array.from(document.querySelectorAll('input[name="subcat"]:checked')).map((el) => el.value);
+    const selecionadas = obterSubcategoriasSeleccionadas();
+    const categoriaPrincipal = obterCategoriaPrincipalSelecionada();
     const gratuito = document.getElementById('gratuito-sim').checked;
     const precoVal = document.getElementById('preco').value;
 
@@ -502,7 +488,7 @@ function construirPayloadEdicao() {
         horario_fim: datas[0]?.horario_fim || '',
         gratuito,
         preco: Number(precoVal) || 0,
-        categoria: selecionadas[0] || 'Outros',
+        categoria: categoriaPrincipal,
         subcategorias: selecionadas
     };
 }
@@ -614,27 +600,11 @@ function atualizarComponenteFormularioEditavel() {
     }
 }
 
-function preencherCategorias() {
-    const catDiv = document.getElementById('categorias-evento');
-    if (!catDiv) return;
-    catDiv.innerHTML = '';
-
-    Object.entries(CATEGORIAS_JSON).forEach(([pai, subs]) => {
-        let html = `<div style="color:#00bfff; font-weight:bold; margin-top:10px; grid-column: 1/-1;">${pai}</div>`;
-        subs.forEach((s) => {
-            html += `<label class="categoria-item"><input type="checkbox" name="subcat" value="${s}"> ${s}</label>`;
-        });
-        catDiv.innerHTML += html;
-    });
-}
-
 async function inicializarFormulario() {
     const estSelect = document.getElementById('evento-estado');
     if (estSelect) {
         estSelect.innerHTML = '<option value="">Estado</option>' + ESTADOS_BRASIL.map((estado) => `<option value="${estado.uf}">${estado.nome} (${estado.uf})</option>`).join('');
     }
-
-    preencherCategorias();
 
     const enderecoInput = document.getElementById('endereco');
     if (enderecoInput) {
@@ -664,6 +634,7 @@ async function inicializarFormulario() {
     atualizarBotoesRemoverData();
     atualizarTituloPagina();
     atualizarComponenteFormularioEditavel();
+    inicializarSeletorCategorias();
     inicializarMapaEvento();
 
     if (IS_EDIT_MODE) {
@@ -743,13 +714,14 @@ async function inicializarFormulario() {
                 return;
             }
 
-            const selecionadas = Array.from(document.querySelectorAll('input[name="subcat"]:checked')).map((el) => el.value);
+            const selecionadas = obterSubcategoriasSeleccionadas();
             if (selecionadas.length === 0) {
                 if (msg) { msg.style.color = 'red'; msg.textContent = 'Selecione ao menos uma categoria para o evento.'; }
                 mostrarAvisoCampo('warning-categorias', 'Selecione ao menos uma categoria para que o evento seja encontrado.');
                 return;
             }
 
+            const categoriaPrincipal = obterCategoriaPrincipalSelecionada();
             const capaInput = document.getElementById('imagem-capa');
             if (!capaInput || !capaInput.files || capaInput.files.length === 0) {
                 if (msg) { msg.style.color = 'red'; msg.textContent = 'Selecione a imagem de capa do evento.'; }
@@ -776,7 +748,7 @@ async function inicializarFormulario() {
             formData.append('preco', precoVal || 0);
             formData.append('gratuito', document.getElementById('gratuito-sim').checked);
             selecionadas.forEach((s) => formData.append('subcategorias', s));
-            formData.append('categoria', selecionadas[0] || 'Outros');
+            formData.append('categoria', categoriaPrincipal);
             formData.append('imagemCapa', capaInput.files[0]);
 
             const inputFotosEvento = document.getElementById('imagens-evento');

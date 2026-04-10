@@ -270,6 +270,25 @@ router.get('/usuario/:id', async (req, res) => {
     }
 });
 
+router.get('/usuarios/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+        }
+
+        const usuario = await buscarUsuarioPorId(id);
+        if (!usuario) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+
+        return res.json(usuario);
+    } catch (err) {
+        console.error('Erro na rota GET /usuarios/:id:', err.message);
+        return res.status(500).json({ erro: err.message || 'Erro ao buscar usuário' });
+    }
+});
+
 // 9. ROTA PUT: ATUALIZAR USUÁRIO (COM AUTENTICAÇÃO)
 router.put('/usuario/:id', verificarToken, async (req, res) => {
     try {
@@ -303,6 +322,34 @@ router.put('/usuario/:id', verificarToken, async (req, res) => {
     }
 });
 
+router.put('/usuarios/:id', verificarToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nome, email, estado, cidade, preferencias } = req.body;
+        
+        if (!id) {
+            return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+        }
+
+        const tokenUserId = String(req.usuario?.id?.toString ? req.usuario.id.toString() : req.usuario?.id || '');
+        const paramUserId = String(id);
+        
+        if (tokenUserId !== paramUserId) {
+            return res.status(403).json({ erro: 'Você não tem permissão para atualizar esta conta' });
+        }
+
+        const usuarioAtualizado = await atualizarUsuario(id, { nome, email, estado, cidade, preferencias });
+        if (!usuarioAtualizado) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+
+        return res.json(usuarioAtualizado);
+    } catch (err) {
+        console.error('Erro na rota PUT /usuarios/:id:', err.message);
+        return res.status(500).json({ erro: err.message || 'Erro ao atualizar usuário' });
+    }
+});
+
 // 10. ROTA DELETE: DELETAR USUÁRIO (COM AUTENTICAÇÃO)
 router.delete('/usuario/:id', verificarToken, async (req, res) => {
     try {
@@ -332,6 +379,34 @@ router.delete('/usuario/:id', verificarToken, async (req, res) => {
         return res.json({ mensagem: 'Usuário deletado com sucesso' });
     } catch (err) {
         console.error('Erro na rota DELETE /usuario/:id:', err.message);
+        return res.status(500).json({ erro: err.message || 'Erro ao deletar usuário' });
+    }
+});
+
+router.delete('/usuarios/:id', verificarToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+        }
+
+        const tokenUserId = String(req.usuario?.id?.toString ? req.usuario.id.toString() : req.usuario?.id || '');
+        const paramUserId = String(id);
+        
+        if (tokenUserId !== paramUserId) {
+            return res.status(403).json({ erro: 'Você não tem permissão para deletar esta conta' });
+        }
+
+        await removerInteressesPorUsuario(id);
+
+        const usuarioDeletado = await deletarUsuario(id);
+        if (!usuarioDeletado) {
+            return res.status(404).json({ erro: 'Usuário não encontrado' });
+        }
+
+        return res.json({ mensagem: 'Usuário deletado com sucesso' });
+    } catch (err) {
+        console.error('Erro na rota DELETE /usuarios/:id:', err.message);
         return res.status(500).json({ erro: err.message || 'Erro ao deletar usuário' });
     }
 });

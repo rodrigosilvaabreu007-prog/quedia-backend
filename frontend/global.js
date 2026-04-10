@@ -126,7 +126,8 @@ async function mostrarModalPerfil() {
     
     // Buscar dados atualizados do usuário
     try {
-        const response = await fetch(`${API_URL}/usuario/${usuario._id}`, {
+const usuarioId = usuario.id || usuario._id || '';
+    const response = await fetch(`${API_URL}/usuario/${usuarioId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('eventhub-token')}`
             }

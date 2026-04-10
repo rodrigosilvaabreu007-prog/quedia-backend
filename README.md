@@ -2,6 +2,37 @@
 
 Sistema completo de gerenciamento de eventos com suporte total para Google Cloud Platform.
 
+---
+
+## ⚠️ AVISO CRÍTICO - PROTEÇÃO DE DADOS
+
+**🚫 NUNCA MODIFIQUE, DELETE OU ALTERE TABELAS DE USUÁRIOS E EVENTOS SEM BACKUP!**
+
+### Importante:
+- **Base de dados está em produção** - todo usuário e evento criado é real
+- **Alterações no código podem deletar dados** - rotas, schemas ou lógica de negócio
+- **SEMPRE fazer backup** antes de:
+  - Alterar estrutura de banco de dados
+  - Modificar rotas de autenticação ou usuários
+  - Mudar lógica de exclusão/atualização
+  - Fazer deploy de mudanças estruturais
+
+### Processo OBRIGATÓRIO:
+1. **Antes de qualquer mudança**: Fazer commit com mensagem clara
+2. **Após cada mudança**: Fazer novo commit específico
+3. **Sempre que terminar**: Fazer deploy (commit + deploy)
+4. **Se houver erro**: Revertir com `git revert`
+
+### Comando de Deploy:
+```bash
+# Backend + Frontend
+gcloud builds submit --tag gcr.io/quedia-backend/eventhub-api:latest backend
+gcloud run deploy eventhub-api --image gcr.io/quedia-backend/eventhub-api:latest --region us-central1 --platform managed --allow-unauthenticated
+firebase deploy --only hosting
+```
+
+---
+
 ## 🚀 Início Rápido (Desenvolvimento Local)
 
 ### Pré-requisitos

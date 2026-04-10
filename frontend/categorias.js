@@ -1,55 +1,468 @@
-// Categorias e Subcategorias do EventHub
+// ⚠️ CATEGORIAS E SUBCATEGORIAS COMPLETAS - Atualizado em 10/04/2026
+// Com interface interativa de seleção múltipla
+
 const categoriasCompletas = {
-  'Negócio & Conexão': {
-    id: 'negocio',
-    subcategorias: ['Seminário', 'Fórum', 'Congresso', 'Conferência', 'Workshop', 'Palestra', 'Meetup profissional', 'Networking', 'Rodada de negócios', 'Feira empresarial', 'Expo empresarial', 'Lançamento de produto', 'Apresentação de startup', 'Pitch de investidores', 'Treinamento corporativo', 'Convenção empresarial', 'Encontro de empreendedores', 'Encontro de startups', 'Painel de discussão', 'Masterclass', 'Curso profissional', 'Bootcamp', 'Hackathon', 'Summit empresarial', 'Feira de inovação']
+  'Cultura & Educação': {
+    id: 'cultura',
+    subcategorias: [
+      'Aula aberta',
+      'Cinema ao ar livre',
+      'Clube do livro',
+      'Congresso científico',
+      'Curso',
+      'Encontro acadêmico',
+      'Espetáculo teatral',
+      'Exposição de arte',
+      'Feira de ciência',
+      'Feira literária',
+      'Festival de cinema',
+      'Lançamento de livro',
+      'Mostra cultural',
+      'Mostra de cinema',
+      'Museu',
+      'Olimpíada escolar',
+      'Palestra educacional',
+      'Sarau',
+      'Teatro',
+      'Workshop artístico'
+    ]
   },
   'Esporte & Saúde': {
     id: 'esporte',
-    subcategorias: ['Corrida de rua', 'Maratona', 'Meia maratona', 'Caminhada', 'Ciclismo', 'Triatlo', 'Natação', 'Campeonato de futebol', 'Campeonato de futsal', 'Campeonato de vôlei', 'Campeonato de basquete', 'Campeonato de handebol', 'Torneio esportivo', 'Torneio de tênis', 'Torneio de beach tennis', 'Torneio de skate', 'Torneio de surf', 'Campeonato de e-sports', 'Evento fitness', 'Aula coletiva', 'Yoga', 'Crossfit', 'Funcional', 'Campeonato de artes marciais', 'Campeonato de jiu-jitsu', 'Campeonato de karatê', 'Campeonato de MMA', 'Campeonato escolar', 'Campeonato universitário']
-  },
-  'Política & Cidadania': {
-    id: 'politica',
-    subcategorias: ['Convenção política', 'Debate político', 'Reunião pública', 'Audiência pública', 'Assembleia', 'Conferência municipal', 'Conferência estadual', 'Conferência nacional', 'Encontro comunitário', 'Reunião de bairro', 'Sessão legislativa', 'Encontro partidário', 'Fórum de cidadania', 'Mobilização social', 'Protesto', 'Manifestação', 'Campanha eleitoral', 'Evento governamental', 'Consulta pública']
-  },
-  'Shows & Festas': {
-    id: 'shows',
-    subcategorias: ['Show musical', 'Festival de música', 'Festival cultural', 'Balada', 'Festa temática', 'Festa universitária', 'Festival eletrônico', 'Festival de rock', 'Festival sertanejo', 'Festival pop', 'Festival de rap', 'Festival de reggae', 'Festival gospel', 'Festival multicultural', 'DJ set', 'Evento em casa noturna', 'Festa open bar', 'Festa ao ar livre', 'Festa de réveillon', 'Festa de carnaval', 'Festa junina', 'Festival de dança', 'Festival de arte']
-  },
-  'Social & Comunidade': {
-    id: 'social',
-    subcategorias: ['Feira comunitária', 'Feira de artesanato', 'Feira de rua', 'Feira gastronômica', 'Feira cultural', 'Feira de livros', 'Evento beneficente', 'Campanha solidária', 'Doação de sangue', 'Mutirão comunitário', 'Evento religioso', 'Encontro religioso', 'Culto especial', 'Retiro espiritual', 'Casamento', 'Aniversário público', 'Inauguração', 'Comemoração municipal', 'Evento de bairro', 'Evento escolar', 'Evento universitário', 'Festa de confraternização', 'Festival comunitário']
-  },
-  'Cultura & Educação': {
-    id: 'cultura',
-    subcategorias: ['Exposição de arte', 'Museu', 'Mostra cultural', 'Feira literária', 'Lançamento de livro', 'Clube do livro', 'Sarau', 'Teatro', 'Espetáculo teatral', 'Cinema ao ar livre', 'Festival de cinema', 'Mostra de cinema', 'Workshop artístico', 'Aula aberta', 'Curso', 'Palestra educacional', 'Encontro acadêmico', 'Congresso científico', 'Feira de ciência', 'Olimpíada escolar']
-  },
-  'Tecnologia & Inovação': {
-    id: 'tecnologia',
-    subcategorias: ['Hackathon', 'Conferência de tecnologia', 'Meetup de tecnologia', 'Workshop de programação', 'Evento de IA', 'Evento de blockchain', 'Evento de startups', 'Feira de tecnologia', 'Expo tecnologia', 'Summit de inovação', 'Bootcamp de programação', 'Lançamento de software', 'Apresentação de produto tech']
+    subcategorias: [
+      'Aula coletiva',
+      'Caminhada',
+      'Campeonato de MMA',
+      'Campeonato de artes marciais',
+      'Campeonato de basquete',
+      'Campeonato de e-sports',
+      'Campeonato de futebol',
+      'Campeonato de futsal',
+      'Campeonato de handebol',
+      'Campeonato de jiu-jitsu',
+      'Campeonato de karatê',
+      'Campeonato de vôlei',
+      'Campeonato escolar',
+      'Campeonato universitário',
+      'Ciclismo',
+      'Corrida de rua',
+      'Crossfit',
+      'Evento fitness',
+      'Funcional',
+      'Maratona',
+      'Meia maratona',
+      'Natação',
+      'Torneio de beach tennis',
+      'Torneio de skate',
+      'Torneio de surf',
+      'Torneio de tênis',
+      'Torneio esportivo',
+      'Triatlo',
+      'Yoga'
+    ]
   },
   'Gastronomia': {
     id: 'gastronomia',
-    subcategorias: ['Festival gastronômico', 'Festival de food truck', 'Festival de cerveja', 'Festival de vinho', 'Festival de churrasco', 'Festival de café', 'Festival de doces', 'Degustação', 'Aula de culinária', 'Workshop gastronômico', 'Feira gastronômica', 'Competição culinária']
+    subcategorias: [
+      'Aula de culinária',
+      'Competição culinária',
+      'Degustação',
+      'Feira gastronômica',
+      'Festival de café',
+      'Festival de cerveja',
+      'Festival de churrasco',
+      'Festival de doces',
+      'Festival de food truck',
+      'Festival de vinho',
+      'Festival gastronômico',
+      'Workshop gastronômico'
+    ]
+  },
+  'Negócio & Conexão': {
+    id: 'negocio',
+    subcategorias: [
+      'Apresentação de startup',
+      'Bootcamp',
+      'Conferência',
+      'Congresso',
+      'Convenção empresarial',
+      'Curso profissional',
+      'Encontro de empreendedores',
+      'Encontro de startups',
+      'Expo empresarial',
+      'Feira de inovação',
+      'Feira empresarial',
+      'Fórum',
+      'Hackathon',
+      'Lançamento de produto',
+      'Masterclass',
+      'Meetup profissional',
+      'Networking',
+      'Painel de discussão',
+      'Palestra',
+      'Pitch de investidores',
+      'Rodada de negócios',
+      'Seminário',
+      'Summit empresarial',
+      'Treinamento corporativo',
+      'Workshop'
+    ]
+  },
+  'Política & Cidadania': {
+    id: 'politica',
+    subcategorias: [
+      'Assembleia',
+      'Audiência pública',
+      'Campanha eleitoral',
+      'Conferência estadual',
+      'Conferência municipal',
+      'Conferência nacional',
+      'Consulta pública',
+      'Convenção política',
+      'Debate político',
+      'Encontro comunitário',
+      'Encontro partidário',
+      'Evento governamental',
+      'Fórum de cidadania',
+      'Manifestação',
+      'Mobilização social',
+      'Protesto',
+      'Reunião de bairro',
+      'Reunião pública',
+      'Sessão legislativa'
+    ]
+  },
+  'Shows & Festas': {
+    id: 'shows',
+    subcategorias: [
+      'Balada',
+      'DJ set',
+      'Evento em casa noturna',
+      'Festa ao ar livre',
+      'Festa de carnaval',
+      'Festa de réveillon',
+      'Festa junina',
+      'Festa open bar',
+      'Festa temática',
+      'Festa universitária',
+      'Festival cultural',
+      'Festival de arte',
+      'Festival de dança',
+      'Festival de música',
+      'Festival de rap',
+      'Festival de reggae',
+      'Festival de rock',
+      'Festival eletrônico',
+      'Festival gospel',
+      'Festival multicultural',
+      'Festival pop',
+      'Festival sertanejo',
+      'Show musical'
+    ]
+  },
+  'Social & Comunidade': {
+    id: 'social',
+    subcategorias: [
+      'Aniversário público',
+      'Campanha solidária',
+      'Casamento',
+      'Comemoração municipal',
+      'Culto especial',
+      'Doação de sangue',
+      'Encontro religioso',
+      'Evento beneficente',
+      'Evento de bairro',
+      'Evento escolar',
+      'Evento religioso',
+      'Evento universitário',
+      'Feira comunitária',
+      'Feira cultural',
+      'Feira de artesanato',
+      'Feira de livros',
+      'Feira de rua',
+      'Feira gastronômica',
+      'Festa de confraternização',
+      'Festival comunitário',
+      'Inauguração',
+      'Mutirão comunitário',
+      'Retiro espiritual'
+    ]
+  },
+  'Tecnologia & Inovação': {
+    id: 'tecnologia',
+    subcategorias: [
+      'Apresentação de produto tech',
+      'Bootcamp de programação',
+      'Conferência de tecnologia',
+      'Evento de IA',
+      'Evento de blockchain',
+      'Evento de startups',
+      'Expo tecnologia',
+      'Feira de tecnologia',
+      'Hackathon',
+      'Lançamento de software',
+      'Meetup de tecnologia',
+      'Summit de inovação',
+      'Workshop de programação'
+    ]
   }
 };
 
-// Função para obter categorias principais
+// ===== FUNÇÕES DE UTILIDADE =====
+
 function obterCategoriasPrincipais() {
-  return Object.keys(categoriasCompletas).sort();
+  return Object.keys(categoriasCompletas);
 }
 
-// Função para obter subcategorias de uma categoria
 function obterSubcategorias(categoria) {
   if (categoriasCompletas[categoria]) {
-    return categoriasCompletas[categoria].subcategorias.sort();
+    return categoriasCompletas[categoria].subcategorias;
   }
   return [];
 }
 
-// Função para obter categorias selecionadas
-function obterCategoriasSelecioandas(id = 'categoria') {
-  const checkboxes = document.querySelectorAll(`input[name="${id}-subcategoria"]:checked`);
+function obterCategoriaPorSubcategoria(subcategoria) {
+  for (const [categoria, dados] of Object.entries(categoriasCompletas)) {
+    if (dados.subcategorias.includes(subcategoria)) {
+      return categoria;
+    }
+  }
+  return 'Outros';
+}
+
+function obterCategoriasSelecionadas() {
+  return Array.from(new Set(obterSubcategoriasSeleccionadas().map(obterCategoriaPorSubcategoria)));
+}
+
+function obterCategoriaPrincipalSelecionada() {
+  return obterCategoriasSelecionadas()[0] || 'Outros';
+}
+
+// ===== INTERFACE INTERATIVA =====
+
+function inicializarSeletorCategorias(containerId = 'categorias-evento', selectedSubcategorias = []) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.innerHTML = '';
+  container.classList.add('seletor-categorias-container');
+
+  const categorias = obterCategoriasPrincipais();
+
+  categorias.forEach(categoria => {
+    // Botão da categoria
+    const btnCategoria = document.createElement('button');
+    btnCategoria.type = 'button';
+    btnCategoria.className = 'btn-categoria';
+    btnCategoria.textContent = categoria;
+    btnCategoria.dataset.categoria = categoria;
+
+    // Container de subcategorias (inicialmente oculto)
+    const subcatContainer = document.createElement('div');
+    subcatContainer.className = 'subcategorias-container hidden';
+    subcatContainer.dataset.categoria = categoria;
+
+    // Botão para expandir/recolher
+    btnCategoria.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isHidden = subcatContainer.classList.contains('hidden');
+      
+      // Recolher outras categorias abertas
+      document.querySelectorAll('.subcategorias-container').forEach(container => {
+        container.classList.add('hidden');
+      });
+      document.querySelectorAll('.btn-categoria').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      // Expandir a clicada
+      if (isHidden) {
+        subcatContainer.classList.remove('hidden');
+        btnCategoria.classList.add('active');
+      }
+    });
+
+    // Gerar checkboxes de subcategorias
+    const subcategorias = obterSubcategorias(categoria);
+    subcategorias.forEach(subcategoria => {
+      const label = document.createElement('label');
+      label.className = 'subcategoria-item';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.name = `subcat-${categoria}`;
+      checkbox.value = subcategoria;
+
+      const span = document.createElement('span');
+      span.textContent = subcategoria;
+
+      label.appendChild(checkbox);
+      label.appendChild(span);
+      subcatContainer.appendChild(label);
+    });
+
+    container.appendChild(btnCategoria);
+    container.appendChild(subcatContainer);
+  });
+
+  if (Array.isArray(selectedSubcategorias) && selectedSubcategorias.length > 0) {
+    restaurarSubcategoriasEdicao(selectedSubcategorias);
+    abrirCategoriasSelecionadas(selectedSubcategorias);
+  }
+}
+
+// Obter todas as subcategorias selecionadas (múltiplas categorias)
+function obterSubcategoriasSeleccionadas() {
+  const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="subcat-"]:checked');
   return Array.from(checkboxes).map(cb => cb.value);
 }
+
+function abrirCategoriasSelecionadas(subcategoriasSelecionadas = []) {
+  const categoriasSelecionadas = new Set(subcategoriasSelecionadas.map(obterCategoriaPorSubcategoria));
+  document.querySelectorAll('.subcategorias-container').forEach((container) => {
+    const categoria = container.dataset.categoria;
+    if (categoriasSelecionadas.has(categoria)) {
+      container.classList.remove('hidden');
+      const btn = document.querySelector(`.btn-categoria[data-categoria="${categoria}"]`);
+      if (btn) btn.classList.add('active');
+    } else {
+      container.classList.add('hidden');
+    }
+  });
+}
+
+// Restaurar subcategorias selecionadas em modo edição
+function restaurarSubcategoriasEdicao(subcategoriasSelecionadas = []) {
+  if (!Array.isArray(subcategoriasSelecionadas)) return;
+  
+  document.querySelectorAll('input[type="checkbox"][name^="subcat-"]').forEach((checkbox) => {
+    checkbox.checked = subcategoriasSelecionadas.includes(checkbox.value);
+  });
+  abrirCategoriasSelecionadas(subcategoriasSelecionadas);
+}
+
+// Validar seleção (pelo menos uma subcategoria)
+function validarSubcategorias() {
+  const selecionadas = obterSubcategoriasSeleccionadas();
+  return selecionadas.length > 0;
+}
+
+// CSS para o seletor (será injetado dinâmicamente)
+function injetarEstilosSeletor() {
+  const id = 'estilos-seletor-categorias';
+  if (document.getElementById(id)) return;
+
+  const style = document.createElement('style');
+  style.id = id;
+  style.textContent = `
+    .seletor-categorias-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    
+    .btn-categoria {
+      background: linear-gradient(135deg, #00bfff, #0099cc);
+      color: #000;
+      border: none;
+      padding: 14px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: left;
+      position: relative;
+      font-size: 15px;
+    }
+    
+    .btn-categoria:hover {
+      background: linear-gradient(135deg, #00d9ff, #00aadd);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3);
+    }
+    
+    .btn-categoria.active {
+      background: linear-gradient(135deg, #0077aa, #005588);
+      color: #fff;
+    }
+    
+    .btn-categoria::after {
+      content: '▼';
+      position: absolute;
+      right: 12px;
+      font-size: 12px;
+      opacity: 0.6;
+      transition: transform 0.3s ease;
+    }
+    
+    .btn-categoria.active::after {
+      transform: rotate(180deg);
+    }
+    
+    .subcategorias-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      padding: 12px;
+      background: rgba(0, 191, 255, 0.05);
+      border-radius: 6px;
+      border-left: 4px solid #00bfff;
+      animation: slideDown 0.3s ease;
+    }
+    
+    .subcategorias-container.hidden {
+      display: none;
+    }
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .subcategoria-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 4px;
+      transition: background 0.2s ease;
+      font-size: 14px;
+      color: #ccc;
+    }
+    
+    .subcategoria-item:hover {
+      background: rgba(0, 191, 255, 0.1);
+    }
+    
+    .subcategoria-item input[type="checkbox"] {
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+      accent-color: #00bfff;
+    }
+    
+    .subcategoria-item input[type="checkbox"]:checked + span {
+      color: #00bfff;
+      font-weight: 600;
+    }
+    
+    .subcategoria-item span {
+      user-select: none;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// Chamar ao carregar a página
+document.addEventListener('DOMContentLoaded', () => {
+  injetarEstilosSeletor();
+});
 
