@@ -356,10 +356,3 @@ function validarSubcategorias() {
   return selecionadas.length > 0;
 }
 
-
-
-// Chamar ao carregar a página
-document.addEventListener('DOMContentLoaded', () => {
-  injetarEstilosSeletor();
-});
-
