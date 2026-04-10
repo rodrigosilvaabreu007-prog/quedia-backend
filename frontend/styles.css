@@ -1716,11 +1716,11 @@ header {
 
 .subcategoria-item {
   display: grid;
-  grid-template-columns: 24px 1fr;
+  grid-template-columns: 28px 1fr;
   gap: 14px;
   align-items: center;
   padding: 14px 18px;
-  min-height: 50px;
+  min-height: 52px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
@@ -1728,7 +1728,7 @@ header {
   color: var(--text-primary);
   text-align: left;
   font-size: 0.96rem;
-  font-weight: 500;
+  font-weight: 600;
   width: 100%;
   box-sizing: border-box;
 }
@@ -1739,59 +1739,40 @@ header {
 
 .subcategoria-item:hover {
   background: rgba(0, 191, 255, 0.14);
-  color: var(--text-primary);
 }
 
 .subcategoria-item input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  min-height: 20px;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
   accent-color: var(--cor-principal);
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
   flex-shrink: 0;
   margin: 0;
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 4px;
-  background: rgba(255,255,255,0.04);
+  border: 2px solid rgba(255,255,255,0.18);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.08);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.12);
 }
 
 .subcategoria-item input[type="checkbox"]:hover {
   border-color: var(--cor-principal);
+  transform: translateY(-1px);
 }
 
 .subcategoria-item input[type="checkbox"]:checked {
-  accent-color: var(--cor-principal);
   background: var(--cor-principal);
   border-color: var(--cor-principal);
 }
 
 .subcategoria-item span {
-  color: var(--text-secondary);
-  line-height: 1.3;
-  letter-spacing: 0.01em;
-}
-
-.subcategoria-item span {
   color: var(--text-primary);
-  flex: 1;
-  cursor: pointer;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
   user-select: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: normal;
-  line-height: 1.3;
-}
-
-.subcategoria-item input[type="checkbox"]:checked::after {
-  content: '✓';
-  color: #000;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
 }
 
 /* Scroll customizado */
