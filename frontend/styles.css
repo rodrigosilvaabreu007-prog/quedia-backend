@@ -1613,6 +1613,208 @@ header {
     display: none;
 }
 
+/* ⚠️ === ESTILOS PARA SELETOR DE CATEGORIAS === ⚠️ */
+/* Corrigido e limpo - Sem bordas bugadas */
+
+.seletor-categorias-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.categoria-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(10, 20, 40, 0.6);
+  border: 1px solid rgba(0, 191, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.categoria-card:hover {
+  border-color: rgba(0, 191, 255, 0.6);
+  box-shadow: 0 0 15px rgba(0, 191, 255, 0.2);
+}
+
+.btn-categoria {
+  background: rgba(0, 191, 255, 0.15);
+  border: none;
+  border-bottom: 2px solid rgba(0, 191, 255, 0.3);
+  color: #fff;
+  padding: 14px 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn-categoria::after {
+  content: '▼';
+  font-size: 0.75rem;
+  transition: transform 0.3s ease;
+}
+
+.btn-categoria:hover {
+  background: rgba(0, 191, 255, 0.25);
+  color: #00ffdd;
+  text-shadow: 0 0 10px rgba(0, 191, 255, 0.6);
+}
+
+.btn-categoria.active {
+  background: rgba(0, 191, 255, 0.3);
+  border-bottom-color: #00bfff;
+  color: #00ffdd;
+}
+
+.btn-categoria.active::after {
+  transform: rotate(180deg);
+}
+
+.subcategorias-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 500px;
+  overflow-y: auto;
+  padding: 0;
+  background: rgba(5, 10, 25, 0.8);
+  transition: all 0.3s ease;
+}
+
+.subcategorias-container.hidden {
+  display: none;
+  max-height: 0;
+  padding: 0;
+  opacity: 0;
+}
+
+.subcategorias-container.visible {
+  display: flex;
+  max-height: 500px;
+  opacity: 1;
+}
+
+.subcategoria-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 191, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  color: #fff;
+  text-align: left;
+  font-size: 0.95rem;
+  font-weight: 500;
+  flex-direction: row;
+}
+
+.subcategoria-item:last-child {
+  border-bottom: none;
+}
+
+.subcategoria-item:hover {
+  background: rgba(0, 191, 255, 0.1);
+  color: #00ffdd;
+}
+
+.subcategoria-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  border: 2px solid rgba(0, 191, 255, 0.6);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.subcategoria-item input[type="checkbox"]:hover {
+  border-color: #00bfff;
+  box-shadow: 0 0 8px rgba(0, 191, 255, 0.3);
+}
+
+.subcategoria-item input[type="checkbox"]:checked {
+  background: #00bfff;
+  border-color: #00bfff;
+  box-shadow: 0 0 12px rgba(0, 191, 255, 0.5);
+}
+
+.subcategoria-item input[type="checkbox"]:checked::after {
+  content: '✓';
+  color: #000;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.subcategoria-item span {
+  flex: 1;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Scroll customizado */
+.subcategorias-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.subcategorias-container::-webkit-scrollbar-track {
+  background: rgba(0, 191, 255, 0.05);
+}
+
+.subcategorias-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 191, 255, 0.3);
+  border-radius: 3px;
+}
+
+.subcategorias-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 191, 255, 0.5);
+}
+
+/* Responsivo */
+@media (max-width: 900px) {
+  .seletor-categorias-container {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .seletor-categorias-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .btn-categoria {
+    padding: 12px 14px;
+    font-size: 0.95rem;
+  }
+  
+  .subcategoria-item {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+}
+}
+
 .evento-info-principal h1 {
     color: var(--text-primary, #fff);
     margin-bottom: 15px;

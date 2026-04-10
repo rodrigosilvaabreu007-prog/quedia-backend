@@ -83,31 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Gera Categorias de Preferência
+  // Gera Categorias de Preferência com o novo sistema
   const containerPreferencias = document.getElementById('preferencias-categorias');
-  if (containerPreferencias && typeof obterCategoriasPrincipais === 'function') {
-    containerPreferencias.innerHTML = ''; 
-    const subcategoriaContainer = document.createElement('div');
-    subcategoriaContainer.style.cssText = 'display: flex; flex-direction: column; gap: 10px; margin-top: 8px;';
-    
-    obterCategoriasPrincipais().forEach(cat => {
-      const header = document.createElement('div');
-      header.style.cssText = 'font-weight: bold; color: #00bfff; font-size: 12px; margin-top: 10px;';
-      header.textContent = cat;
-      subcategoriaContainer.appendChild(header);
-      
-      const subcategorias = obterSubcategorias(cat);
-      subcategorias.forEach(sub => {
-        const div = document.createElement('div');
-        div.style.cssText = 'display: flex; gap: 8px; align-items: center; margin-left: 10px;';
-        div.innerHTML = `
-          <input type="checkbox" name="preferencia-subcategoria" value="${sub}" id="pref-${sub.replace(/\s+/g, '-')}">
-          <label for="pref-${sub.replace(/\s+/g, '-')}" style="font-size: 13px;">${sub}</label>
-        `;
-        subcategoriaContainer.appendChild(div);
-      });
-    });
-    containerPreferencias.appendChild(subcategoriaContainer);
+  if (containerPreferencias && typeof inicializarSeletorCategorias === 'function') {
+    inicializarSeletorCategorias('preferencias-categorias');
   }
 });
 
@@ -141,7 +120,7 @@ if (form) {
       senha: senha,
       estado: document.getElementById('estado').value,
       cidade: document.getElementById('cidade').value,
-      preferencias: Array.from(document.querySelectorAll('input[name="preferencia-subcategoria"]:checked')).map(cb => cb.value)
+      preferencias: Array.from(document.querySelectorAll('input[name^="subcat-"]:checked')).map(cb => cb.value)
     };
 
     try {

@@ -257,54 +257,25 @@ function preencherPreferenciasEditar() {
   }
   
   container.innerHTML = '';
+  // Usar o novo seletor de categorias interativo
   const categoriasDiv = document.createElement('div');
-  categoriasDiv.style.cssText = 'display: grid; grid-template-columns: 1fr; gap: 16px;';
+  categoriasDiv.style.cssText = 'display: block;';
   
   const subcategoriaLabel = document.createElement('label');
-  subcategoriaLabel.textContent = 'Subcategoria(s):';
+  subcategoriaLabel.textContent = 'Preferências de Categorias:';
   subcategoriaLabel.style.cssText = 'display: block; margin-bottom: 8px; color: #aaa; font-size: 12px; text-transform: uppercase;';
   
   const subcategoriaContainer = document.createElement('div');
   subcategoriaContainer.id = 'editar-preferencia-subcategorias';
-  subcategoriaContainer.style.cssText = 'display: flex; flex-direction: column; gap: 12px; margin-top: 8px; align-items: flex-start; max-height: 200px; overflow-y: auto;';
-  
-  // Criar checkboxes para subcategorias
-  obterCategoriasPrincipais().forEach(cat => {
-    const headerCategoria = document.createElement('div');
-    headerCategoria.style.cssText = 'font-weight: 600; color: var(--text-primary, #00bfff); margin-top: 8px; font-size: 12px; text-transform: uppercase;';
-    headerCategoria.textContent = cat;
-    subcategoriaContainer.appendChild(headerCategoria);
-    
-    const subcategorias = obterSubcategorias(cat);
-    subcategorias.forEach(sub => {
-      const div2 = document.createElement('div');
-      div2.style.cssText = 'display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: start; margin-left: 12px;';
-      
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.name = 'editar-preferencia-subcategoria';
-      checkbox.value = sub;
-      checkbox.id = `editar-pref-${sub.replace(/\s+/g, '-')}`;
-      
-      // Marcar como checked se já está nas preferências
-      if (preferenciasAtuais.includes(sub)) {
-        checkbox.checked = true;
-      }
-      
-      const label = document.createElement('label');
-      label.htmlFor = checkbox.id;
-      label.textContent = sub;
-      label.style.cssText = 'cursor: pointer; margin: 0; font-size: 13px;';
-      
-      div2.appendChild(checkbox);
-      div2.appendChild(label);
-      subcategoriaContainer.appendChild(div2);
-    });
-  });
   
   categoriasDiv.appendChild(subcategoriaLabel);
   categoriasDiv.appendChild(subcategoriaContainer);
   container.appendChild(categoriasDiv);
+  
+  // Inicializar o novo seletor de categorias com as preferências atuais
+  if (typeof inicializarSeletorCategorias === 'function') {
+    inicializarSeletorCategorias('editar-preferencia-subcategorias', preferenciasAtuais);
+  }
 }
 
 // Função para fechar modal de edição
@@ -372,7 +343,7 @@ async function salvarAlteracoes(e) {
   }
   
   // Coletar preferências selecionadas  
-  const checkboxesSelecionados = document.querySelectorAll('input[name="editar-preferencia-subcategoria"]:checked');
+  const checkboxesSelecionados = document.querySelectorAll('input[name^="subcat-"]:checked');
   const preferencias = Array.from(checkboxesSelecionados).map(cb => cb.value);
   
   const dadosAtualizados = {
