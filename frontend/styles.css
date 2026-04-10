@@ -1716,7 +1716,7 @@ header {
 .subcategoria-item {
   display: flex;
   align-items: center;
-  gap: 36px;
+  gap: 40px;
   padding: 14px 18px;
   min-height: 52px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -1756,6 +1756,7 @@ header {
   background: rgba(255,255,255,0.08);
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.18);
   position: relative;
+  vertical-align: middle;
 }
 
 .subcategoria-item input[type="checkbox"]::after {
@@ -1786,13 +1787,13 @@ header {
 }
 
 .subcategoria-item span {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  margin-left: 10px;
+  margin-left: 14px;
   color: var(--text-primary);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 30px;
   letter-spacing: 0.01em;
   user-select: none;
   min-height: 30px;
