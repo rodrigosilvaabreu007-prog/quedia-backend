@@ -316,6 +316,18 @@ router.get('/usuarios/:id', (req, res) => {
     res.status(400).json({ erro: 'Erro ao obter usuário', detalhes: err.message });
   }
 });
+router.get('/usuario/:id', (req, res) => {
+  try {
+    const usuario = db.usuarios.find(u => u.id === parseInt(req.params.id));
+    if (!usuario) {
+      return res.status(404).json({ erro: 'Usuário não encontrado' });
+    }
+    const { senha, ...usuarioSemSenha } = usuario;
+    res.json(usuarioSemSenha);
+  } catch (err) {
+    res.status(400).json({ erro: 'Erro ao obter usuário', detalhes: err.message });
+  }
+});
 
 // Rota para atualizar usuário
 router.put('/usuarios/:id', (req, res) => {
@@ -339,6 +351,25 @@ router.put('/usuarios/:id', (req, res) => {
     res.status(400).json({ erro: 'Erro ao atualizar usuário', detalhes: err.message });
   }
 });
+router.put('/usuario/:id', (req, res) => {
+  try {
+    const usuario = db.usuarios.find(u => u.id === parseInt(req.params.id));
+    if (!usuario) {
+      return res.status(404).json({ erro: 'Usuário não encontrado' });
+    }
+    
+    if (req.body.nome) usuario.nome = req.body.nome;
+    if (req.body.email) usuario.email = req.body.email;
+    if (req.body.estado) usuario.estado = req.body.estado;
+    if (req.body.cidade) usuario.cidade = req.body.cidade;
+    if (req.body.preferencias) usuario.preferencias = req.body.preferencias;
+    
+    const { senha, ...usuarioSemSenha } = usuario;
+    res.json(usuarioSemSenha);
+  } catch (err) {
+    res.status(400).json({ erro: 'Erro ao atualizar usuário', detalhes: err.message });
+  }
+});
 
 // Rota para deletar usuário
 router.delete('/usuarios/:id', (req, res) => {
@@ -354,6 +385,21 @@ router.delete('/usuarios/:id', (req, res) => {
     // Remover eventos do usuário
     db.eventos = db.eventos.filter(e => e.organizador_id !== parseInt(req.params.id));
     
+    res.json({ mensagem: 'Usuário deletado com sucesso!' });
+  } catch (err) {
+    res.status(400).json({ erro: 'Erro ao deletar usuário', detalhes: err.message });
+  }
+});
+router.delete('/usuario/:id', (req, res) => {
+  try {
+    const index = db.usuarios.findIndex(u => u.id === parseInt(req.params.id));
+    if (index === -1) {
+      return res.status(404).json({ erro: 'Usuário não encontrado' });
+    }
+
+    db.usuarios.splice(index, 1);
+    db.eventos = db.eventos.filter(e => e.organizador_id !== parseInt(req.params.id));
+
     res.json({ mensagem: 'Usuário deletado com sucesso!' });
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao deletar usuário', detalhes: err.message });
