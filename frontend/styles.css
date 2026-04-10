@@ -1683,7 +1683,6 @@ header {
 }
 
 .subcategorias-container {
-  display: none;
   flex-direction: column;
   gap: 0;
   max-height: 400px;
@@ -1693,15 +1692,11 @@ header {
   background: rgba(5, 10, 25, 0.8);
   transition: all 0.3s ease;
   border-radius: 0 0 12px 12px;
-  z-index: 10;
-}
-
-.subcategorias-container.hidden {
-  display: none !important;
+  display: none;
 }
 
 .subcategorias-container.visible {
-  display: flex !important;
+  display: flex;
 }
 
 .subcategoria-item {
