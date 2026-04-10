@@ -250,6 +250,9 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
   const categorias = obterCategoriasPrincipais();
 
   categorias.forEach(categoria => {
+    const cardWrapper = document.createElement('div');
+    cardWrapper.className = 'categoria-card';
+
     // Botão da categoria
     const btnCategoria = document.createElement('button');
     btnCategoria.type = 'button';
@@ -270,6 +273,7 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
       // Recolher outras categorias abertas
       document.querySelectorAll('.subcategorias-container').forEach(container => {
         container.classList.add('hidden');
+        container.classList.remove('visible');
       });
       document.querySelectorAll('.btn-categoria').forEach(btn => {
         btn.classList.remove('active');
@@ -278,6 +282,7 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
       // Expandir a clicada
       if (isHidden) {
         subcatContainer.classList.remove('hidden');
+        subcatContainer.classList.add('visible');
         btnCategoria.classList.add('active');
       }
     });
@@ -301,8 +306,9 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
       subcatContainer.appendChild(label);
     });
 
-    container.appendChild(btnCategoria);
-    container.appendChild(subcatContainer);
+    cardWrapper.appendChild(btnCategoria);
+    cardWrapper.appendChild(subcatContainer);
+    container.appendChild(cardWrapper);
   });
 
   if (Array.isArray(selectedSubcategorias) && selectedSubcategorias.length > 0) {
@@ -321,12 +327,15 @@ function abrirCategoriasSelecionadas(subcategoriasSelecionadas = []) {
   const categoriasSelecionadas = new Set(subcategoriasSelecionadas.map(obterCategoriaPorSubcategoria));
   document.querySelectorAll('.subcategorias-container').forEach((container) => {
     const categoria = container.dataset.categoria;
+    const btn = document.querySelector(`.btn-categoria[data-categoria="${categoria}"]`);
     if (categoriasSelecionadas.has(categoria)) {
       container.classList.remove('hidden');
-      const btn = document.querySelector(`.btn-categoria[data-categoria="${categoria}"]`);
+      container.classList.add('visible');
       if (btn) btn.classList.add('active');
     } else {
       container.classList.add('hidden');
+      container.classList.remove('visible');
+      if (btn) btn.classList.remove('active');
     }
   });
 }
@@ -357,12 +366,33 @@ function injetarEstilosSeletor() {
   style.textContent = `
     .seletor-categorias-container {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
       margin-top: 16px;
     }
-    
+
+    .categoria-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
     .btn-categoria {
+      width: 100%;
+      background: linear-gradient(135deg, #00bfff, #0099cc);
+      color: #000;
+      border: 2px solid rgba(255,255,255,0.12);
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: left;
+      position: relative;
+      font-size: 15px;
+      box-shadow: inset 0 0 0 rgba(255,255,255,0);
+    }
       background: linear-gradient(135deg, #00bfff, #0099cc);
       color: #000;
       border: none;
@@ -379,10 +409,14 @@ function injetarEstilosSeletor() {
     .btn-categoria:hover {
       background: linear-gradient(135deg, #00d9ff, #00aadd);
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3);
+      box-shadow: 0 4px 18px rgba(0, 191, 255, 0.25);
     }
     
     .btn-categoria.active {
+      background: linear-gradient(135deg, #00d8ff, #0078c5);
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(0, 191, 255, 0.28);
+    }
       background: linear-gradient(135deg, #0077aa, #005588);
       color: #fff;
     }
@@ -401,18 +435,38 @@ function injetarEstilosSeletor() {
     }
     
     .subcategorias-container {
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 0;
+      right: 0;
+      z-index: 20;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 10px;
-      padding: 12px;
-      background: rgba(0, 191, 255, 0.05);
-      border-radius: 6px;
-      border-left: 4px solid #00bfff;
-      animation: slideDown 0.3s ease;
+      padding: 0 12px;
+      background: rgba(10, 20, 40, 0.98);
+      border-radius: 16px;
+      border: 1px solid rgba(0, 191, 255, 0.18);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.33);
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: all 0.28s ease;
+      backdrop-filter: blur(12px);
     }
     
+    .subcategorias-container.visible {
+      opacity: 1;
+      max-height: 420px;
+      padding: 12px;
+    }
+
     .subcategorias-container.hidden {
-      display: none;
+      opacity: 0;
+      max-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      border-color: transparent;
     }
     
     @keyframes slideDown {
@@ -431,15 +485,18 @@ function injetarEstilosSeletor() {
       align-items: center;
       gap: 8px;
       cursor: pointer;
-      padding: 8px;
-      border-radius: 4px;
-      transition: background 0.2s ease;
+      padding: 10px 12px;
+      border-radius: 12px;
+      transition: background 0.2s ease, transform 0.2s ease;
       font-size: 14px;
-      color: #ccc;
+      color: #cfdcff;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
     }
     
     .subcategoria-item:hover {
-      background: rgba(0, 191, 255, 0.1);
+      background: rgba(0, 191, 255, 0.12);
+      transform: translateY(-1px);
     }
     
     .subcategoria-item input[type="checkbox"] {
