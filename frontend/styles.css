@@ -1716,7 +1716,7 @@ header {
 .subcategoria-item {
   display: flex;
   align-items: center;
-  gap: 26px;
+  gap: 32px;
   padding: 14px 18px;
   min-height: 52px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
@@ -1743,10 +1743,10 @@ header {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
-  min-height: 28px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
   flex-shrink: 0;
@@ -1781,16 +1781,18 @@ header {
   border-color: var(--cor-principal);
 }
 
-.subcategoria-item input[type="checkbox"]:checked::after {
+..subcategoria-item input[type="checkbox"]:checked::after {
   transform: translate(-50%, -50%) scale(1);
 }
 
-..subcategoria-item span {
+.subcategoria-item span {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  margin-left: 6px;
   color: var(--text-primary);
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.2;
   letter-spacing: 0.01em;
   user-select: none;
 }
