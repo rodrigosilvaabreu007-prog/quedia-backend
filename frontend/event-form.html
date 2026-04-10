@@ -41,7 +41,7 @@
     <main>
       <form id="cadastro-evento" class="card-form" novalidate>
         <h1 style="font-size:2rem; color: var(--cor-principal); margin-bottom: 18px;">Cadastrar Evento</h1>
-        <p style="color:#999; margin-bottom: 22px">Preencha os dados abaixo para publicar seu evento.</p>
+        <p style="color: var(--text-secondary, #999); margin-bottom: 22px">Preencha os dados abaixo para publicar seu evento.</p>
 
         <label>Nome do evento <input type="text" id="nome" required></label>
         <label>Descrição <textarea id="descricao" required></textarea></label>
@@ -70,7 +70,7 @@
         </div>
 
         <label>Endereço / Local <input type="text" id="endereco" required></label>
-        <div id="geo-status" style="font-size: 0.9rem; color: #ccc; margin-bottom: 8px;">Clique no mapa para marcar o local exato do evento.</div>
+        <div id="geo-status" style="font-size: 0.9rem; color: var(--text-secondary, #ccc); margin-bottom: 8px;">Clique no mapa para marcar o local exato do evento.</div>
 
         <div id="mapa-evento" class="mapa-evento"></div>
         <p id="warning-mapa" class="warning-text"></p>

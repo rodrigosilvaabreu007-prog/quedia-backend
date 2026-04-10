@@ -6,6 +6,16 @@ function aplicarTema(tema) {
     document.body.style.setProperty('--cor-principal', tema.corPrincipal || '#00bfff');
     document.body.style.setProperty('--bg-primary', tema.corFundo || '#181a20');
     document.body.style.setProperty('--text-primary', tema.corTexto || '#ffffff');
+    document.body.style.setProperty('--bg-secondary', tema.bgSecundario || '#1a2332');
+    document.body.style.setProperty('--bg-tertiary', tema.bgTerciario || '#0f1419');
+    document.body.style.setProperty('--text-secondary', tema.textoSecundario || '#c7d2ff');
+    document.body.style.setProperty('--text-muted', tema.textoMutado || '#aaa');
+    document.body.style.setProperty('--glass', tema.glass || 'rgba(255,255,255,0.05)');
+    document.body.style.setProperty('--border', tema.borda || 'rgba(255,255,255,0.12)');
+    document.body.style.setProperty('--accent', tema.accent || '#00ffdd');
+    document.body.style.setProperty('--success', tema.success || '#28a745');
+    document.body.style.setProperty('--error', tema.error || '#ff4444');
+    document.body.style.setProperty('--warning', tema.warning || '#ffcc00');
     
     // Definir valores nos inputs se existirem
     const mainInput = document.getElementById('theme-main');
