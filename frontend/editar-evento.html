@@ -6,6 +6,7 @@
   <title>Editar Evento - EventHub</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 <body>
   <div class="container">
@@ -36,20 +37,92 @@
       <a href="login.html">Login</a>
       <a href="cadastro.html">Cadastro</a>
     </nav>
+
     <main>
-      <form id="editar-evento-form" class="card-form"></form>
-      <div id="mensagem-editar"></div>
+      <form id="cadastro-evento" class="card-form" novalidate>
+        <h1 style="font-size:2rem; color: var(--cor-principal); margin-bottom: 18px;">Cadastrar Evento</h1>
+        <p style="color:#999; margin-bottom: 22px">Preencha os dados abaixo para publicar seu evento.</p>
+
+        <label>Nome do evento <input type="text" id="nome" required></label>
+        <label>Descrição <textarea id="descricao" required></textarea></label>
+        <label>Organizador <input type="text" id="organizador" required></label>
+
+        <div class="form-section" id="datas-container">
+          <h3>Datas e horários</h3>
+          <div id="datas-list">
+            <div class="schedule-row" data-index="0">
+              <label>Data <input type="date" class="data-item" required></label>
+              <label>Início <input type="time" class="horario-inicio-item" required></label>
+              <label>Fim (opcional) <input type="time" class="horario-fim-item"></label>
+              <button type="button" class="btn-remover-data" onclick="removerLinhaData(this)" style="display:none;">Remover</button>
+            </div>
+          </div>
+          <button type="button" id="btn-adicionar-data" class="btn-adicionar-data">+ Adicionar outra data</button>
+        </div>
+
+        <div class="form-grid">
+          <label>Estado
+            <select id="evento-estado" required onchange="window.atualizarCidades()"></select>
+          </label>
+          <label>Cidade
+            <select id="evento-cidade" required disabled><option value="">Selecione o estado</option></select>
+          </label>
+        </div>
+
+        <label>Endereço / Local <input type="text" id="endereco" required></label>
+        <div id="geo-status" style="font-size: 0.9rem; color: #ccc; margin-bottom: 8px;">Clique no mapa para marcar o local exato do evento.</div>
+
+        <div id="mapa-evento" class="mapa-evento"></div>
+        <p id="warning-mapa" class="warning-text"></p>
+        <div class="coordenadas-container">
+          <label>Latitude <input type="text" id="latitude" placeholder="-23.564" readonly required></label>
+          <label>Longitude <input type="text" id="longitude" placeholder="-46.654" readonly required></label>
+        </div>
+
+        <label>Categorias</label>
+        <div id="categorias-evento" class="categorias-grid"></div>
+        <p id="warning-categorias" class="warning-text"></p>
+
+        <fieldset class="form-section">
+          <legend>Entrada</legend>
+          <div class="rads-wrap">
+            <label class="radio-item"><input type="radio" name="gratuito" id="gratuito-sim" checked onchange="window.togglePreco()"> Gratuito</label>
+            <label class="radio-item"><input type="radio" name="gratuito" id="gratuito-nao" onchange="window.togglePreco()"> Pago</label>
+          </div>
+          <div id="container-preco" class="preco-container" style="display: none; margin-top: 10px;">
+            <input type="number" id="preco" placeholder="Preço R$" step="0.01" value="0">
+          </div>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <legend>Imagem de capa <span id="imagem-capa-nota" style="font-size:0.85rem; color:#aaa;">(obrigatória ao cadastrar, opcional ao editar)</span></legend>
+          <label class="file-label" for="imagem-capa">📷 Selecionar imagem de capa</label>
+          <input type="file" id="imagem-capa" accept="image/*" onchange="window.mostrarPreviewCapa()">
+          <div id="preview-capa" class="preview-imagens"></div>
+          <p id="warning-capa" class="warning-text"></p>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <legend>Imagens do evento (opcional)</legend>
+          <label class="file-label" for="imagens-evento">🖼️ Selecionar imagens do evento</label>
+          <input type="file" id="imagens-evento" accept="image/*" multiple onchange="window.mostrarPreviewImagens()">
+          <div id="preview-imagens" class="preview-imagens"></div>
+        </fieldset>
+
+        <button type="submit" id="btn-submit">🚀 PUBLICAR EVENTO</button>
+      </form>
+      <div id="mensagem-evento" style="margin-top: 20px; text-align: center; font-weight: bold;"></div>
     </main>
   </div>
 
-  <!-- Ícone de perfil fixo -->
   <div id="icone-perfil" title="Meu Perfil" onclick="irParaPerfil()" style="cursor: pointer; text-decoration: none;">
     <img id="icone-perfil-img" src="caminho-da-sua-foto.jpg" alt="Foto do Perfil">
   </div>
 
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="theme.js"></script>
   <script src="global.js"></script>
-  <script src="editar-evento.js"></script>
+  <script src="event-form.js"></script>
   <script src="hamburger-menu.js"></script>
 </body>
 </html>
