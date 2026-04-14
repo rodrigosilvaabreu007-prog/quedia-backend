@@ -238,6 +238,16 @@ function obterCategoriaPrincipalSelecionada() {
   return obterCategoriasSelecionadas()[0] || 'Outros';
 }
 
+function fecharCategoriasAbertas() {
+  document.querySelectorAll('.subcategorias-container.visible').forEach(container => {
+    container.classList.remove('visible');
+    container.classList.add('hidden');
+  });
+  document.querySelectorAll('.btn-categoria.active').forEach(btn => {
+    btn.classList.remove('active');
+  });
+}
+
 // ===== INTERFACE INTERATIVA =====
 
 function inicializarSeletorCategorias(containerId = 'categorias-evento', selectedSubcategorias = []) {
@@ -246,6 +256,18 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
 
   container.innerHTML = '';
   container.classList.add('seletor-categorias-container');
+
+  if (!window.__seletorCategoriasOutsideClickInitialized) {
+    window.__seletorCategoriasOutsideClickInitialized = true;
+    document.addEventListener('click', (event) => {
+      const selectors = document.querySelectorAll('.seletor-categorias-container');
+      if (selectors.length === 0) return;
+      const clickedInside = Array.from(selectors).some(selector => selector.contains(event.target));
+      if (!clickedInside) {
+        fecharCategoriasAbertas();
+      }
+    });
+  }
 
   const categorias = obterCategoriasPrincipais();
 
