@@ -346,15 +346,21 @@ function getPreferenciasUsuario() {
 
 function getLocalizacaoUsuario() {
     const usuario = localStorage.getItem('eventhub-usuario');
-    if (!usuario) return { estado: '', cidade: '' };
-    
+    if (!usuario) {
+        console.log('getLocalizacaoUsuario: Nenhum usuário no localStorage');
+        return { estado: '', cidade: '' };
+    }
+
     try {
         const dadosUsuario = JSON.parse(usuario);
-        return {
+        const localizacao = {
             estado: dadosUsuario.estado || '',
             cidade: dadosUsuario.cidade || ''
         };
+        console.log('getLocalizacaoUsuario:', localizacao);
+        return localizacao;
     } catch (e) {
+        console.log('getLocalizacaoUsuario: Erro ao parsear usuário:', e);
         return { estado: '', cidade: '' };
     }
 }

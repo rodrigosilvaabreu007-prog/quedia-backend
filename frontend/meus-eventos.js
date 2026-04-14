@@ -23,39 +23,46 @@ async function carregarMeusEventos() {
     }
 
     try {
+        // Primeiro tenta buscar eventos filtrados por organizador_id
         const resposta = await fetch(`${window.API_URL}/eventos?organizador_id=${encodeURIComponent(usuarioId)}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
 
-        if (!resposta.ok) {
-            throw new Error('Erro ao buscar dados do servidor');
-        }
-
-        const eventos = await resposta.json();
-        if (!Array.isArray(eventos)) {
-            throw new Error('Resposta inválida do servidor');
-        }
-
-        let meusEventos = eventos.filter(ev =>
-            String(ev.organizador_id) === usuarioId || String(ev.organizador_id) === String(usuario._id)
-        );
-
-        if (meusEventos.length === 0) {
-            const todos = await fetch(`${window.API_URL}/eventos`, {
+        let eventos = [];
+        if (resposta.ok) {
+            eventos = await resposta.json();
+            if (!Array.isArray(eventos)) {
+                throw new Error('Resposta inválida do servidor');
+            }
+        } else {
+            // Se falhar, busca todos os eventos e filtra no frontend
+            console.warn('Busca filtrada falhou, tentando buscar todos os eventos...');
+            const todosResposta = await fetch(`${window.API_URL}/eventos`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            if (todos.ok) {
-                const eventosTodos = await todos.json();
-                if (Array.isArray(eventosTodos)) {
-                    meusEventos = eventosTodos.filter(ev =>
-                        String(ev.organizador_id) === usuarioId || String(ev.organizador_id) === String(usuario._id)
+            if (todosResposta.ok) {
+                const todosEventos = await todosResposta.json();
+                if (Array.isArray(todosEventos)) {
+                    eventos = todosEventos.filter(ev =>
+                        String(ev.organizador_id) === usuarioId ||
+                        String(ev.organizador_id) === String(usuario._id) ||
+                        ev.organizador_id === usuarioId ||
+                        ev.organizador_id === usuario._id
                     );
                 }
             }
+        }
+
+        let meusEventos = eventos.filter(ev =>
+            String(ev.organizador_id) === usuarioId ||
+            String(ev.organizador_id) === String(usuario._id) ||
+            ev.organizador_id === usuarioId ||
+            ev.organizador_id === usuario._id
+        );
         }
 
         container.innerHTML = '';
