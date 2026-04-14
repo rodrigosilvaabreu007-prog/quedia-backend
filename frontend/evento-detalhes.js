@@ -590,12 +590,10 @@ async function toggleInteresse(eventoId, button) {
             ? Array.from(new Set(data.interesses.map(id => String(id))))
             : null;
 
-        const status = await obterStatusInteresseEvento(eventoId);
-        const novoEstado = status
-            ? status.temInteresse
-            : Array.isArray(interessesServidor)
-                ? (usuarioId ? interessesServidor.includes(usuarioId) : (typeof data.acao === 'string' ? data.acao === 'adicionado' : !demonstrouInteresse))
-                : (typeof data.acao === 'string' ? data.acao === 'adicionado' : !demonstrouInteresse);
+        // Determinar novo estado baseado na resposta do servidor
+        const novoEstado = Array.isArray(interessesServidor)
+            ? interessesServidor.includes(usuarioId)
+            : (data.acao === 'adicionado');
 
         const textoEstrela = novoEstado ? '★' : '☆';
         [button, btnInteresseTopo].forEach(b => {
@@ -604,15 +602,15 @@ async function toggleInteresse(eventoId, button) {
             b.classList.toggle('demonstrou-interesse', novoEstado);
         });
 
-        const contadorServidor = status ? status.contador : Number.isFinite(Number(data.contador)) ? Number(data.contador) : 0;
+        const contadorServidor = Number.isFinite(Number(data.contador)) ? Number(data.contador) : 0;
         if (interessesCountTopo) interessesCountTopo.textContent = `👥 ${contadorServidor}`;
 
+        // Atualizar o estado local do evento
         if (window.eventoAtual) {
-            if (status && Array.isArray(status.interesses)) {
-                window.eventoAtual.interesses = status.interesses;
-            } else if (Array.isArray(interessesServidor)) {
+            if (Array.isArray(interessesServidor)) {
                 window.eventoAtual.interesses = interessesServidor;
             } else {
+                // Fallback: atualizar baseado no novo estado
                 if (!window.eventoAtual.interesses || !Array.isArray(window.eventoAtual.interesses)) {
                     window.eventoAtual.interesses = [];
                 }

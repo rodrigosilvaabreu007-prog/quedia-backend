@@ -9,6 +9,7 @@ const API_URL = 'http://localhost:8080/api';
 let usuarioTesteId = '';
 let tokenTeste = '';
 let eventoTesteId = '';
+let emailTeste = '';
 
 // Cores para output
 const cores = {
@@ -44,12 +45,13 @@ function log(tipo, mensagem) {
 async function testeRegistro() {
   log('teste', '=== TESTE 1: REGISTRO DE USUÁRIO ===');
   try {
+    emailTeste = 'teste' + Date.now() + '@teste.com';
     const resposta = await fetch(`${API_URL}/cadastro`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         nome: 'Teste Usuario ' + Date.now(),
-        email: 'teste' + Date.now() + '@teste.com',
+        email: emailTeste,
         senha: 'senha123',
         estado: 'SP',
         cidade: 'São Paulo',
@@ -61,7 +63,7 @@ async function testeRegistro() {
     
     if (resposta.ok) {
       usuarioTesteId = dados.id;
-      log('sucesso', `Usuário criado: ${usuarioTesteId}`);
+      log('sucesso', `Usuário criado: ${usuarioTesteId}, email: ${emailTeste}`);
       return true;
     } else {
       log('erro', `Erro no registro: ${dados.erro}`);
@@ -77,12 +79,11 @@ async function testeRegistro() {
 async function testeLogin() {
   log('teste', '=== TESTE 2: LOGIN ===');
   try {
-    const email = 'teste' + Date.now() + '@teste.com'; // Ajusta para email do teste anterior
     const resposta = await fetch(`${API_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: 'teste1740810937886@teste.com', // Email de um usuário existente para teste
+        email: emailTeste,
         senha: 'senha123'
       })
     });
