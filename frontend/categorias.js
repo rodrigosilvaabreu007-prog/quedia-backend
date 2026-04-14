@@ -260,19 +260,11 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
   if (!window.__seletorCategoriasOutsideClickInitialized) {
     window.__seletorCategoriasOutsideClickInitialized = true;
     document.addEventListener('click', (event) => {
-      document.querySelectorAll('.categoria-card').forEach((card) => {
-        const btn = card.querySelector('.btn-categoria');
-        const subcat = card.querySelector('.subcategorias-container');
-        if (!btn || !subcat) return;
-        if (subcat.classList.contains('visible')) {
-          const isInsideCard = card.contains(event.target);
-          if (!isInsideCard) {
-            subcat.classList.remove('visible');
-            subcat.classList.add('hidden');
-            btn.classList.remove('active');
-          }
-        }
-      });
+      const clickedButton = event.target.closest('.btn-categoria');
+      const clickedSubcat = event.target.closest('.subcategorias-container');
+      if (!clickedButton && !clickedSubcat) {
+        fecharCategoriasAbertas();
+      }
     });
   }
 
@@ -309,12 +301,6 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
       }
 
       btnCategoria.blur();
-    });
-
-    cardWrapper.addEventListener('click', (e) => {
-      if (subcatContainer.classList.contains('visible') && !btnCategoria.contains(e.target) && !subcatContainer.contains(e.target)) {
-        fecharCategoriasAbertas();
-      }
     });
 
     // Gerar checkboxes de subcategorias
