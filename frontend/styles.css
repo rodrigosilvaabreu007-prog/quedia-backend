@@ -1856,10 +1856,14 @@ header {
   align-items: center;
   justify-content: space-between;
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 12px 12px 0 0;
+  border-radius: 14px;
   box-sizing: border-box;
   user-select: none;
   outline: none;
+}
+
+#categorias-evento .btn-categoria {
+  border-radius: 14px 14px 0 0;
 }
 
 .btn-categoria::after {
@@ -1913,6 +1917,10 @@ header {
   z-index: 10000;
 }
 
+#categorias-evento .subcategorias-container {
+  border-radius: 0 0 14px 14px;
+}
+
 .subcategorias-container.visible {
   display: flex;
   animation: slideDown 0.2s ease-out;
@@ -1952,6 +1960,11 @@ header {
   box-sizing: border-box;
   border: none;
   flex-wrap: nowrap;
+  flex-direction: row-reverse;
+}
+
+#categorias-evento .subcategoria-item {
+  flex-direction: row;
 }
 
 .subcategoria-item:last-child {

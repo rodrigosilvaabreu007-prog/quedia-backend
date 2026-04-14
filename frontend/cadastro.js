@@ -83,11 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Gera Categorias de Preferência com o novo sistema
-  const containerPreferencias = document.getElementById('preferencias-categorias');
-  if (containerPreferencias && typeof inicializarSeletorCategorias === 'function') {
-    inicializarSeletorCategorias('preferencias-categorias');
-  }
+
 });
 
 // ✅ SUBMIT DO FORMULÁRIO DE CADASTRO
