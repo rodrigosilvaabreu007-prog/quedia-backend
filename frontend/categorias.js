@@ -330,8 +330,8 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
       const span = document.createElement('span');
       span.textContent = subcategoria;
 
-      label.appendChild(checkbox);
       label.appendChild(span);
+      label.appendChild(checkbox);
       subcatContainer.appendChild(label);
     });
 
