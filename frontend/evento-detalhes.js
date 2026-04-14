@@ -505,6 +505,29 @@ async function toggleInteresseClique(button) {
     await toggleInteresse(eventoId, button);
 }
 
+async function obterStatusInteresseEvento(eventoId) {
+    const token = localStorage.getItem('eventhub-token');
+    if (!token || !eventoId) return null;
+
+    try {
+        const response = await fetch(`${window.API_URL}/interesses/${eventoId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) return null;
+        const data = await response.json();
+        return {
+            temInteresse: data.temInteresse === true,
+            contador: Number.isFinite(Number(data.contador)) ? Number(data.contador) : 0,
+            interesses: Array.isArray(data.interesses) ? data.interesses.map(id => String(id)) : null
+        };
+    } catch (err) {
+        console.error('Erro ao buscar status de interesse:', err);
+        return null;
+    }
+}
+
 async function toggleInteresse(eventoId, button) {
     console.log('=== toggleInteresse START ===');
     console.log('eventoId:', eventoId);
@@ -567,9 +590,12 @@ async function toggleInteresse(eventoId, button) {
             ? Array.from(new Set(data.interesses.map(id => String(id))))
             : null;
 
-        const novoEstado = Array.isArray(interessesServidor)
-            ? (usuarioId ? interessesServidor.includes(usuarioId) : (typeof data.acao === 'string' ? data.acao === 'adicionado' : !demonstrouInteresse))
-            : (typeof data.acao === 'string' ? data.acao === 'adicionado' : !demonstrouInteresse);
+        const status = await obterStatusInteresseEvento(eventoId);
+        const novoEstado = status
+            ? status.temInteresse
+            : Array.isArray(interessesServidor)
+                ? (usuarioId ? interessesServidor.includes(usuarioId) : (typeof data.acao === 'string' ? data.acao === 'adicionado' : !demonstrouInteresse))
+                : (typeof data.acao === 'string' ? data.acao === 'adicionado' : !demonstrouInteresse);
 
         const textoEstrela = novoEstado ? '★' : '☆';
         [button, btnInteresseTopo].forEach(b => {
@@ -578,11 +604,13 @@ async function toggleInteresse(eventoId, button) {
             b.classList.toggle('demonstrou-interesse', novoEstado);
         });
 
-        const contadorServidor = Number.isFinite(Number(data.contador)) ? Number(data.contador) : 0;
+        const contadorServidor = status ? status.contador : Number.isFinite(Number(data.contador)) ? Number(data.contador) : 0;
         if (interessesCountTopo) interessesCountTopo.textContent = `👥 ${contadorServidor}`;
 
         if (window.eventoAtual) {
-            if (Array.isArray(interessesServidor)) {
+            if (status && Array.isArray(status.interesses)) {
+                window.eventoAtual.interesses = status.interesses;
+            } else if (Array.isArray(interessesServidor)) {
                 window.eventoAtual.interesses = interessesServidor;
             } else {
                 if (!window.eventoAtual.interesses || !Array.isArray(window.eventoAtual.interesses)) {
