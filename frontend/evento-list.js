@@ -32,10 +32,16 @@ function normalizarTexto(texto) {
 }
 
 function parseLocalDateTime(dataStr, horaStr) {
-    if (!dataStr || !horaStr) return null;
+    if (!dataStr) return null;
     const [ano, mes, dia] = dataStr.split('-').map(Number);
-    const [hora, minuto] = horaStr.split(':').map(Number);
-    if (![ano, mes, dia, hora, minuto].every(Number.isFinite)) return null;
+    if (![ano, mes, dia].every(Number.isFinite)) return null;
+    
+    let hora = 0, minuto = 0;
+    if (horaStr) {
+        const [h, m] = horaStr.split(':').map(Number);
+        if (Number.isFinite(h)) hora = h;
+        if (Number.isFinite(m)) minuto = m;
+    }
     return new Date(ano, mes - 1, dia, hora, minuto, 0);
 }
 
@@ -45,14 +51,16 @@ function eventoEstaAtivoFrontend(evento) {
 
     const agora = new Date();
     return datas.some(item => {
+        if (!item.data) return true;
+        
         const inicio = parseLocalDateTime(item.data, item.horario_inicio || '00:00');
+        if (!inicio || Number.isNaN(inicio.getTime())) return true;
+        
         const fim = item.horario_fim ? parseLocalDateTime(item.data, item.horario_fim) : null;
-        if (!inicio) return false;
-
-        if (fim && !Number.isNaN(fim.getTime())) {
-            return fim > agora;
+        if (fim && Number.isFinite(fim.getTime()) && fim <= agora) {
+            return false;
         }
-        return inicio > agora;
+        return true;
     });
 }
 
@@ -824,6 +832,9 @@ async function carregarEventos() {
 
         // Aplicar filtros iniciais e renderizar
         filtrarEventos();
+        
+        // Carregar "Seus Eventos" para usuário logado
+        carregarSeusEventos();
 
         // Adiciona ouvintes de busca e filtros
         const inputs = ['search-input', 'filtro-estado', 'filtro-cidade', 'filtro-categoria', 'filtro-preco', 'filtro-data', 'filtro-horario'];
@@ -920,6 +931,55 @@ function popularFiltros() {
             }
             filtrarEventos();
         });
+    }
+}
+
+async function carregarSeusEventos() {
+    const usuario = localStorage.getItem('eventhub-usuario');
+    const token = localStorage.getItem('eventhub-token');
+    
+    if (!usuario || !token) {
+        const section = document.getElementById('section-seus-eventos');
+        if (section) section.style.display = 'none';
+        return;
+    }
+    
+    try {
+        const usuarioObj = JSON.parse(usuario);
+        const usuarioId = String(usuarioObj.id || usuarioObj._id || '');
+        
+        if (!usuarioId) {
+            document.getElementById('section-seus-eventos').style.display = 'none';
+            return;
+        }
+        
+        // Filtrar eventos do usuário dos eventos já carregados
+        const seusEventos = todosEventos.filter(ev => 
+            String(ev.organizador_id) === usuarioId || 
+            String(ev.organizador_id) === String(usuarioObj._id) ||
+            ev.organizador_id === usuarioId ||
+            ev.organizador_id === usuarioObj._id
+        );
+        
+        const containerSeusEventos = document.getElementById('eventos-usuario');
+        const mensagemSeusEventos = document.getElementById('mensagem-seus-eventos');
+        const sectionSeusEventos = document.getElementById('section-seus-eventos');
+        
+        if (!containerSeusEventos) return;
+        
+        containerSeusEventos.innerHTML = '';
+        
+        if (seusEventos.length === 0) {
+            if (mensagemSeusEventos) mensagemSeusEventos.style.display = 'none';
+            if (sectionSeusEventos) sectionSeusEventos.style.display = 'none';
+        } else {
+            if (sectionSeusEventos) sectionSeusEventos.style.display = 'block';
+            if (mensagemSeusEventos) mensagemSeusEventos.style.display = 'none';
+            seusEventos.forEach(ev => containerSeusEventos.appendChild(criarCardEvento(ev, false)));
+        }
+    } catch (err) {
+        console.error('Erro ao carregar seus eventos:', err);
+        document.getElementById('section-seus-eventos').style.display = 'none';
     }
 }
 
