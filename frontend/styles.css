@@ -1937,8 +1937,8 @@ header {
   }
 }
 
-.subcategoria-item {
-  display: flex;
+.card-form .subcategoria-item {
+  display: flex !important;
   align-items: center;
   justify-content: flex-start;
   gap: 12px;
@@ -1971,7 +1971,7 @@ header {
   background: rgba(var(--cor-principal-rgb, 0, 191, 255), 0.08);
 }
 
-.subcategoria-item input[type="checkbox"] {
+.card-form .subcategoria-item input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -2022,7 +2022,7 @@ header {
   opacity: 1;
 }
 
-.subcategoria-item span {
+.card-form .subcategoria-item span {
   display: flex;
   align-items: center;
   color: var(--text-primary);
