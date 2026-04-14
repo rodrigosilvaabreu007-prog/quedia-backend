@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - EventHub</title>
+  <title>Login - Quedia.com.br</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="theme.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <span class="logo-provisoria">EH</span>
+      <span class="logo-provisoria">Q</span>
       <nav class="menu">
         <a href="index.html">Início</a>
         <a href="event-form.html">Cadastrar Evento</a>
@@ -42,10 +42,10 @@
         <label>Senha
           <div style="display: flex; gap: 8px; align-items: center;">
             <input type="password" name="senha" id="senha" required>
-            <button type="button" onclick="toggleSenha('senha')" style="padding: 8px 12px; background: var(--cor-principal, #00bfff); border: none; border-radius: 6px; cursor: pointer; color: #fff; font-weight: 600;">👁</button>
+            <button type="button" onclick="toggleSenha('senha')" class="toggle-senha-button">👁</button>
           </div>
         </label>
-        <button type="submit">Entrar</button>
+        <button type="submit" class="btn-form-submit">Entrar</button>
       </form>
       <div id="mensagem-login"></div>
       <p style="text-align: center; margin-top: 24px;">Ainda não criou sua conta? <a href="cadastro.html" style="color: var(--text-primary, #00bfff);">Cadastre-se aqui</a></p>
