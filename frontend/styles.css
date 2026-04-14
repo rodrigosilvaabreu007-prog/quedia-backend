@@ -1838,13 +1838,8 @@ header {
   gap: 0;
   border-radius: 14px;
   overflow: visible;
-  border: 2px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.02);
+  background: transparent;
   transition: all 0.2s ease;
-}
-
-.categoria-card:hover {
-  border-color: rgba(255,255,255,0.15);
 }
 
 .btn-categoria {
@@ -1907,8 +1902,7 @@ header {
   padding: 0;
   margin-top: 0;
   background: var(--bg-secondary);
-  border: 2px solid rgba(255,255,255,0.10);
-  border-top: none;
+  border: none;
   border-radius: 0 0 12px 12px;
   box-shadow: 0 12px 40px rgba(0,0,0,0.5);
   z-index: 10000;
@@ -1937,6 +1931,7 @@ header {
 .subcategoria-item {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 14px;
   padding: 14px 18px;
   min-height: 48px;
@@ -1951,6 +1946,7 @@ header {
   width: 100%;
   box-sizing: border-box;
   border: none;
+  flex-wrap: nowrap;
 }
 
 .subcategoria-item:last-child {
@@ -2016,6 +2012,7 @@ header {
   white-space: normal;
   word-break: break-word;
   line-height: 1.4;
+  flex: 1;
 }
 
 .subcategorias-container::-webkit-scrollbar {

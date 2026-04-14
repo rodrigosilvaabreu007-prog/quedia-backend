@@ -335,7 +335,6 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
 
   if (Array.isArray(selectedSubcategorias) && selectedSubcategorias.length > 0) {
     restaurarSubcategoriasEdicao(selectedSubcategorias);
-    abrirCategoriasSelecionadas(selectedSubcategorias);
   }
 }
 
