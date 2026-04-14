@@ -910,32 +910,33 @@ header {
   font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
-  background: linear-gradient(135deg, #00d4ff, #00a2ff);
-  color: #03131b;
-  border: 2px solid rgba(0, 191, 255, 0.95);
+  background: var(--cor-principal);
+  color: var(--bg-primary);
+  border: 2px solid var(--cor-principal-hover);
   border-radius: 14px;
   cursor: pointer;
-  box-shadow: 0 14px 28px rgba(0, 191, 255, 0.18);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
   transition: all 0.25s ease;
 }
 
 .btn-form-submit:hover {
   transform: translateY(-1px);
-  box-shadow: 0 18px 34px rgba(0, 191, 255, 0.24);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.24);
+  background: var(--cor-principal-hover);
 }
 
 .btn-form-submit:active {
   transform: translateY(0);
-  background: linear-gradient(135deg, #0092d1, #0080c3);
+  background: var(--cor-principal-pressed);
   box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.22);
 }
 
 .toggle-senha-button {
   padding: 10px 14px;
-  background: #00bfff;
+  background: var(--cor-principal);
   border: none;
   border-radius: 10px;
-  color: #03131b;
+  color: var(--bg-primary);
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease;
@@ -943,12 +944,12 @@ header {
 }
 
 .toggle-senha-button:hover {
-  background: #00d5ff;
+  background: var(--cor-principal-hover);
   transform: translateY(-1px);
 }
 
 .toggle-senha-button:active {
-  background: #0096cc;
+  background: var(--cor-principal-active);
 }
 
 @media (max-width: 900px) {
@@ -1847,6 +1848,7 @@ header {
 }
 
 .btn-categoria {
+  width: 100%;
   background: var(--cor-principal);
   border: 1px solid rgba(255,255,255,0.12);
   color: var(--bg-primary);
@@ -1882,10 +1884,15 @@ header {
   box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.22);
 }
 
+.btn-categoria:focus {
+  outline: none;
+  box-shadow: none;
+}
+
 .btn-categoria.active {
   background: var(--cor-principal-active);
   color: var(--bg-primary);
-  border-color: rgba(255,255,255,0.22);
+  border-color: rgba(255,255,255,0.12);
   box-shadow: 0 20px 36px rgba(0, 0, 0, 0.28);
 }
 
@@ -1912,7 +1919,7 @@ header {
   border-radius: 0 0 16px 16px;
   border: 1px solid rgba(255,255,255,0.12);
   box-shadow: 0 28px 60px rgba(0, 0, 0, 0.45);
-  z-index: 9999;
+  z-index: 99999;
 }
 
 .subcategorias-container.visible {
