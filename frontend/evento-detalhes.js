@@ -129,7 +129,25 @@ async function carregarDetalhesEvento(eventoId) {
 
         document.getElementById('evento-data').textContent = `📅 Data: ${formatarData(proximaData.data)}`;
         document.getElementById('evento-horario').textContent = `⏰ Horário: ${formatarHorario(proximaData.horario_inicio)}${proximaData.horario_fim ? ' - ' + proximaData.horario_fim : ''}`;
-        document.getElementById('evento-categoria').textContent = `🏷️ Categoria: ${evento.categoria || 'Geral'}`;
+        const categoriasAgrupadas = agruparSubcategoriasPorCategoria(evento.subcategorias || []);
+        const categoriasTexto = Object.keys(categoriasAgrupadas).length > 0 ? Object.keys(categoriasAgrupadas) : [evento.categoria || 'Geral'];
+        document.getElementById('evento-categoria').textContent = `🏷️ Categoria: ${categoriasTexto.join(', ')}`;
+        const categoriasListEl = document.getElementById('evento-categorias-list');
+        if (categoriasListEl) {
+            if (evento.subcategorias && evento.subcategorias.length > 0) {
+                categoriasListEl.innerHTML = categoriasTexto.map(categoria => {
+                    const subcats = categoriasAgrupadas[categoria] || [];
+                    return `
+                        <div class="evento-categoria-grupo">
+                            <strong>${categoria}</strong>
+                            <div class="subcategoria-list">${subcats.map(s => `<span class="subcategoria-tag">${s}</span>`).join('')}</div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                categoriasListEl.innerHTML = '';
+            }
+        }
         document.getElementById('evento-preco').textContent = `💰 Preço: ${evento.preco || 'GRATUITO'}`;
         document.getElementById('evento-descricao').textContent = evento.descricao || 'Sem descrição disponível.';
         const enderecoCompleto = evento.local || evento.endereco || 'Endereço completo não informado.';
@@ -206,6 +224,17 @@ async function carregarDetalhesEvento(eventoId) {
         alert('Erro ao carregar detalhes do evento. Tente novamente.');
         window.location.href = 'index.html';
     }
+}
+
+function agruparSubcategoriasPorCategoria(subcategorias = []) {
+    if (!Array.isArray(subcategorias) || subcategorias.length === 0) return {};
+    const categorias = {};
+    subcategorias.forEach((subcat) => {
+        const categoria = typeof obterCategoriaPorSubcategoria === 'function' ? obterCategoriaPorSubcategoria(subcat) : 'Outros';
+        if (!categorias[categoria]) categorias[categoria] = [];
+        if (!categorias[categoria].includes(subcat)) categorias[categoria].push(subcat);
+    });
+    return categorias;
 }
 
 async function buscarCoordenadasDetalhes(endereco) {
@@ -501,25 +530,12 @@ async function toggleInteresse(eventoId, button) {
     console.log('usuario:', usuario);
     console.log('usuario.id:', usuario.id, 'usuario._id:', usuario._id);
 
-    // Atualização otimista
     const demonstrouInteresse = button.classList.contains('demonstrou-interesse');
-    const novoEstado = !demonstrouInteresse;
-
-    // Atualizar UI imediatamente
     const btnInteresseTopo = document.getElementById('btn-interesse-top');
-    const textoEstrela = novoEstado ? '★' : '☆';
-    [button, btnInteresseTopo].forEach(b => {
-        if (!b) return;
-        b.textContent = textoEstrela;
-        b.classList.toggle('demonstrou-interesse', novoEstado);
-    });
-
-    // Atualizar contador
     const interessesCountTopo = document.getElementById('interesses-count-top');
-    let count = parseInt(interessesCountTopo?.textContent.match(/\d+/)?.[0] || '0');
-    count = novoEstado ? count + 1 : Math.max(0, count - 1);
-    const novoTextoContador = `👥 ${count}`;
-    if (interessesCountTopo) interessesCountTopo.textContent = novoTextoContador;
+
+    if (button) button.disabled = true;
+    if (btnInteresseTopo) btnInteresseTopo.disabled = true;
 
     try {
         console.debug('toggleInteresse: eventoId=', eventoId, 'tokenExists=', Boolean(token), 'usuario=', usuario);
@@ -539,9 +555,18 @@ async function toggleInteresse(eventoId, button) {
         }
 
         const data = await response.json();
-        const usuarioId = String(usuario.id || usuario._id || '');
+        const novoEstado = data.acao === 'adicionado';
+        const textoEstrela = novoEstado ? '★' : '☆';
+        [button, btnInteresseTopo].forEach(b => {
+            if (!b) return;
+            b.textContent = textoEstrela;
+            b.classList.toggle('demonstrou-interesse', novoEstado);
+        });
 
-        // Atualiza eventoAtual local se possível (manter consistência sem recarregar)
+        const contadorServidor = Number.isFinite(Number(data.contador)) ? Number(data.contador) : 0;
+        if (interessesCountTopo) interessesCountTopo.textContent = `👥 ${contadorServidor}`;
+
+        const usuarioId = String(usuario.id || usuario._id || '');
         if (window.eventoAtual) {
             if (!window.eventoAtual.interesses || !Array.isArray(window.eventoAtual.interesses)) {
                 window.eventoAtual.interesses = [];
@@ -557,37 +582,22 @@ async function toggleInteresse(eventoId, button) {
                 }
             }
         }
-
-        const contadorServidor = Number.isFinite(Number(data.contador)) ? Number(data.contador) : count;
-        const interessesCountTopo2 = document.getElementById('interesses-count-top');
-        if (interessesCountTopo2) interessesCountTopo2.textContent = `👥 ${contadorServidor}`;
-
     } catch (error) {
         console.error('Erro ao toggle interesse:', error);
-        // Reverter UI em caso de erro
-        const elementoTopo = document.getElementById('btn-interesse-top');
         const textoEstrela = demonstrouInteresse ? '★' : '☆';
-        [button, elementoTopo].forEach(b => {
+        [button, btnInteresseTopo].forEach(b => {
             if (!b) return;
             b.textContent = textoEstrela;
             b.classList.toggle('demonstrou-interesse', demonstrouInteresse);
         });
 
-        const interessesCountTopo = document.getElementById('interesses-count-top');
         if (interessesCountTopo) {
             let count = parseInt(interessesCountTopo.textContent.match(/\d+/)?.[0] || '0');
             const revertCount = demonstrouInteresse ? count + 1 : Math.max(0, count - 1);
             interessesCountTopo.textContent = `👥 ${revertCount}`;
         }
-
-        // Se erro 403, token está inválido
-        if (error.message && error.message.includes('403')) {
-            localStorage.removeItem('eventhub-token');
-            localStorage.removeItem('eventhub-usuario');
-            alert('Sessão expirou. Faça login novamente.');
-            window.location.href = 'login.html';
-        } else {
-            alert(`Erro ao atualizar interesse: ${error.message}`);
-        }
+    } finally {
+        if (button) button.disabled = false;
+        if (btnInteresseTopo) btnInteresseTopo.disabled = false;
     }
 }

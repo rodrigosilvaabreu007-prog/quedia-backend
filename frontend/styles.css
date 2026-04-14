@@ -1389,6 +1389,37 @@ header {
   margin: 0 0 5px 0;
 }
 
+.evento-categorias-list {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.evento-categoria-grupo {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(0, 191, 255, 0.15);
+}
+
+.subcategoria-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.subcategoria-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(0, 191, 255, 0.1);
+  color: #fff;
+  font-size: 0.85rem;
+}
+
 .evento-horario, .evento-preco {
   margin: 2px 0;
   font-size: 14px;
