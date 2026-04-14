@@ -59,7 +59,7 @@ async function autenticarUsuario(email, senha) {
     const token = jwt.sign(
         { id: usuarioIdStr, email: usuario.email }, 
         jwtSecret, 
-        { expiresIn: '2h' }
+        { expiresIn: process.env.JWT_EXPIRES_IN || '30d' }
     );
     console.log('✅ TOKEN gerado:', token.substring(0, 20) + '...');
 

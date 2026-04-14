@@ -5,7 +5,13 @@ const app = express();
 const mongoose = require('mongoose');
 const { connectDB } = require('./db');
 
-const useMemoryBackend = !process.env.MONGO_URI || process.env.MONGO_URI.trim() === '';
+const mongoUri = process.env.MONGO_URI ? process.env.MONGO_URI.trim() : '';
+const useMemoryBackend = !mongoUri;
+
+if (useMemoryBackend && process.env.NODE_ENV === 'production') {
+  throw new Error('🚫 MONGO_URI não está configurado em produção. O backend não pode iniciar em modo memória.');
+}
+
 const apiRoutes = useMemoryBackend ? require('./routes-memory') : require('./routes');
 
 if (useMemoryBackend) {

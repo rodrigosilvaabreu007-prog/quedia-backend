@@ -82,7 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
       estadoSelect.appendChild(option);
     });
   }
-  
+
+  // Inicializa seletor de categorias igual ao formulário de evento
+  if (typeof inicializarSeletorCategorias === 'function') {
+    inicializarSeletorCategorias('categorias-cadastro');
+  }
 
 });
 
