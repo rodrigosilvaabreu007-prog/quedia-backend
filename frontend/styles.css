@@ -1986,10 +1986,13 @@ header {
   transition: all 0.15s ease;
   flex-shrink: 0;
   margin: 0;
+  margin-left: 12px;
   border: 2px solid var(--cor-principal);
   border-radius: 4px;
   background: transparent;
   position: relative;
+  order: 2;
+  flex: none;
 }
 
 .subcategoria-item input[type="checkbox"]::after {
@@ -2033,6 +2036,7 @@ header {
   min-width: 0;
   line-height: 1.4;
   margin-right: 12px;
+  order: 1;
 }
 
 .subcategoria-item input[type="checkbox"] {

@@ -260,12 +260,19 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
   if (!window.__seletorCategoriasOutsideClickInitialized) {
     window.__seletorCategoriasOutsideClickInitialized = true;
     document.addEventListener('click', (event) => {
-      const selectors = document.querySelectorAll('.seletor-categorias-container');
-      if (selectors.length === 0) return;
-      const clickedInside = Array.from(selectors).some(selector => selector.contains(event.target));
-      if (!clickedInside) {
-        fecharCategoriasAbertas();
-      }
+      document.querySelectorAll('.categoria-card').forEach((card) => {
+        const btn = card.querySelector('.btn-categoria');
+        const subcat = card.querySelector('.subcategorias-container');
+        if (!btn || !subcat) return;
+        if (subcat.classList.contains('visible')) {
+          const isInsideCard = card.contains(event.target);
+          if (!isInsideCard) {
+            subcat.classList.remove('visible');
+            subcat.classList.add('hidden');
+            btn.classList.remove('active');
+          }
+        }
+      });
     });
   }
 
