@@ -1940,7 +1940,7 @@ header {
 .subcategoria-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
   padding: 14px 18px;
   min-height: 48px;
@@ -1990,7 +1990,6 @@ header {
   border-radius: 4px;
   background: transparent;
   position: relative;
-  order: 2;
   margin-left: auto;
 }
 
@@ -2034,7 +2033,7 @@ header {
   flex: 1 1 auto;
   min-width: 0;
   line-height: 1.4;
-  order: 1;
+  margin-right: 12px;
 }
 
 .subcategoria-item input[type="checkbox"] {

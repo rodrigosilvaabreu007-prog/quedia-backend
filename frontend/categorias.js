@@ -302,14 +302,6 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
       }
     });
 
-    cardWrapper.addEventListener('mouseleave', () => {
-      if (subcatContainer.classList.contains('visible')) {
-        subcatContainer.classList.remove('visible');
-        subcatContainer.classList.add('hidden');
-        btnCategoria.classList.remove('active');
-      }
-    });
-
     // Gerar checkboxes de subcategorias
     const subcategorias = obterSubcategorias(categoria);
     subcategorias.forEach(subcategoria => {
