@@ -2,9 +2,11 @@
 const usuarios = [];
 const eventos = [];
 const interesses = []; // Array de { usuario_id, evento_id, data }
+const contatos = []; // Array de mensagens de contato
 
 module.exports = {
     usuarios,
     eventos,
-    interesses
+    interesses,
+    contatos
 };
