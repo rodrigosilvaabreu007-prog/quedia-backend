@@ -291,15 +291,9 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
     btnCategoria.addEventListener('click', (e) => {
       e.preventDefault();
       const isHidden = subcatContainer.classList.contains('hidden');
-      
-      // Fechar todas as outras categorias e alternar a atual
-      document.querySelectorAll('.subcategorias-container').forEach(container => {
-        container.classList.add('hidden');
-        container.classList.remove('visible');
-      });
-      document.querySelectorAll('.btn-categoria').forEach(btn => {
-        btn.classList.remove('active');
-      });
+
+      // Fechar todas as categorias abertas
+      fecharCategoriasAbertas();
 
       if (isHidden) {
         subcatContainer.classList.remove('hidden');

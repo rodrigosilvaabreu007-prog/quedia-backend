@@ -1940,8 +1940,8 @@ header {
 .subcategoria-item {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 16px;
+  justify-content: space-between;
+  gap: 12px;
   padding: 14px 18px;
   min-height: 48px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
@@ -1975,6 +1975,9 @@ header {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 20px;
   height: 20px;
   min-width: 20px;
@@ -1987,6 +1990,8 @@ header {
   border-radius: 4px;
   background: transparent;
   position: relative;
+  order: 2;
+  margin-left: auto;
 }
 
 .subcategoria-item input[type="checkbox"]::after {
@@ -2023,10 +2028,10 @@ header {
   font-weight: 600;
   font-size: 0.95rem;
   user-select: none;
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   line-height: 1.4;
   order: 1;
