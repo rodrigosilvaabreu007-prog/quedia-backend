@@ -239,9 +239,16 @@ window.toggleInteresse = async function(eventoId, btnElement) {
             const interessesServidor = Array.isArray(data.interesses)
                 ? Array.from(new Set(data.interesses.map(id => String(id))))
                 : null;
-            const temInteresse = Array.isArray(interessesServidor)
-                ? interessesServidor.includes(usuarioId)
-                : data.acao === 'adicionado';
+            let temInteresse = false;
+
+            if (Array.isArray(interessesServidor)) {
+                temInteresse = interessesServidor.includes(usuarioId);
+            } else if (typeof data.acao === 'string') {
+                temInteresse = data.acao === 'adicionado';
+            } else {
+                temInteresse = novoEstado;
+            }
+
             const contador = Number.isFinite(Number(data.contador)) ? Number(data.contador) : 0;
 
             // Atualizar cache final
@@ -251,11 +258,7 @@ window.toggleInteresse = async function(eventoId, btnElement) {
                 delete interessesCache[eventoId];
             }
 
-            if (Array.isArray(interessesServidor)) {
-                contadorCache[eventoId] = contador;
-            } else {
-                contadorCache[eventoId] = contador;
-            }
+            contadorCache[eventoId] = contador;
 
             // Garantir UI final (caso otimista estivesse errado)
             botoes.forEach(btn => {
