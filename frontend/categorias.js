@@ -300,6 +300,14 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
         subcatContainer.classList.add('visible');
         btnCategoria.classList.add('active');
       }
+
+      btnCategoria.blur();
+    });
+
+    cardWrapper.addEventListener('click', (e) => {
+      if (subcatContainer.classList.contains('visible') && !btnCategoria.contains(e.target) && !subcatContainer.contains(e.target)) {
+        fecharCategoriasAbertas();
+      }
     });
 
     // Gerar checkboxes de subcategorias
