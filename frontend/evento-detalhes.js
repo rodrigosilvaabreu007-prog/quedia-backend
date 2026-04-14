@@ -170,20 +170,27 @@ async function carregarDetalhesEvento(eventoId) {
         document.getElementById('evento-imagem').src = imagemUrl;
 
         // Contador de interesses
-        const interessesCount = evento.interesses ? evento.interesses.length : 0;
+        const interessesList = Array.isArray(evento.interesses)
+            ? Array.from(new Set(evento.interesses.map(id => String(id))))
+            : [];
+        const interessesCount = interessesList.length;
         const contadorTexto = `👥 ${interessesCount}`;
         const contadorTopo = document.getElementById('interesses-count-top');
         if (contadorTopo) contadorTopo.textContent = contadorTexto;
 
         // Verificar se usuário demonstrou interesse (se houver evento.interesses)
         const usuario = JSON.parse(localStorage.getItem('eventhub-usuario')) || {};
-        const idUsuario = usuario._id || usuario.id;
-        const demonstrouInteresse = idUsuario && evento.interesses && evento.interesses.includes(idUsuario);
+        const idUsuario = String(usuario._id || usuario.id || '');
+        const demonstrouInteresse = idUsuario && interessesList.includes(idUsuario);
         const textoInteresse = demonstrouInteresse ? '★' : '☆';
         const btnInteresseTopo = document.getElementById('btn-interesse-top');
         if (btnInteresseTopo) {
             btnInteresseTopo.textContent = textoInteresse;
             btnInteresseTopo.classList.toggle('demonstrou-interesse', demonstrouInteresse);
+        }
+
+        if (window.eventoAtual) {
+            window.eventoAtual.interesses = interessesList;
         }
 
         // Gallery
@@ -555,7 +562,15 @@ async function toggleInteresse(eventoId, button) {
         }
 
         const data = await response.json();
-        const novoEstado = typeof data.acao === 'string' ? data.acao === 'adicionado' : !demonstrouInteresse;
+        const usuarioId = String(usuario.id || usuario._id || '');
+        const interessesServidor = Array.isArray(data.interesses)
+            ? Array.from(new Set(data.interesses.map(id => String(id))))
+            : null;
+
+        const novoEstado = Array.isArray(interessesServidor)
+            ? (usuarioId ? interessesServidor.includes(usuarioId) : (typeof data.acao === 'string' ? data.acao === 'adicionado' : !demonstrouInteresse))
+            : (typeof data.acao === 'string' ? data.acao === 'adicionado' : !demonstrouInteresse);
+
         const textoEstrela = novoEstado ? '★' : '☆';
         [button, btnInteresseTopo].forEach(b => {
             if (!b) return;
@@ -565,30 +580,23 @@ async function toggleInteresse(eventoId, button) {
 
         const contadorServidor = Number.isFinite(Number(data.contador)) ? Number(data.contador) : 0;
         if (interessesCountTopo) interessesCountTopo.textContent = `👥 ${contadorServidor}`;
-        if (!data.acao && typeof data.contador === 'number') {
-            // Se a API não informar a ação, ajustar o estado com base no contador e no padrão atual
-            const atualTemInteresse = demonstrouInteresse;
-            const novoEstadoInferido = !atualTemInteresse;
-            [button, btnInteresseTopo].forEach(b => {
-                if (!b) return;
-                b.textContent = novoEstadoInferido ? '★' : '☆';
-                b.classList.toggle('demonstrou-interesse', novoEstadoInferido);
-            });
-        }
 
-        const usuarioId = String(usuario.id || usuario._id || '');
         if (window.eventoAtual) {
-            if (!window.eventoAtual.interesses || !Array.isArray(window.eventoAtual.interesses)) {
-                window.eventoAtual.interesses = [];
-            }
-
-            if (novoEstado) {
-                if (usuarioId && !window.eventoAtual.interesses.includes(usuarioId)) {
-                    window.eventoAtual.interesses.push(usuarioId);
-                }
+            if (Array.isArray(interessesServidor)) {
+                window.eventoAtual.interesses = interessesServidor;
             } else {
-                if (usuarioId) {
-                    window.eventoAtual.interesses = window.eventoAtual.interesses.filter(id => String(id) !== usuarioId);
+                if (!window.eventoAtual.interesses || !Array.isArray(window.eventoAtual.interesses)) {
+                    window.eventoAtual.interesses = [];
+                }
+
+                if (novoEstado) {
+                    if (usuarioId && !window.eventoAtual.interesses.includes(usuarioId)) {
+                        window.eventoAtual.interesses.push(usuarioId);
+                    }
+                } else {
+                    if (usuarioId) {
+                        window.eventoAtual.interesses = window.eventoAtual.interesses.filter(id => String(id) !== usuarioId);
+                    }
                 }
             }
         }

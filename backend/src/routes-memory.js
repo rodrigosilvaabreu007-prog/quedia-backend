@@ -416,9 +416,10 @@ router.post('/contato', (req, res) => {
 router.get('/interesses/contador/:eventoId', (req, res) => {
   try {
     const eventoId = parseInt(req.params.eventoId) || req.params.eventoId;
-    const contador = db.interesses.filter(i => 
-      i.evento_id === eventoId || i.evento_id === String(eventoId)
-    ).length;
+    const interessados = db.interesses
+      .filter(i => i.evento_id === eventoId || i.evento_id === String(eventoId))
+      .map(i => String(i.usuario_id));
+    const contador = Array.from(new Set(interessados)).length;
     res.json({ contador });
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao contar interesses', detalhes: err.message });
@@ -429,9 +430,11 @@ router.get('/interesses/contador/:eventoId', (req, res) => {
 router.get('/interesses/usuario/:usuarioId', (req, res) => {
   try {
     const usuarioId = parseInt(req.params.usuarioId) || req.params.usuarioId;
-    const interessesDoUsuario = db.interesses
-      .filter(i => i.usuario_id === usuarioId || i.usuario_id === String(usuarioId))
-      .map(i => i.evento_id);
+    const interessesDoUsuario = Array.from(new Set(
+      db.interesses
+        .filter(i => i.usuario_id === usuarioId || i.usuario_id === String(usuarioId))
+        .map(i => String(i.evento_id))
+    ));
     res.json({ interesses: interessesDoUsuario });
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao obter interesses do usuário', detalhes: err.message });
@@ -442,9 +445,11 @@ router.get('/interesses/usuario/:usuarioId', (req, res) => {
 router.get('/interesses/:eventoId', (req, res) => {
   try {
     const eventoId = parseInt(req.params.eventoId) || req.params.eventoId;
-    const interessados = db.interesses
-      .filter(i => i.evento_id === eventoId || i.evento_id === String(eventoId))
-      .map(i => i.usuario_id);
+    const interessados = Array.from(new Set(
+      db.interesses
+        .filter(i => i.evento_id === eventoId || i.evento_id === String(eventoId))
+        .map(i => String(i.usuario_id))
+    ));
     const contador = interessados.length;
     res.json({ contador, interessados });
   } catch (err) {
@@ -482,14 +487,17 @@ router.post('/interesses', (req, res) => {
     const especificacaoId = `${uid}_${eventoIdNum}`;
 
     // Verificar se interesse já existe
-    const indiceExistente = db.interesses.findIndex(i => 
+    const interesseExistente = db.interesses.some(i => 
       (i.usuario_id === uid || i.usuario_id === String(uid)) && 
       (i.evento_id === eventoIdNum || i.evento_id === String(eventoIdNum))
     );
 
-    if (indiceExistente !== -1) {
-      // Remover interesse (toggle off)
-      db.interesses.splice(indiceExistente, 1);
+    if (interesseExistente) {
+      // Remover interesse (toggle off) e limpar duplicatas
+      db.interesses = db.interesses.filter(i => !(
+        (i.usuario_id === uid || i.usuario_id === String(uid)) && 
+        (i.evento_id === eventoIdNum || i.evento_id === String(eventoIdNum))
+      ));
     } else {
       // Adicionar interesse (toggle on)
       db.interesses.push({
@@ -499,15 +507,20 @@ router.post('/interesses', (req, res) => {
       });
     }
 
-    // Retornar novo contador
-    const contador = db.interesses.filter(i => 
+    // Retornar novo contador (conta usuários únicos)
+    const interessesParaEvento = db.interesses.filter(i => 
       i.evento_id === eventoIdNum || i.evento_id === String(eventoIdNum)
-    ).length;
+    );
+    const interessesIds = Array.from(new Set(interessesParaEvento.map(i => String(i.usuario_id))));
+    const contador = interessesIds.length;
+    const acao = interesseExistente ? 'removido' : 'adicionado';
 
     res.json({ 
       sucesso: true, 
+      acao,
       contador,
-      mensagem: indiceExistente !== -1 ? 'Interesse removido' : 'Interesse adicionado'
+      interesses: interessesIds,
+      mensagem: interesseExistente ? 'Interesse removido' : 'Interesse adicionado'
     });
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao atualizar interesse', detalhes: err.message });

@@ -14,7 +14,7 @@ InteresseSchema.index({ usuario_id: 1, evento_id: 1 }, { unique: true });
 
 const Interesse = mongoose.models.Interesse || mongoose.model('Interesse', InteresseSchema);
 
-// Função para adicionar interesse (se não existir)
+// Função para adicionar interesse (toggle on)
 async function adicionarInteresse(usuario_id, evento_id) {
     if (mongoose.connection.readyState !== 1) {
         throw new Error("Conexão com MongoDB não está pronta.");
@@ -24,13 +24,13 @@ async function adicionarInteresse(usuario_id, evento_id) {
     evento_id = String(evento_id);
 
     try {
-        const interesse = new Interesse({ usuario_id, evento_id });
-        await interesse.save();
-        return interesse;
+        await Interesse.updateOne(
+            { usuario_id, evento_id },
+            { $setOnInsert: { usuario_id, evento_id, criadoEm: new Date() } },
+            { upsert: true }
+        );
+        return true;
     } catch (err) {
-        if (err.code === 11000) { // Duplicata
-            return null; // Já existe
-        }
         throw err;
     }
 }
@@ -44,7 +44,7 @@ async function removerInteresse(usuario_id, evento_id) {
     usuario_id = String(usuario_id);
     evento_id = String(evento_id);
 
-    const resultado = await Interesse.deleteOne({ usuario_id, evento_id });
+    const resultado = await Interesse.deleteMany({ usuario_id, evento_id });
     return resultado.deletedCount > 0;
 }
 
@@ -68,8 +68,8 @@ async function contarInteresses(evento_id) {
     }
 
     evento_id = String(evento_id);
-    const count = await Interesse.countDocuments({ evento_id });
-    return count;
+    const usuariosUnicos = await Interesse.distinct('usuario_id', { evento_id });
+    return Array.isArray(usuariosUnicos) ? usuariosUnicos.length : 0;
 }
 
 // Função para listar eventos que usuário tem interesse
@@ -79,8 +79,8 @@ async function listarInteressesUsuario(usuario_id) {
     }
 
     usuario_id = String(usuario_id);
-    const interesses = await Interesse.find({ usuario_id }, { evento_id: 1, _id: 0 });
-    return interesses.map(i => i.evento_id);
+    const interesses = await Interesse.find({ usuario_id }, { evento_id: 1, _id: 0 }).lean();
+    return Array.from(new Set(interesses.map(i => String(i.evento_id))));
 }
 
 // Função para remover todos os interesses de um usuário (quando conta é excluída)
@@ -101,8 +101,8 @@ async function listarInteressesEvento(evento_id) {
     }
 
     evento_id = String(evento_id);
-    const interesses = await Interesse.find({ evento_id }, { usuario_id: 1, _id: 0 });
-    return interesses.map(i => String(i.usuario_id));
+    const interesses = await Interesse.find({ evento_id }, { usuario_id: 1, _id: 0 }).lean();
+    return Array.from(new Set(interesses.map(i => String(i.usuario_id))));
 }
 
 module.exports = {
