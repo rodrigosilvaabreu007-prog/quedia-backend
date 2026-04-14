@@ -130,11 +130,11 @@ async function carregarDetalhesEvento(eventoId) {
         document.getElementById('evento-data').textContent = `📅 Data: ${formatarData(proximaData.data)}`;
         document.getElementById('evento-horario').textContent = `⏰ Horário: ${formatarHorario(proximaData.horario_inicio)}${proximaData.horario_fim ? ' - ' + proximaData.horario_fim : ''}`;
         const categoriasAgrupadas = agruparSubcategoriasPorCategoria(evento.subcategorias || []);
-        const categoriasTexto = Object.keys(categoriasAgrupadas).length > 0 ? Object.keys(categoriasAgrupadas) : [evento.categoria || 'Geral'];
-        document.getElementById('evento-categoria').textContent = `🏷️ Categoria: ${categoriasTexto.join(', ')}`;
+        document.getElementById('evento-categoria').textContent = '🏷️ Categorias:';
         const categoriasListEl = document.getElementById('evento-categorias-list');
         if (categoriasListEl) {
             if (evento.subcategorias && evento.subcategorias.length > 0) {
+                const categoriasTexto = Object.keys(categoriasAgrupadas);
                 categoriasListEl.innerHTML = categoriasTexto.map(categoria => {
                     const subcats = categoriasAgrupadas[categoria] || [];
                     return `
@@ -555,7 +555,7 @@ async function toggleInteresse(eventoId, button) {
         }
 
         const data = await response.json();
-        const novoEstado = data.acao === 'adicionado';
+        const novoEstado = typeof data.acao === 'string' ? data.acao === 'adicionado' : !demonstrouInteresse;
         const textoEstrela = novoEstado ? '★' : '☆';
         [button, btnInteresseTopo].forEach(b => {
             if (!b) return;
@@ -565,6 +565,16 @@ async function toggleInteresse(eventoId, button) {
 
         const contadorServidor = Number.isFinite(Number(data.contador)) ? Number(data.contador) : 0;
         if (interessesCountTopo) interessesCountTopo.textContent = `👥 ${contadorServidor}`;
+        if (!data.acao && typeof data.contador === 'number') {
+            // Se a API não informar a ação, ajustar o estado com base no contador e no padrão atual
+            const atualTemInteresse = demonstrouInteresse;
+            const novoEstadoInferido = !atualTemInteresse;
+            [button, btnInteresseTopo].forEach(b => {
+                if (!b) return;
+                b.textContent = novoEstadoInferido ? '★' : '☆';
+                b.classList.toggle('demonstrou-interesse', novoEstadoInferido);
+            });
+        }
 
         const usuarioId = String(usuario.id || usuario._id || '');
         if (window.eventoAtual) {
