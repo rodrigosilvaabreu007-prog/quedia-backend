@@ -13,12 +13,15 @@ form.addEventListener('submit', async (e) => {
     });
     const resultado = await resposta.json();
     if (resposta.ok) {
-      mensagem.textContent = 'Mensagem enviada com sucesso!';
+      mensagem.style.color = 'green';
+      mensagem.textContent = resultado.mensagem + ' (Mensagens são salvas e revisadas manualmente)';
       form.reset();
     } else {
+      mensagem.style.color = 'red';
       mensagem.textContent = resultado.erro || 'Erro ao enviar mensagem.';
     }
   } catch (err) {
+    mensagem.style.color = 'red';
     mensagem.textContent = 'Erro de conexão com o servidor.';
   }
 });

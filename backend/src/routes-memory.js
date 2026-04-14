@@ -408,7 +408,35 @@ router.delete('/usuario/:id', (req, res) => {
 
 // Rota de contato
 router.post('/contato', (req, res) => {
-  res.json({ mensagem: 'Mensagem recebida! Nos entraremos em contato em breve.' });
+  try {
+    const { nome, email, mensagem } = req.body;
+
+    if (!nome || !email || !mensagem) {
+      return res.status(400).json({ erro: 'Todos os campos são obrigatórios' });
+    }
+
+    // Salvar mensagem de contato
+    const novaMensagem = {
+      id: (db.contatos || []).length + 1,
+      nome,
+      email,
+      mensagem,
+      data: new Date().toISOString()
+    };
+
+    if (!db.contatos) db.contatos = [];
+    db.contatos.push(novaMensagem);
+
+    console.log('📧 Nova mensagem de contato recebida:', { nome, email, data: novaMensagem.data });
+
+    res.json({
+      mensagem: 'Mensagem recebida com sucesso! Entraremos em contato em breve.',
+      id: novaMensagem.id
+    });
+  } catch (err) {
+    console.error('❌ Erro ao processar contato:', err);
+    res.status(500).json({ erro: 'Erro interno do servidor' });
+  }
 });
 
 // Endpoints de interesses
