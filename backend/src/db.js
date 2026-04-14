@@ -9,13 +9,22 @@ async function connectDB() {
         return mongoose.connection.db;
     }
 
-    if (!process.env.MONGO_URI || typeof process.env.MONGO_URI !== 'string') {
+        if (!process.env.MONGO_URI || typeof process.env.MONGO_URI !== 'string') {
         throw new Error('MONGO_URI não está definida ou é inválida');
+    }
+
+    let mongoUri = process.env.MONGO_URI.trim();
+    const mongoOptions = process.env.MONGO_URI_OPTIONS && typeof process.env.MONGO_URI_OPTIONS === 'string'
+        ? process.env.MONGO_URI_OPTIONS.trim()
+        : '';
+
+    if (mongoOptions) {
+        mongoUri += mongoUri.includes('?') ? `&${mongoOptions}` : `?${mongoOptions}`;
     }
 
     try {
         // Conecta usando Mongoose (compatível com o modelo eventos.js)
-        await mongoose.connect(process.env.MONGO_URI, {
+        await mongoose.connect(mongoUri, {
             // Opções para ambientes serverless
             serverSelectionTimeoutMS: 5000, // Timeout para seleção do servidor
             socketTimeoutMS: 45000, // Timeout do socket
