@@ -1856,7 +1856,7 @@ header {
   align-items: center;
   justify-content: space-between;
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 14px;
+  border-radius: 14px 14px 14px 14px;
   box-sizing: border-box;
   user-select: none;
   outline: none;
@@ -1941,7 +1941,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 14px;
+  gap: 16px;
   padding: 14px 18px;
   min-height: 48px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
@@ -1956,7 +1956,7 @@ header {
   box-sizing: border-box;
   border: none;
   flex-wrap: nowrap;
-  flex-direction: row-reverse;
+  flex-direction: row;
 }
 
 #categorias-evento .subcategoria-item {
@@ -2029,6 +2029,11 @@ header {
   flex: 1;
   min-width: 0;
   line-height: 1.4;
+  order: 1;
+}
+
+.subcategoria-item input[type="checkbox"] {
+  order: 2;
 }
 
 .subcategorias-container::-webkit-scrollbar {
