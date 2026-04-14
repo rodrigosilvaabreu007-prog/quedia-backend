@@ -488,10 +488,12 @@ router.post('/interesses', verificarToken, async (req, res) => {
         // Retornar dados atualizados
         const contador = await contarInteresses(evento_id);
         const interessesIds = await listarInteressesEvento(evento_id);
+        const temInteresse = !jaTemInteresse;
         
         return res.json({ 
             mensagem: jaTemInteresse ? 'Interesse removido' : 'Interesse adicionado', 
             acao: jaTemInteresse ? 'removido' : 'adicionado',
+            temInteresse,
             contador: contador,
             interesses: interessesIds
         });

@@ -591,9 +591,11 @@ async function toggleInteresse(eventoId, button) {
             : null;
 
         // Determinar novo estado baseado na resposta do servidor
-        const novoEstado = Array.isArray(interessesServidor)
-            ? interessesServidor.includes(usuarioId)
-            : (data.acao === 'adicionado');
+        const novoEstado = typeof data.temInteresse === 'boolean'
+            ? data.temInteresse
+            : Array.isArray(interessesServidor)
+                ? interessesServidor.includes(usuarioId)
+                : (data.acao === 'adicionado');
 
         const textoEstrela = novoEstado ? '★' : '☆';
         [button, btnInteresseTopo].forEach(b => {

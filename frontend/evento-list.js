@@ -239,15 +239,11 @@ window.toggleInteresse = async function(eventoId, btnElement) {
             const interessesServidor = Array.isArray(data.interesses)
                 ? Array.from(new Set(data.interesses.map(id => String(id))))
                 : null;
-            let temInteresse = false;
-
-            if (Array.isArray(interessesServidor)) {
-                temInteresse = interessesServidor.includes(usuarioId);
-            } else if (typeof data.acao === 'string') {
-                temInteresse = data.acao === 'adicionado';
-            } else {
-                temInteresse = novoEstado;
-            }
+            let temInteresse = typeof data.temInteresse === 'boolean'
+                ? data.temInteresse
+                : Array.isArray(interessesServidor)
+                    ? interessesServidor.includes(usuarioId)
+                    : (data.acao === 'adicionado');
 
             const contador = Number.isFinite(Number(data.contador)) ? Number(data.contador) : 0;
 
