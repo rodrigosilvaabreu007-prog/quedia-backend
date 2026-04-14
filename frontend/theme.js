@@ -1,9 +1,26 @@
 // Sistema de temas avançado com sincronização entre abas
 
 // Funções de aplicar/restaurar tema
+function shadeColor(hex, percent) {
+  if (!hex) return '#5a6d86';
+  let color = hex.trim();
+  if (color.startsWith('#')) color = color.slice(1);
+  if (color.length === 3) color = color.split('').map(ch => ch + ch).join('');
+  const num = parseInt(color, 16);
+  if (Number.isNaN(num)) return '#5a6d86';
+  const r = Math.min(255, Math.max(0, Math.round(((num >> 16) & 255) * (100 + percent) / 100)));
+  const g = Math.min(255, Math.max(0, Math.round(((num >> 8) & 255) * (100 + percent) / 100)));
+  const b = Math.min(255, Math.max(0, Math.round((num & 255) * (100 + percent) / 100)));
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
 function aplicarTema(tema) {
   if (tema) {
-    document.body.style.setProperty('--cor-principal', tema.corPrincipal || '#00bfff');
+    const corPrincipal = tema.corPrincipal || '#00bfff';
+    document.body.style.setProperty('--cor-principal', corPrincipal);
+    document.body.style.setProperty('--cor-principal-hover', shadeColor(corPrincipal, -18));
+    document.body.style.setProperty('--cor-principal-active', shadeColor(corPrincipal, -36));
+    document.body.style.setProperty('--cor-principal-pressed', '#5a6d86');
     document.body.style.setProperty('--bg-primary', tema.corFundo || '#181a20');
     document.body.style.setProperty('--text-primary', tema.corTexto || '#ffffff');
     document.body.style.setProperty('--bg-secondary', tema.bgSecundario || '#1a2332');
@@ -22,7 +39,7 @@ function aplicarTema(tema) {
     const bgInput = document.getElementById('theme-bg');
     const textInput = document.getElementById('theme-text');
     
-    if (mainInput) mainInput.value = tema.corPrincipal || '#00bfff';
+    if (mainInput) mainInput.value = corPrincipal;
     if (bgInput) bgInput.value = tema.corFundo || '#181a20';
     if (textInput) textInput.value = tema.corTexto || '#ffffff';
   }
@@ -162,15 +179,12 @@ function initializeThemeModal() {
     const corFundo = document.getElementById('theme-bg').value;
     const corTexto = document.getElementById('theme-text').value;
 
-    // Aplicar cores
-    document.body.style.setProperty('--cor-principal', corPrincipal);
-    document.body.style.setProperty('--bg-primary', corFundo);
-    document.body.style.setProperty('--text-primary', corTexto);
+    const temaSalvo = { corPrincipal, corFundo, corTexto };
+    aplicarTema(temaSalvo);
 
     // Salvar localmente
-    localStorage.setItem('eventhub-theme', JSON.stringify({ corPrincipal, corFundo, corTexto }));
+    localStorage.setItem('eventhub-theme', JSON.stringify(temaSalvo));
 
-    // Salvar no backend se usuário estiver logado
     const token = localStorage.getItem('eventhub-token');
     const usuarioStr = localStorage.getItem('eventhub-usuario');
     if (token && usuarioStr) {
