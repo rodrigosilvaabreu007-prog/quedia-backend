@@ -1838,27 +1838,28 @@ header {
   gap: 0;
   border-radius: 14px;
   overflow: visible;
-  background: transparent;
+  background: rgba(255,255,255,0.02);
   transition: all 0.2s ease;
 }
 
 .btn-categoria {
   width: 100%;
-  background: var(--cor-principal);
+  background: rgba(0, 191, 255, 0.95);
   color: var(--bg-primary);
   padding: 14px 18px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   text-align: left;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: none;
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 12px 12px 0 0;
   box-sizing: border-box;
   user-select: none;
+  outline: none;
 }
 
 .btn-categoria::after {
@@ -1871,15 +1872,19 @@ header {
 }
 
 .btn-categoria:hover {
-  background: var(--cor-principal-hover);
+  background: rgba(0, 172, 230, 0.95);
+  border-color: rgba(255,255,255,0.16);
 }
 
-.btn-categoria:active {
-  background: var(--cor-principal-pressed);
+.btn-categoria:active,
+.btn-categoria:focus {
+  background: rgba(0, 147, 199, 0.95);
+  box-shadow: none;
 }
 
 .btn-categoria.active {
-  background: var(--cor-principal-active);
+  background: rgba(0, 141, 190, 0.95);
+  border-color: rgba(255,255,255,0.18);
 }
 
 .btn-categoria.active::after {
@@ -2009,10 +2014,12 @@ header {
   font-weight: 600;
   font-size: 0.95rem;
   user-select: none;
-  white-space: normal;
-  word-break: break-word;
-  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   flex: 1;
+  min-width: 0;
+  line-height: 1.4;
 }
 
 .subcategorias-container::-webkit-scrollbar {

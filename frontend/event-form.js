@@ -783,7 +783,7 @@ async function inicializarFormulario() {
                 } else {
                     if (msg) {
                         msg.style.color = 'red';
-                        msg.textContent = dados.erro ; dados.detalhe ; 'Falha no servidor';
+                        msg.textContent = dados.erro || dados.detalhe || dados.message || 'Falha no servidor';
                     }
                     console.error('Erro retornado pelo backend:', dados);
                 }

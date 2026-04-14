@@ -292,7 +292,7 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
       e.preventDefault();
       const isHidden = subcatContainer.classList.contains('hidden');
       
-      // Recolher outras categorias abertas
+      // Fechar todas as outras categorias e alternar a atual
       document.querySelectorAll('.subcategorias-container').forEach(container => {
         container.classList.add('hidden');
         container.classList.remove('visible');
@@ -301,11 +301,18 @@ function inicializarSeletorCategorias(containerId = 'categorias-evento', selecte
         btn.classList.remove('active');
       });
 
-      // Expandir a clicada
       if (isHidden) {
         subcatContainer.classList.remove('hidden');
         subcatContainer.classList.add('visible');
         btnCategoria.classList.add('active');
+      }
+    });
+
+    cardWrapper.addEventListener('mouseleave', () => {
+      if (subcatContainer.classList.contains('visible')) {
+        subcatContainer.classList.remove('visible');
+        subcatContainer.classList.add('hidden');
+        btnCategoria.classList.remove('active');
       }
     });
 
