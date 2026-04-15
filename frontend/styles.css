@@ -2011,7 +2011,7 @@ header {
   background: rgba(var(--cor-principal-rgb, 0, 191, 255), 0.08);
 }
 
-.card-form .subcategoria-item input[type="checkbox"] {
+.subcategoria-item input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -2033,6 +2033,22 @@ header {
   order: 2;
   margin-left: auto;
   flex: none;
+}
+
+.subcategoria-item span {
+  display: flex;
+  align-items: center;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.4;
+  order: 1;
 }
 
 .subcategoria-item input[type="checkbox"]::after {
@@ -2060,22 +2076,6 @@ header {
 .subcategoria-item input[type="checkbox"]:checked::after {
   transform: translate(-50%, -50%) scale(1);
   opacity: 1;
-}
-
-.card-form .subcategoria-item span {
-  display: flex;
-  align-items: center;
-  color: var(--text-primary);
-  font-weight: 600;
-  font-size: 0.95rem;
-  user-select: none;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1 1 auto;
-  min-width: 0;
-  line-height: 1.4;
-  order: 1;
 }
 
 .subcategoria-item input[type="checkbox"] {
