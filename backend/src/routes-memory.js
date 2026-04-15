@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('./db-memory');
 
+const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Rota de verificação de email
@@ -75,7 +76,7 @@ router.post('/login', async (req, res) => {
     }
     
     console.log('✓ Login bem-sucedido:', email);
-    const token = jwt.sign({ id: usuario.id, tipo: usuario.tipo }, process.env.JWT_SECRET || 'secret', { expiresIn: '2h' });
+    const token = jwt.sign({ id: usuario.id, tipo: usuario.tipo }, JWT_SECRET, { expiresIn: '2h' });
     res.json({ usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email, estado: usuario.estado, cidade: usuario.cidade, preferencias: usuario.preferencias || [] }, token });
   } catch (err) {
     console.error('❌ Erro ao autenticar:', err);
@@ -139,7 +140,7 @@ router.post('/eventos', upload.any(), (req, res) => {
     if (req.headers.authorization && !organizadorIdFinal) {
       try {
         const token = req.headers.authorization.replace('Bearer ', '');
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'chave-secreta');
+        const decoded = jwt.verify(token, JWT_SECRET);
         organizadorIdFinal = decoded.id || decoded._id;
       } catch (e) {
         console.warn('JWT inválido ao cadastrar evento:', e.message);
@@ -484,7 +485,7 @@ router.get('/interesses/:eventoId', (req, res) => {
     if (req.headers.authorization) {
       try {
         const token = req.headers.authorization.replace(/^Bearer\s+/i, '');
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'chave-secreta');
+        const decoded = jwt.verify(token, JWT_SECRET);
         temInteresse = interessados.includes(String(decoded.id));
       } catch (e) {
         // Token inválido ou ausente: não altera o resultado
@@ -515,7 +516,7 @@ router.post('/interesses', (req, res) => {
 
       try {
         const token = req.headers.authorization.replace(/^Bearer\s+/i, '');
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'chave-secreta');
+        const decoded = jwt.verify(token, JWT_SECRET);
         uid = decoded.id;
       } catch (e) {
         return res.status(401).json({ erro: 'Token inválido' });
