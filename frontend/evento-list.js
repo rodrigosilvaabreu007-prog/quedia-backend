@@ -363,6 +363,8 @@ function getLocalizacaoUsuario() {
             cidade: dadosUsuario.cidade || ''
         };
     } catch (e) {
+        return { estado: '', cidade: '' };
+    }
 }
 
 function getUsuarioId() {
