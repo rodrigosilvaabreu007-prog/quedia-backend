@@ -63,7 +63,6 @@ async function carregarMeusEventos() {
             ev.organizador_id === usuarioId ||
             ev.organizador_id === usuario._id
         );
-        }
 
         container.innerHTML = '';
 
