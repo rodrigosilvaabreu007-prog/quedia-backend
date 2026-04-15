@@ -12,7 +12,7 @@ form.addEventListener('submit', async (e) => {
   }
 
   const dados = Object.fromEntries(new FormData(form));
-  const apiUrl = window.API_URL || '';
+  const apiUrl = window.API_URL || window.BASE_URL ? `${window.BASE_URL || window.location.origin}/api` : '';
   if (!apiUrl) {
     mensagem.style.color = 'red';
     mensagem.textContent = 'Erro interno: API_URL não configurada.';
@@ -33,10 +33,19 @@ form.addEventListener('submit', async (e) => {
       mensagem.style.color = 'green';
       mensagem.textContent = resultado.mensagem;
       form.reset();
-    } else {
-      mensagem.style.color = 'red';
-      mensagem.textContent = resultado.erro || 'Erro ao enviar mensagem.';
+      return;
     }
+
+    if (resposta.status === 401 || resposta.status === 403) {
+      localStorage.removeItem('eventhub-token');
+      localStorage.removeItem('eventhub-usuario');
+      mensagem.style.color = 'red';
+      mensagem.textContent = 'Sessão inválida ou expirada. Faça login novamente para enviar a mensagem.';
+      return;
+    }
+
+    mensagem.style.color = 'red';
+    mensagem.textContent = resultado.erro || 'Erro ao enviar mensagem.';
   } catch (err) {
     mensagem.style.color = 'red';
     mensagem.textContent = 'Erro de conexão com o servidor.';
