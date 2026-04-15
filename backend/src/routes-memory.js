@@ -86,13 +86,20 @@ async function enviarEmailContatoMemory({ nome, email, mensagem }) {
     throw new Error('SMTP credentials não configuradas. Defina SMTP_PASS, SMTP_PASSWORD ou EMAIL_PASSWORD.');
   }
 
-  return mailTransporter.sendMail({
-    from: `Quedia Contato <${SMTP_USER}>`,
-    to: CONTACT_EMAIL,
-    replyTo: `${nome} <${email}>`,
-    subject: `Contato do site: ${nome}`,
-    text: `Nome: ${nome}\nEmail: ${email}\nMensagem:\n${mensagem}`
-  });
+  try {
+    return await mailTransporter.sendMail({
+      from: `Quedia Contato <${SMTP_USER}>`,
+      to: CONTACT_EMAIL,
+      replyTo: `${nome} <${email}>`,
+      subject: `Contato do site: ${nome}`,
+      text: `Nome: ${nome}\nEmail: ${email}\nMensagem:\n${mensagem}`
+    });
+  } catch (err) {
+    if (err.responseCode === 534 || /Application-specific password required/i.test(err.message)) {
+      throw new Error('Erro de autenticação SMTP: o Gmail exige App Password para envio por SMTP. Gere um App Password em https://myaccount.google.com/apppasswords e configure-o em EMAIL_PASSWORD ou GMAIL_APP_PASSWORD.');
+    }
+    throw err;
+  }
 }
 
 // Rota de verificação de email

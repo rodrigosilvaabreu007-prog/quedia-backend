@@ -58,7 +58,14 @@ async function enviarEmailContato({ nome, email, mensagem }) {
         text: `Nova mensagem de contato\n\nNome: ${nome}\nEmail: ${email}\nMensagem:\n${mensagem}`
     };
 
-    return mailTransporter.sendMail(mailOptions);
+    try {
+        return await mailTransporter.sendMail(mailOptions);
+    } catch (err) {
+        if (err.responseCode === 534 || /Application-specific password required/i.test(err.message)) {
+            throw new Error('Erro de autenticação SMTP: o Gmail exige App Password para envio por SMTP. Gere um App Password em https://myaccount.google.com/apppasswords e configure-o em EMAIL_PASSWORD ou GMAIL_APP_PASSWORD.');
+        }
+        throw err;
+    }
 }
 
 // 3. MIDDLEWARE DE CONEXÃO (Tenta conectar, mas permite próximas rotas)
