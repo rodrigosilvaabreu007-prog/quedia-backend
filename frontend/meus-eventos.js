@@ -16,6 +16,7 @@ async function carregarMeusEventos() {
 
     const usuario = JSON.parse(usuarioStr);
     const usuarioId = String(usuario.id || usuario._id || '');
+    const apiUrl = window.API_URL || (window.BASE_URL ? `${window.BASE_URL}/api` : 'https://eventhub-api-649702844549.us-central1.run.app/api');
 
     if (!usuarioId) {
         container.innerHTML = '<p>Usuário não identificado. Faça login novamente.</p>';
@@ -24,7 +25,7 @@ async function carregarMeusEventos() {
 
     try {
         // Primeiro tenta buscar eventos filtrados por organizador_id
-        const resposta = await fetch(`${window.API_URL}/eventos?organizador_id=${encodeURIComponent(usuarioId)}`, {
+        const resposta = await fetch(`${apiUrl}/eventos?organizador_id=${encodeURIComponent(usuarioId)}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -39,7 +40,7 @@ async function carregarMeusEventos() {
         } else {
             // Se falhar, busca todos os eventos e filtra no frontend
             console.warn('Busca filtrada falhou, tentando buscar todos os eventos...');
-            const todosResposta = await fetch(`${window.API_URL}/eventos`, {
+            const todosResposta = await fetch(`${apiUrl}/eventos`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
