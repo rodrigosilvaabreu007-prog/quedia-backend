@@ -30,7 +30,7 @@ steps:
       - 'managed'
       - '--allow-unauthenticated'
       - '--set-env-vars'
-      - 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID,NODE_ENV=production'
+      - 'GOOGLE_CLOUD_PROJECT=$PROJECT_ID'
 
 images:
   - 'gcr.io/$PROJECT_ID/eventhub-api:latest'
