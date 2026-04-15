@@ -3,10 +3,93 @@ const router = express.Router();
 const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 const db = require('./db-memory');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret';
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'quedia.com.br@gmail.com';
+const SMTP_USER = process.env.SMTP_USER || process.env.SMTP_EMAIL || 'quedia.com.br@gmail.com';
+const SMTP_PASS = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || process.env.GMAIL_APP_PASSWORD || '';
 const upload = multer({ storage: multer.memoryStorage() });
+
+const mailTransporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: SMTP_USER,
+    pass: SMTP_PASS
+  }
+});
+
+function parseLocalDateTime(data, hora) {
+  if (!data) return null;
+  const [year, month, day] = data.split('-').map(Number);
+  const [hours, minutes] = (hora || '00:00').split(':').map(Number);
+  if (![year, month, day, hours, minutes].every(Number.isFinite)) return null;
+  return new Date(year, month - 1, day, hours, minutes, 0);
+}
+
+function calcularExpiracaoEventoMemory(item) {
+  const inicio = parseLocalDateTime(item.data, item.horario_inicio || '00:00');
+  if (!inicio || Number.isNaN(inicio.getTime())) return null;
+
+  if (item.horario_fim) {
+    const fim = parseLocalDateTime(item.data, item.horario_fim);
+    if (fim && !Number.isNaN(fim.getTime())) {
+      return new Date(fim.getTime() + 12 * 60 * 60 * 1000);
+    }
+  }
+
+  return new Date(inicio.getTime() + 24 * 60 * 60 * 1000);
+}
+
+function eventoEstaAtivoMemory(evento) {
+  const datas = Array.isArray(evento.datas) && evento.datas.length > 0
+    ? evento.datas
+    : [{ data: evento.data, horario_inicio: evento.horario || '00:00', horario_fim: evento.horario_fim || '' }];
+
+  const agora = new Date();
+  return datas.some(item => {
+    if (!item || !item.data) return false;
+    const expiracao = calcularExpiracaoEventoMemory(item);
+    return expiracao && expiracao > agora;
+  });
+}
+
+function extrairToken(req) {
+  const authHeader = req.headers.authorization || '';
+  if (!authHeader.startsWith('Bearer ')) return null;
+  return authHeader.replace(/^Bearer\s+/i, '');
+}
+
+function verificarTokenMemory(req, res, next) {
+  const token = extrairToken(req);
+  if (!token) {
+    return res.status(401).json({ erro: 'Token de acesso necessário' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.usuario = decoded;
+    next();
+  } catch (err) {
+    return res.status(403).json({ erro: 'Token inválido' });
+  }
+}
+
+async function enviarEmailContatoMemory({ nome, email, mensagem }) {
+  if (!SMTP_PASS) {
+    console.warn('SMTP não configurado para envio de contato em modo memória');
+    return null;
+  }
+
+  return mailTransporter.sendMail({
+    from: `Quedia Contato <${SMTP_USER}>`,
+    to: CONTACT_EMAIL,
+    replyTo: `${nome} <${email}>`,
+    subject: `Contato do site: ${nome}`,
+    text: `Nome: ${nome}\nEmail: ${email}\nMensagem:\n${mensagem}`
+  });
+}
 
 // Rota de verificação de email
 router.get('/verificar-email', (req, res) => {
@@ -96,6 +179,8 @@ router.get('/eventos', (req, res) => {
       );
     }
 
+    eventosFiltrados = eventosFiltrados.filter(eventoEstaAtivoMemory);
+
     const eventosComInteresses = eventosFiltrados.map(evento => ({
       ...evento,
       interesses: db.interesses
@@ -113,7 +198,7 @@ router.get('/eventos/:id', (req, res) => {
   try {
     const id = parseInt(req.params.id) || req.params.id;
     const evento = db.eventos.find(e => e.id === id || e._id === id);
-    if (!evento) {
+    if (!evento || !eventoEstaAtivoMemory(evento)) {
       return res.status(404).json({ erro: 'Evento não encontrado' });
     }
     // Enriquecer com os usuários interessados
@@ -408,7 +493,7 @@ router.delete('/usuario/:id', (req, res) => {
 });
 
 // Rota de contato
-router.post('/contato', (req, res) => {
+router.post('/contato', verificarTokenMemory, async (req, res) => {
   try {
     const { nome, email, mensagem } = req.body;
 
@@ -416,27 +501,30 @@ router.post('/contato', (req, res) => {
       return res.status(400).json({ erro: 'Todos os campos são obrigatórios' });
     }
 
-    // Salvar mensagem de contato
     const novaMensagem = {
       id: (db.contatos || []).length + 1,
       nome,
       email,
       mensagem,
+      usuario_id: req.usuario?.id || null,
       data: new Date().toISOString()
     };
 
     if (!db.contatos) db.contatos = [];
     db.contatos.push(novaMensagem);
 
-    console.log('📧 Nova mensagem de contato recebida:', { nome, email, data: novaMensagem.data });
+    if (SMTP_PASS) {
+      await enviarEmailContatoMemory({ nome, email, mensagem });
+    } else {
+      console.warn('SMTP não configurado: mensagem de contato ficará apenas em memória');
+    }
 
-    res.json({
-      mensagem: 'Mensagem recebida com sucesso! Entraremos em contato em breve.',
-      id: novaMensagem.id
-    });
+    console.log('📧 Nova mensagem de contato recebida:', { nome, email, data: novaMensagem.data, usuario_id: novaMensagem.usuario_id });
+
+    res.json({ mensagem: 'Mensagem recebida com sucesso! Entraremos em contato em breve.', id: novaMensagem.id });
   } catch (err) {
     console.error('❌ Erro ao processar contato:', err);
-    res.status(500).json({ erro: 'Erro interno do servidor' });
+    res.status(500).json({ erro: 'Erro interno do servidor', detalhes: err.message });
   }
 });
 

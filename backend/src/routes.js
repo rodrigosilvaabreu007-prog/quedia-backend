@@ -26,6 +26,35 @@ const storage = new CloudinaryStorage({
 });
 
 const upload = multer({ storage: storage });
+const nodemailer = require('nodemailer');
+
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'quedia.com.br@gmail.com';
+const SMTP_USER = process.env.SMTP_USER || process.env.SMTP_EMAIL || 'quedia.com.br@gmail.com';
+const SMTP_PASS = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || process.env.GMAIL_APP_PASSWORD || '';
+
+const mailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: SMTP_USER,
+        pass: SMTP_PASS
+    }
+});
+
+async function enviarEmailContato({ nome, email, mensagem }) {
+    if (!SMTP_PASS) {
+        throw new Error('SMTP credentials não configuradas. Defina SMTP_PASS ou SMTP_PASSWORD.');
+    }
+
+    const mailOptions = {
+        from: `Quedia Contato <${SMTP_USER}>`,
+        to: CONTACT_EMAIL,
+        replyTo: `${nome} <${email}>`,
+        subject: `Contato do site: ${nome}`,
+        text: `Nova mensagem de contato\n\nNome: ${nome}\nEmail: ${email}\nMensagem:\n${mensagem}`
+    };
+
+    return mailTransporter.sendMail(mailOptions);
+}
 
 // 3. MIDDLEWARE DE CONEXÃO (Tenta conectar, mas permite próximas rotas)
 router.use(async (req, res, next) => {
@@ -250,7 +279,23 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// 8. ROTA GET: BUSCAR USUÁRIO POR ID
+// 8. ROTA POST: CONTATO (apenas usuários logados podem enviar)
+router.post('/contato', verificarToken, async (req, res) => {
+    try {
+        const { nome, email, mensagem } = req.body;
+        if (!nome || !email || !mensagem) {
+            return res.status(400).json({ erro: 'Nome, email e mensagem são obrigatórios' });
+        }
+
+        await enviarEmailContato({ nome, email, mensagem });
+        return res.json({ mensagem: 'Mensagem enviada com sucesso! Entraremos em contato em breve.' });
+    } catch (err) {
+        console.error('Erro na rota POST /contato:', err.message);
+        return res.status(500).json({ erro: 'Erro ao enviar mensagem. Verifique a configuração de e-mail.', detalhe: err.message });
+    }
+});
+
+// 9. ROTA GET: BUSCAR USUÁRIO POR ID
 router.get('/usuario/:id', async (req, res) => {
     try {
         const { id } = req.params;
