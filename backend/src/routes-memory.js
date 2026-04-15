@@ -479,7 +479,19 @@ router.get('/interesses/:eventoId', (req, res) => {
         .map(i => String(i.usuario_id))
     ));
     const contador = interessados.length;
-    res.json({ contador, interessados });
+
+    let temInteresse = false;
+    if (req.headers.authorization) {
+      try {
+        const token = req.headers.authorization.replace(/^Bearer\s+/i, '');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'chave-secreta');
+        temInteresse = interessados.includes(String(decoded.id));
+      } catch (e) {
+        // Token inválido ou ausente: não altera o resultado
+      }
+    }
+
+    res.json({ contador, interessados, temInteresse });
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao obter interesses', detalhes: err.message });
   }
@@ -496,19 +508,22 @@ router.post('/interesses', (req, res) => {
 
     // Se não houver usuario_id no body, tenta extrair do JWT
     let uid = usuario_id;
-    if (!uid && req.headers.authorization) {
+    if (!uid) {
+      if (!req.headers.authorization) {
+        return res.status(401).json({ erro: 'Token de autenticação necessário' });
+      }
+
       try {
-        const token = req.headers.authorization.replace('Bearer ', '');
+        const token = req.headers.authorization.replace(/^Bearer\s+/i, '');
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'chave-secreta');
         uid = decoded.id;
       } catch (e) {
-        // Se não conseguir decodificar, vai usar uma ID temporária
+        return res.status(401).json({ erro: 'Token inválido' });
       }
     }
 
-    // ID genérica para usuários não autenticados
     if (!uid) {
-      uid = `anon_${Date.now()}`;
+      return res.status(401).json({ erro: 'Usuario_id inválido' });
     }
 
     const eventoIdNum = parseInt(evento_id) || evento_id;

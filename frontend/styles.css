@@ -1024,7 +1024,8 @@ header {
   transform: scale(1.1);
 }
 
-.favorito-btn.favoritado {
+.favorito-btn.favoritado,
+.favorito-btn.demonstrou-interesse {
   background: var(--cor-principal);
   color: #000;
 }
