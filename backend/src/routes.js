@@ -31,9 +31,14 @@ const nodemailer = require('nodemailer');
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'quedia.com.br@gmail.com';
 const SMTP_USER = process.env.SMTP_USER || process.env.SMTP_EMAIL || process.env.EMAIL_USER || 'quedia.com.br@gmail.com';
 const SMTP_PASS = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASSWORD || '';
+const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
+const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
+const SMTP_SECURE = process.env.SMTP_SECURE === 'true';
 
 const mailTransporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_SECURE,
     auth: {
         user: SMTP_USER,
         pass: SMTP_PASS
@@ -290,9 +295,22 @@ router.post('/contato', verificarToken, async (req, res) => {
         await enviarEmailContato({ nome, email, mensagem });
         return res.json({ mensagem: 'Mensagem enviada com sucesso! Entraremos em contato em breve.' });
     } catch (err) {
-        console.error('Erro na rota POST /contato:', err.message);
+        console.error('Erro na rota POST /contato:', err);
         return res.status(500).json({ erro: 'Erro ao enviar mensagem. Verifique a configuração de e-mail.', detalhe: err.message });
     }
+});
+
+router.get('/debug/email-status', (req, res) => {
+    return res.json({
+        contactEmail: CONTACT_EMAIL,
+        smtpUserSet: !!SMTP_USER,
+        smtpPassSet: !!SMTP_PASS,
+        smtpHost: SMTP_HOST,
+        smtpPort: SMTP_PORT,
+        smtpSecure: SMTP_SECURE,
+        smtpUserMasked: SMTP_USER ? `${SMTP_USER.slice(0, 3)}***${SMTP_USER.slice(-3)}` : null,
+        smtpConfigured: !!SMTP_PASS
+    });
 });
 
 // 9. ROTA GET: BUSCAR USUÁRIO POR ID
