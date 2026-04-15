@@ -467,7 +467,19 @@ function verificarToken(req, res, next) {
 router.post('/interesses', verificarToken, async (req, res) => {
     try {
         const { evento_id } = req.body;
-        const usuario_id = String(req.usuario?.id?.toString ? req.usuario.id.toString() : req.usuario?.id || '');
+        
+        // Extrair usuario_id do token com validação rigorosa
+        let usuario_id = req.usuario?.id;
+        if (!usuario_id) {
+            console.warn('⚠️ POST /interesses: usuario_id inválido no token:', req.usuario);
+            return res.status(401).json({ erro: 'Usuario_id inválido no token' });
+        }
+        usuario_id = String(usuario_id).trim();
+        
+        if (!usuario_id) {
+            console.warn('⚠️ POST /interesses: usuario_id vazio após conversão');
+            return res.status(401).json({ erro: 'Usuario_id vazio' });
+        }
 
         if (!evento_id) {
             return res.status(400).json({ erro: 'ID do evento é obrigatório' });
@@ -523,7 +535,13 @@ router.get('/interesses/contador/:evento_id', async (req, res) => {
 router.get('/interesses/:evento_id', verificarToken, async (req, res) => {
     try {
         const { evento_id } = req.params;
-        const usuario_id = String(req.usuario?.id?.toString ? req.usuario.id.toString() : req.usuario?.id || '');
+        
+        // Extrair usuario_id do token com validação
+        let usuario_id = req.usuario?.id;
+        if (!usuario_id) {
+            return res.status(401).json({ erro: 'Usuario_id inválido no token' });
+        }
+        usuario_id = String(usuario_id).trim();
 
         const temInteresse = await usuarioTemInteresse(usuario_id, evento_id);
         const contador = await contarInteresses(evento_id);
@@ -544,10 +562,16 @@ router.get('/interesses/:evento_id', verificarToken, async (req, res) => {
 router.get('/interesses/usuario/:usuario_id', verificarToken, async (req, res) => {
     try {
         const { usuario_id } = req.params;
-        const tokenUserId = String(req.usuario?.id?.toString ? req.usuario.id.toString() : req.usuario?.id || '');
+        
+        // Extrair usuario_id do token com validação
+        let tokenUserId = req.usuario?.id;
+        if (!tokenUserId) {
+            return res.status(401).json({ erro: 'Usuario_id inválido no token' });
+        }
+        tokenUserId = String(tokenUserId).trim();
 
         // Verificar se o usuário está pedindo seus próprios interesses
-        if (String(usuario_id) !== tokenUserId) {
+        if (String(usuario_id).trim() !== tokenUserId) {
             return res.status(403).json({ erro: 'Acesso negado' });
         }
 
