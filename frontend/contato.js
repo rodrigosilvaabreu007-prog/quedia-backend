@@ -12,7 +12,7 @@ form.addEventListener('submit', async (e) => {
   }
 
   const dados = Object.fromEntries(new FormData(form));
-  const apiUrl = window.API_URL || window.BASE_URL ? `${window.BASE_URL || window.location.origin}/api` : '';
+  const apiUrl = window.API_URL || `${window.BASE_URL || window.location.origin}/api`;
   if (!apiUrl) {
     mensagem.style.color = 'red';
     mensagem.textContent = 'Erro interno: API_URL não configurada.';
