@@ -29,8 +29,8 @@ const upload = multer({ storage: storage });
 const nodemailer = require('nodemailer');
 
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'quedia.com.br@gmail.com';
-const SMTP_USER = process.env.SMTP_USER || process.env.SMTP_EMAIL || 'quedia.com.br@gmail.com';
-const SMTP_PASS = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || process.env.GMAIL_APP_PASSWORD || '';
+const SMTP_USER = process.env.SMTP_USER || process.env.SMTP_EMAIL || process.env.EMAIL_USER || 'quedia.com.br@gmail.com';
+const SMTP_PASS = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASSWORD || '';
 
 const mailTransporter = nodemailer.createTransport({
     service: 'gmail',

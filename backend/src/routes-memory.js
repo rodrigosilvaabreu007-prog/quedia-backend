@@ -8,8 +8,8 @@ const db = require('./db-memory');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'quedia.com.br@gmail.com';
-const SMTP_USER = process.env.SMTP_USER || process.env.SMTP_EMAIL || 'quedia.com.br@gmail.com';
-const SMTP_PASS = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || process.env.GMAIL_APP_PASSWORD || '';
+const SMTP_USER = process.env.SMTP_USER || process.env.SMTP_EMAIL || process.env.EMAIL_USER || 'quedia.com.br@gmail.com';
+const SMTP_PASS = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASSWORD || '';
 const upload = multer({ storage: multer.memoryStorage() });
 
 const mailTransporter = nodemailer.createTransport({
@@ -78,8 +78,7 @@ function verificarTokenMemory(req, res, next) {
 
 async function enviarEmailContatoMemory({ nome, email, mensagem }) {
   if (!SMTP_PASS) {
-    console.warn('SMTP não configurado para envio de contato em modo memória');
-    return null;
+    throw new Error('SMTP credentials não configuradas. Defina SMTP_PASS, SMTP_PASSWORD ou EMAIL_PASSWORD.');
   }
 
   return mailTransporter.sendMail({
