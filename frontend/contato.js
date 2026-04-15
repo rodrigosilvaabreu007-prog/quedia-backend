@@ -45,7 +45,7 @@ form.addEventListener('submit', async (e) => {
     }
 
     mensagem.style.color = 'red';
-    mensagem.textContent = resultado.erro || 'Erro ao enviar mensagem.';
+    mensagem.textContent = resultado.detalhe ? `${resultado.erro || 'Erro ao enviar mensagem.'} ${resultado.detalhe}` : resultado.erro || 'Erro ao enviar mensagem.';
   } catch (err) {
     mensagem.style.color = 'red';
     mensagem.textContent = 'Erro de conexão com o servidor.';
