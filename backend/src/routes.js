@@ -67,16 +67,9 @@ async function enviarEmailContato({ nome, email, mensagem }) {
     }
 }
 
-// 3. MIDDLEWARE DE CONEXÃO (Tenta conectar, mas permite próximas rotas)
+// 3. MIDDLEWARE DE CONEXÃO (Não conecta automaticamente - conexão sob demanda)
 router.use(async (req, res, next) => {
-    try {
-        console.log('[DEBUG middleware] Tentando conectar ao banco...');
-        await connectDB();
-        console.log('[DEBUG middleware] Conexão estabelecida');
-    } catch (err) {
-        console.error("⚠️ Conexão com banco não disponível no middleware:", err.message);
-        // Continua mesmo se banco não conectar - algumas rotas podem funcionar sem banco
-    }
+    // Não tenta conectar automaticamente - permite que o servidor inicie mesmo sem banco
     next();
 });
 
