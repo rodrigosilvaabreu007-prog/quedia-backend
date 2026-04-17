@@ -36,25 +36,9 @@ async function carregarEventos() {
             <span class="event-city">📍 ${evento.cidade} - ${evento.estado}</span>
             <span class="event-price">${evento.gratuito ? '✅ Gratuito' : '💰 R$ ' + evento.preco}</span>
           </div>
-          <div class="interest-section">
-            <span class="interest-count" id="interest-count-${evento._id}">Carregando interessados...</span>
-            <button class="interest-btn" data-id="${evento._id}">⭐ Tenho Interesse</button>
-          </div>
         </div>
       `;
       container.appendChild(card);
-
-      // Buscar contador de interessados real do banco
-      fetch(`${window.API_URL}/interesses/contador/${evento._id}`)
-        .then(res => res.json())
-        .then(data => {
-          const countEl = document.getElementById(`interest-count-${evento._id}`);
-          if (countEl) countEl.textContent = `${data.contador || 0} interessados`;
-        })
-        .catch(() => {
-          const countEl = document.getElementById(`interest-count-${evento._id}`);
-          if (countEl) countEl.textContent = "0 interessados";
-        });
     });
 
   } catch (err) {
@@ -62,42 +46,5 @@ async function carregarEventos() {
     container.innerHTML = '<p>❌ Erro ao conectar com o servidor.</p>';
   }
 }
-
-// Delegar evento de clique para o container (mais eficiente)
-document.getElementById('event-cards')?.addEventListener('click', async e => {
-  if (e.target.classList.contains('interest-btn')) {
-    const btn = e.target;
-    const eventoId = btn.dataset.id;
-    const token = localStorage.getItem('eventhub-token');
-
-    if (!token) {
-      window.showNotification("Você precisa estar logado para marcar interesse!", 'info');
-      return;
-    }
-
-    try {
-      btn.disabled = true;
-      const resposta = await fetch(`${window.API_URL}/interesses`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({ evento_id: eventoId })
-      });
-
-      const data = await resposta.json();
-      const countEl = document.getElementById(`interest-count-${eventoId}`);
-      if (countEl) countEl.textContent = `${data.contador} interessados`;
-      
-      btn.style.backgroundColor = "#28a745";
-      btn.textContent = "✅ Marcado!";
-    } catch (err) {
-      window.showNotification("Erro ao registrar interesse.", 'error');
-    } finally {
-      btn.disabled = false;
-    }
-  }
-});
 
 window.addEventListener('DOMContentLoaded', carregarEventos);

@@ -104,18 +104,10 @@ function criarCardEvento(evento, mostrarFavorito = true) {
     const div = document.createElement('div');
     div.className = 'event-card';
     div.setAttribute('data-evento-id', eventoId);
-    
-    // Verificar se o evento está favoritado pelo usuário atual (localStorage)
-    const favoritos = JSON.parse(localStorage.getItem('eventos-favoritos') || '[]');
-    const isFavoritado = favoritos.includes(eventoId);
-    
-    // Verificar interesse usando cache
-    const isInteressado = interessesCache[eventoId] || false;
-    
-    // Lógica de Imagem: Pega a primeira do array do Cloudinary
+
     let imagemFinal = 'https://via.placeholder.com/400x200?text=Sem+Imagem';
     if (evento.imagens && evento.imagens.length > 0) {
-        imagemFinal = evento.imagens[0]; 
+        imagemFinal = evento.imagens[0];
     } else if (evento.imagem_url) {
         imagemFinal = evento.imagem_url;
     } else if (evento.imagem) {
@@ -128,20 +120,13 @@ function criarCardEvento(evento, mostrarFavorito = true) {
         return dt >= new Date();
     }) || datasEvento[0] || { data: evento.data || '', horario_inicio: evento.horario || '' };
 
-    // Preço formatado
     const preco = parseFloat(evento.preco) || 0;
     const precoTexto = (evento.gratuito || preco === 0) ? 'GRATUITO' : `R$ ${preco.toFixed(2)}`;
 
-    // Contador de interesses: valor inicial
-    let contadorInteresses = 0;
-
     div.innerHTML = `
         <div class="event-img-container">
-            <img src="${imagemFinal}" class="event-img" alt="${evento.nome}" 
+            <img src="${imagemFinal}" class="event-img" alt="${evento.nome}"
                  onerror="this.onerror=null;this.src='https://via.placeholder.com/400x200?text=Imagem+Indisponível';">
-            ${mostrarFavorito ? `<button class="favorito-btn ${isInteressado ? 'demonstrou-interesse' : ''}" data-evento-id="${eventoId}" onclick="event.stopPropagation(); toggleInteresse('${eventoId}', this)" title="${isInteressado ? 'Remover interesse' : 'Demonstrar interesse'}">
-                ${isInteressado ? '⭐' : '☆'}
-            </button>` : ''}
         </div>
         <div class="event-info">
             <h3>${evento.nome || 'Evento sem Nome'}</h3>
@@ -151,200 +136,13 @@ function criarCardEvento(evento, mostrarFavorito = true) {
                 <span>⏰ ${primeiraData.horario_inicio || '--:--'}</span><br>
                 <span>📍 ${evento.cidade || 'Local não informado'}</span>
             </div>
-            <div class="event-stats">
-                <span class="interesses-count">👥 ${contadorInteresses} interessados</span>
-            </div>
             <p class="event-price">${precoTexto}</p>
         </div>
     `;
 
-    // Atualiza contador assíncrono após renderizar o card
-    getContadorInteressesEvento(eventoId).then(contador => {
-        const contadorAtualizado = Math.max(0, contador);
-        const interessesEl = div.querySelector('.interesses-count');
-        if (interessesEl) {
-            interessesEl.textContent = `👥 ${contadorAtualizado} interessados`;
-        }
-        contadorCache[eventoId] = contadorAtualizado;
-    }).catch(() => {
-        const interessesEl = div.querySelector('.interesses-count');
-        if (interessesEl) {
-            interessesEl.textContent = `👥 0 interessados`;
-        }
-    });
-
     div.onclick = () => window.abrirPrevia(evento, imagemFinal);
     return div;
 }
-
-// --- FUNÇÕES DE INTERESSE ---
-
-window.toggleInteresse = async function(eventoId, btnElement) {
-    if (!isUsuarioLogado()) {
-        window.showNotification('Atenção: é necessário estar logado para demonstrar interesse.', 'info');
-        const redirect = encodeURIComponent(window.location.pathname.replace(/^\//, '') || 'index.html');
-        window.location.href = `login.html?redirectTo=${redirect}`;
-        return;
-    }
-
-    // Atualização otimista: inverter estado imediatamente
-    const estavaInteressado = btnElement.classList.contains('demonstrou-interesse');
-    const novoEstado = !estavaInteressado;
-
-    // Desabilitar botão temporariamente
-    btnElement.disabled = true;
-    btnElement.style.opacity = '0.6';
-
-    // Atualizar UI otimisticamente
-    const botoes = document.querySelectorAll(`button[data-evento-id="${eventoId}"]`);
-    botoes.forEach(btn => {
-        if (novoEstado) {
-            btn.classList.add('demonstrou-interesse');
-            btn.innerHTML = '⭐';
-            btn.title = 'Remover interesse';
-        } else {
-            btn.classList.remove('demonstrou-interesse');
-            btn.innerHTML = '☆';
-            btn.title = 'Demonstrar interesse';
-        }
-    });
-
-    // Atualizar cache otimisticamente
-    if (novoEstado) {
-        interessesCache[eventoId] = true;
-    } else {
-        delete interessesCache[eventoId];
-    }
-
-    try {
-        const response = await fetch(`${window.API_URL}/interesses`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('eventhub-token')}`
-            },
-            body: JSON.stringify({ evento_id: eventoId })
-        });
-
-        if (isAuthError(response)) {
-            forcarLogoutPorTokenInvalido();
-            // Reverter otimista
-            botoes.forEach(btn => {
-                if (!novoEstado) {
-                    btn.classList.add('demonstrou-interesse');
-                    btn.innerHTML = '⭐';
-                    btn.title = 'Remover interesse';
-                } else {
-                    btn.classList.remove('demonstrou-interesse');
-                    btn.innerHTML = '☆';
-                    btn.title = 'Demonstrar interesse';
-                }
-            });
-            if (!novoEstado) {
-                interessesCache[eventoId] = true;
-            } else {
-                delete interessesCache[eventoId];
-            }
-            return;
-        }
-
-        if (response.ok) {
-            const data = await response.json();
-            const usuarioId = getUsuarioId();
-            const interessesServidor = Array.isArray(data.interesses)
-                ? Array.from(new Set(data.interesses.map(id => String(id))))
-                : null;
-            let temInteresse = typeof data.temInteresse === 'boolean'
-                ? data.temInteresse
-                : Array.isArray(interessesServidor)
-                    ? interessesServidor.includes(usuarioId)
-                    : (data.acao === 'adicionado');
-
-            const contador = Number.isFinite(Number(data.contador)) ? Number(data.contador) : 0;
-
-            // Atualizar cache final
-            if (temInteresse) {
-                interessesCache[eventoId] = true;
-            } else {
-                delete interessesCache[eventoId];
-            }
-
-            contadorCache[eventoId] = contador;
-
-            // Garantir UI final (caso otimista estivesse errado)
-            botoes.forEach(btn => {
-                if (temInteresse) {
-                    btn.classList.add('demonstrou-interesse');
-                    btn.innerHTML = '⭐';
-                } else {
-                    btn.classList.remove('demonstrou-interesse');
-                    btn.innerHTML = '☆';
-                }
-                btn.title = temInteresse ? 'Remover interesse' : 'Demonstrar interesse';
-            });
-
-            // Atualizar contador no modal ou card
-            const contadorModal = document.querySelector('.interesses-count-modal');
-            if (contadorModal) {
-                contadorModal.textContent = `👥 ${contador} pessoas interessadas`;
-            }
-
-            document.querySelectorAll('.event-card').forEach(card => {
-                const id = card.getAttribute('data-evento-id');
-                if (id === eventoId) {
-                    const q = card.querySelector('.interesses-count');
-                    if (q) q.textContent = `👥 ${contador} interessados`;
-                }
-            });
-
-            window.showNotification(data.mensagem, 'success');
-        } else {
-            const error = await response.json();
-            window.showNotification(error.erro || 'Erro ao processar interesse', 'error');
-            // Reverter otimista em caso de erro
-            botoes.forEach(btn => {
-                if (!novoEstado) {
-                    btn.classList.add('demonstrou-interesse');
-                    btn.innerHTML = '⭐';
-                    btn.title = 'Remover interesse';
-                } else {
-                    btn.classList.remove('demonstrou-interesse');
-                    btn.innerHTML = '☆';
-                    btn.title = 'Demonstrar interesse';
-                }
-            });
-            if (!novoEstado) {
-                interessesCache[eventoId] = true;
-            } else {
-                delete interessesCache[eventoId];
-            }
-        }
-    } catch (err) {
-        console.error('Erro ao toggle interesse:', err);
-        window.showNotification('Erro de conexão', 'error');
-        // Reverter otimista em caso de erro
-        botoes.forEach(btn => {
-            if (!novoEstado) {
-                btn.classList.add('demonstrou-interesse');
-                btn.innerHTML = '⭐';
-                btn.title = 'Remover interesse';
-            } else {
-                btn.classList.remove('demonstrou-interesse');
-                btn.innerHTML = '☆';
-                btn.title = 'Demonstrar interesse';
-            }
-        });
-        if (!novoEstado) {
-            interessesCache[eventoId] = true;
-        } else {
-            delete interessesCache[eventoId];
-        }
-    } finally {
-        // Reabilitar botão
-        btnElement.disabled = false;
-        btnElement.style.opacity = '';
-    }
-};
 
 // --- FUNÇÕES DE PREFERÊNCIAS ---
 function getPreferenciasUsuario() {
@@ -403,121 +201,6 @@ function forcarLogoutPorTokenInvalido() {
 
 function isAuthError(response) {
     return response && (response.status === 401 || response.status === 403);
-}
-
-// --- FUNÇÕES DE INTERESSES (AGORA VIA BACKEND) ---
-
-// Cache local para evitar muitas requisições
-let interessesCache = {};
-let contadorCache = {};
-
-async function carregarInteressesUsuario() {
-    if (!isUsuarioLogado()) return;
-
-    const usuarioId = getUsuarioId();
-    try {
-        const response = await fetch(`${window.API_URL}/interesses/usuario/${usuarioId}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('eventhub-token')}`
-            }
-        });
-
-        if (isAuthError(response)) {
-            forcarLogoutPorTokenInvalido();
-            return;
-        }
-
-        if (response.ok) {
-            const data = await response.json();
-            interessesCache = {};
-            data.interesses.forEach(eventoId => {
-                interessesCache[eventoId] = true;
-            });
-        }
-    } catch (err) {
-        console.error('Erro ao carregar interesses do usuário:', err);
-    }
-}
-
-async function verificarInteresse(eventoId) {
-    if (!isUsuarioLogado()) return { temInteresse: false, contador: 0 };
-
-    try {
-        const response = await fetch(`${window.API_URL}/interesses/${eventoId}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('eventhub-token')}`
-            }
-        });
-
-        if (isAuthError(response)) {
-            forcarLogoutPorTokenInvalido();
-            return { temInteresse: false, contador: 0 };
-        }
-
-        if (response.ok) {
-            const data = await response.json();
-            contadorCache[eventoId] = data.contador;
-            return { temInteresse: data.temInteresse, contador: data.contador };
-        }
-    } catch (err) {
-        console.error('Erro ao verificar interesse:', err);
-    }
-
-    return { temInteresse: false, contador: 0 };
-}
-
-async function getContadorInteressesEvento(eventoId) {
-    // Primeiro tenta usar cache
-    if (contadorCache[eventoId] !== undefined) {
-        return contadorCache[eventoId];
-    }
-
-    // Se não tem cache, faz requisição
-    try {
-        const token = localStorage.getItem('eventhub-token');
-        let url = `${window.API_URL}/interesses/contador/${eventoId}`;
-        let headers = {};
-
-        // Se tem token, usa a rota autenticada para também verificar se o usuário tem interesse
-        if (token) {
-            url = `${window.API_URL}/interesses/${eventoId}`;
-            headers = {
-                'Authorization': `Bearer ${token}`
-            };
-        }
-
-        const response = await fetch(url, { headers });
-
-        if (isAuthError(response)) {
-            forcarLogoutPorTokenInvalido();
-            // Continua com contador público quando houver token inválido
-            const fallback = await fetch(`${window.API_URL}/interesses/contador/${eventoId}`);
-            if (fallback.ok) {
-                const data = await fallback.json();
-                contadorCache[eventoId] = data.contador;
-                return data.contador;
-            }
-            return 0;
-        }
-
-        if (response.ok) {
-            const data = await response.json();
-            contadorCache[eventoId] = data.contador;
-            return data.contador;
-        }
-
-        // Tenta fallback público
-        const fallback = await fetch(`${window.API_URL}/interesses/contador/${eventoId}`);
-        if (fallback.ok) {
-            const data = await fallback.json();
-            contadorCache[eventoId] = data.contador;
-            return data.contador;
-        }
-    } catch (err) {
-        console.error('Erro ao buscar contador de interesses:', err);
-    }
-
-    return 0;
 }
 
 function obterSiglaEstadoPorNome(nomeEstado) {
@@ -582,41 +265,22 @@ window.abrirPrevia = function(evento, imgResolvida) {
     const body = document.getElementById('modal-body');
     if (!modal || !body) return;
 
-    // Padronização com o backend: prioriza 'local'
     const localizacao = evento.local || evento.endereco || 'Endereço não informado';
-    
-    // Verificar se o usuário já demonstrou interesse (usando cache)
-    const jaDemonstrouInteresse = interessesCache[eventoId] || false;
-    
-    // Contador de interesses (global por evento) - será atualizado depois
-    let contadorInteresses = 0;
-    getContadorInteressesEvento(eventoId).then(contador => {
-        contadorInteresses = contador;
-        const contadorEl = body.querySelector('.interesses-count-modal');
-        if (contadorEl) {
-            contadorEl.textContent = `👥 ${contador} pessoas interessadas`;
-        }
-    });
+
     body.innerHTML = `
         <div class="modal-header">
             <img src="${imgResolvida}" class="modal-header-img" style="width:100%; max-height:300px; object-fit:cover; border-radius:8px;">
         </div>
         <div class="modal-padding" style="padding:20px; color: white;">
             <h2 style="color:#00bfff; margin-bottom:10px;">${evento.nome}</h2>
-            <div class="evento-stats-modal">
-                <span class="interesses-count-modal">👥 ${contadorInteresses} pessoas interessadas</span>
-                <button class="btn-interesse ${jaDemonstrouInteresse ? 'demonstrou-interesse' : ''}" data-evento-id="${eventoId}" onclick="toggleInteresse('${eventoId}', this)" title="${jaDemonstrouInteresse ? 'Remover interesse' : 'Demonstrar interesse'}">
-                    ${jaDemonstrouInteresse ? '⭐' : '☆'}
-                </button>
-            </div>
             <p><strong>📅 Data:</strong> ${formatarData(evento.data)}</p>
             <p><strong>⏰ Horário:</strong> ${evento.horario || '--:--'}</p>
-            <p><strong>📍 Local:</strong> ${localizacao} - ${evento.cidade}/${evento.estado}</p>
+            <p><strong>📍 Local:</strong> ${localizacao} - ${evento.cidade || ''}/${evento.estado || ''}</p>
             <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
             <p style="color:#ccc; line-height:1.6; white-space: pre-wrap;">${evento.descricao || 'Sem descrição disponível.'}</p>
         </div>
     `;
-    
+
     window.currentEventId = eventoId;
     const footer = modal.querySelector('.modal-footer');
     if (footer) footer.style.display = 'flex';
@@ -993,7 +657,6 @@ async function carregarSeusEventos() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    await carregarInteressesUsuario(); // Carregar interesses primeiro
     await carregarEventos();
     
     // Verificar se deve esconder section "Para Você" logo na carga
@@ -1204,8 +867,6 @@ window.mostrarEventosDia = function(data) {
         let imagemFinal = ev.imagens && ev.imagens.length > 0 ? ev.imagens[0] : (ev.imagem_url || 'https://via.placeholder.com/400x200?text=Sem+Imagem');
         const preco = parseFloat(ev.preco) || 0;
         const precoTexto = (ev.gratuito || preco === 0) ? 'GRATUITO' : `R$ ${preco.toFixed(2)}`;
-        const eventoId = ev._id || ev.id || '';
-        const interessado = interessesCache[eventoId];
         const datasEvento = extrairDatasEvento(ev);
         const dataInfo = datasEvento[0] || { data: ev.data || '', horario_inicio: ev.horario || '' };
 
@@ -1219,7 +880,6 @@ window.mostrarEventosDia = function(data) {
                     <p class="evento-horario">🕒 ${dataInfo.horario_inicio || '--:--'}</p>
                     <p class="evento-preco">${precoTexto}</p>
                 </div>
-                <button class="btn-calendario-fav ${interessado ? 'demonstrou-interesse' : ''}" data-evento-id="${eventoId}" onclick="event.stopPropagation(); toggleInteresse('${eventoId}', this)" title="${interessado ? 'Remover interesse' : 'Demonstrar interesse'}">${interessado ? '⭐' : '☆'}</button>
             </div>
         `;
     }).join('');
