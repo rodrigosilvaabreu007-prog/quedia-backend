@@ -7,8 +7,7 @@ const { connectDB } = require('./db');
 const { registrarUsuario, autenticarUsuario, buscarUsuarioPorId, atualizarUsuario, deletarUsuario } = require('./autenticacao');
 
 // 1. IMPORTAÇÃO DOS MODELS (Caminho corrigido para a pasta models)
-const { cadastrarEvento, listarEventos, listarEventosComInteresses, deletarEvento, buscarEventoPorId } = require('./models/eventos');
-const { adicionarInteresse, removerInteresse, usuarioTemInteresse, contarInteresses, listarInteressesUsuario, removerInteressesPorUsuario, listarInteressesEvento } = require('./models/interesses');
+const { cadastrarEvento, listarEventos, deletarEvento, buscarEventoPorId, atualizarEvento } = require('./models/eventos');
 
 // 2. CONFIGURAÇÃO DO CLOUDINARY
 cloudinary.config({
@@ -169,7 +168,7 @@ router.post('/eventos', upload.any(), async (req, res) => {
 router.get('/eventos', async (req, res) => {
     console.log('[DEBUG] Rota /eventos chamada');
     try {
-        const eventos = await listarEventosComInteresses(req.query);
+        const eventos = await listarEventos(req.query);
         res.json(eventos || []);
     } catch (err) {
         console.error("Erro na rota GET /eventos:", err.message);
@@ -214,6 +213,108 @@ router.get('/eventos/:id', async (req, res) => {
     } catch (err) {
         console.error('Erro na rota GET /eventos/:id:', err.message);
         res.status(500).json({ erro: 'Erro ao buscar evento.' });
+    }
+});
+
+// 5.2. ROTA PUT: ATUALIZAR EVENTO
+router.put('/eventos/:id', upload.any(), async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ erro: 'ID do evento é obrigatório' });
+        }
+
+        // Verificar se o evento existe
+        const eventoExistente = await buscarEventoPorId(id);
+        if (!eventoExistente) {
+            return res.status(404).json({ erro: 'Evento não encontrado' });
+        }
+
+        // Tratamento das Imagens vindas do Cloudinary (se enviadas)
+        const linksImagens = (req.files && req.files.length > 0) 
+            ? req.files.map(f => f.path) 
+            : eventoExistente.imagens || []; // Manter imagens existentes se não enviadas novas
+        
+        // Limpeza de Preço (Trata R$, espaços e vírgulas)
+        let precoLimpo = eventoExistente.preco || 0; // Manter preço existente se não enviado
+        if (req.body.preco !== undefined) {
+            const strPreco = String(req.body.preco).replace(/R\$|\s/g, '').replace(',', '.');
+            precoLimpo = parseFloat(strPreco) || 0;
+        }
+
+        // Montagem do objeto conforme o Schema do MongoDB
+        const latitude = req.body.latitude !== undefined ? Number(req.body.latitude) : eventoExistente.latitude;
+        const longitude = req.body.longitude !== undefined ? Number(req.body.longitude) : eventoExistente.longitude;
+        
+        console.log('[DEBUG PUT /eventos/:id] Backend recebeu:', {
+            id,
+            latitude: req.body.latitude,
+            longitude: req.body.longitude,
+            latitudeNumber: latitude,
+            longitudeNumber: longitude,
+            isFiniteLatitude: Number.isFinite(latitude),
+            isFiniteLongitude: Number.isFinite(longitude)
+        });
+
+        let datasRecebidas = eventoExistente.datas || []; // Manter datas existentes se não enviadas
+        if (req.body.datas !== undefined) {
+            if (Array.isArray(req.body.datas)) {
+                datasRecebidas = req.body.datas;
+            } else if (typeof req.body.datas === 'string') {
+                try {
+                    const parsed = JSON.parse(req.body.datas);
+                    if (Array.isArray(parsed)) datasRecebidas = parsed;
+                } catch (err) {
+                    datasRecebidas = eventoExistente.datas || [];
+                }
+            }
+        }
+
+        const primeiraData = Array.isArray(datasRecebidas) && datasRecebidas.length > 0
+            ? datasRecebidas[0]
+            : { 
+                data: req.body.data || eventoExistente.data || '', 
+                horario_inicio: req.body.horario || eventoExistente.horario || '', 
+                horario_fim: req.body.horario_fim || eventoExistente.horario_fim || '' 
+            };
+
+        const dadosEvento = {
+            nome: req.body.nome || eventoExistente.nome,
+            descricao: req.body.descricao !== undefined ? req.body.descricao : eventoExistente.descricao,
+            cidade: req.body.cidade || eventoExistente.cidade,
+            estado: req.body.estado || eventoExistente.estado,
+            local: req.body.local || req.body.endereco || eventoExistente.local,
+            latitude: Number.isFinite(latitude) ? latitude : eventoExistente.latitude,
+            longitude: Number.isFinite(longitude) ? longitude : eventoExistente.longitude,
+            data: primeiraData.data || eventoExistente.data,
+            horario: primeiraData.horario_inicio || eventoExistente.horario,
+            horario_fim: primeiraData.horario_fim || eventoExistente.horario_fim,
+            datas: datasRecebidas,
+            categoria: req.body.categoria || eventoExistente.categoria,
+            subcategorias: req.body.subcategorias !== undefined 
+                ? (Array.isArray(req.body.subcategorias) ? req.body.subcategorias : [req.body.subcategorias].filter(Boolean))
+                : eventoExistente.subcategorias,
+            imagens: linksImagens,
+            preco: precoLimpo,
+            gratuito: req.body.gratuito !== undefined ? String(req.body.gratuito) === 'true' : eventoExistente.gratuito,
+            organizador: req.body.organizador || eventoExistente.organizador,
+            organizador_id: req.body.organizador_id || eventoExistente.organizador_id
+        };
+
+        // Atualiza no Banco de Dados via Model
+        const eventoAtualizado = await atualizarEvento(id, dadosEvento);
+        
+        return res.status(200).json({ 
+            mensagem: '✅ Evento atualizado com sucesso!', 
+            evento: eventoAtualizado 
+        });
+
+    } catch (err) {
+        console.error("Erro na rota PUT /eventos/:id:", err.message);
+        res.status(500).json({ 
+            erro: "Falha ao atualizar evento", 
+            detalhe: err.message 
+        });
     }
 });
 
@@ -437,9 +538,6 @@ router.delete('/usuario/:id', verificarToken, async (req, res) => {
             return res.status(403).json({ erro: 'Você não tem permissão para deletar esta conta' });
         }
 
-        // Limpar interesses relacionados (evita interesses fantasmas após exclusão)
-        await removerInteressesPorUsuario(id);
-
         // Aqui você precisa implementar a função deletarUsuario
         const usuarioDeletado = await deletarUsuario(id);
         if (!usuarioDeletado) {
@@ -467,8 +565,6 @@ router.delete('/usuarios/:id', verificarToken, async (req, res) => {
             return res.status(403).json({ erro: 'Você não tem permissão para deletar esta conta' });
         }
 
-        await removerInteressesPorUsuario(id);
-
         const usuarioDeletado = await deletarUsuario(id);
         if (!usuarioDeletado) {
             return res.status(404).json({ erro: 'Usuário não encontrado' });
@@ -480,8 +576,6 @@ router.delete('/usuarios/:id', verificarToken, async (req, res) => {
         return res.status(500).json({ erro: err.message || 'Erro ao deletar usuário' });
     }
 });
-
-// --- ROTAS DE INTERESSES ---
 
 // Rota de debug para checar token
 router.get('/auth/check', verificarToken, async (req, res) => {
@@ -533,6 +627,7 @@ function verificarToken(req, res, next) {
     }
 }
 
+<<<<<<< HEAD
 // 11. ROTA POST: TOGGLE INTERESSE (adicionar/remover)
 router.post('/interesses', verificarToken, async (req, res) => {
     try {

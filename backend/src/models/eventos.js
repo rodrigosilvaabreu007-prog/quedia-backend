@@ -25,7 +25,6 @@ const EventoSchema = new mongoose.Schema({
     gratuito: { type: Boolean, default: false },
     preco: { type: Number, default: 0 },
     imagens: { type: [String], default: [] },
-    interesses: { type: [String], default: [] },
     organizador: { type: String, default: 'Não informado' },
     organizador_id: { type: String, default: "sistema" }, 
     criadoEm: { type: Date, default: Date.now }
@@ -208,52 +207,97 @@ async function deletarEvento(id) {
 async function buscarEventoPorId(id) {
     try {
         const evento = await Evento.findById(id);
-        
-        // Se evento existe, popula interesses do banco Interesse
-        if (evento) {
-            const { listarInteressesEvento } = require('./interesses');
-            try {
-                const interessesIds = await listarInteressesEvento(id);
-                evento.interesses = interessesIds;
-            } catch (err) {
-                console.warn("Aviso: não conseguiu carregar interesses:", err.message);
-                evento.interesses = [];
-            }
-        }
-        
         return evento;
     } catch (err) {
         throw new Error("Erro ao buscar evento: " + err.message);
     }
 }
 
-async function listarEventosComInteresses(filtros = {}) {
+async function atualizarEvento(id, dados) {
+    console.log('[DEBUG atualizarEvento] Iniciando atualização do evento ID:', id);
+    console.log('[DEBUG atualizarEvento] Dados recebidos:', JSON.stringify(dados, null, 2));
+
     try {
-        let query = {};
-        if (filtros.cidade) query.cidade = new RegExp(filtros.cidade, 'i');
-        if (filtros.categoria) query.categoria = filtros.categoria;
-        
-        const eventos = await Evento.find(query).sort({ criadoEm: -1 });
-        
-        // Popula interesses em todos os eventos
-        const { listarInteressesEvento } = require('./interesses');
-        for (let evento of eventos) {
-            try {
-                const interessesIds = await listarInteressesEvento(evento._id.toString());
-                evento.interesses = interessesIds;
-            } catch (err) {
-                console.warn("Aviso: não conseguiu carregar interesses para", evento._id);
-                evento.interesses = [];
+        // 1. Verificação de segurança: O banco está mesmo conectado?
+        if (mongoose.connection.readyState !== 1) {
+            console.warn("⚠️ Conexão Mongoose não pronta para atualização. Estado:", mongoose.connection.readyState);
+            await Promise.race([
+                new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => reject(new Error('Timeout aguardando conexão com MongoDB')), 10000);
+                    mongoose.connection.once('connected', () => {
+                        clearTimeout(timeout);
+                        resolve();
+                    });
+                    mongoose.connection.once('error', (err) => {
+                        clearTimeout(timeout);
+                        reject(err);
+                    });
+                }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout aguardando conexão com MongoDB')), 10000))
+            ]);
+
+            if (mongoose.connection.readyState !== 1) {
+                throw new Error("Ainda não há conexão ativa com o MongoDB. Tente novamente em alguns segundos.");
             }
         }
+
+        const latitude = Number(dados.latitude);
+        const longitude = Number(dados.longitude);
+        const datasNormalizadas = normalizarDatasEntrada(dados.datas || []);
+        if (datasNormalizadas.length === 0 && dados.data) {
+            datasNormalizadas.push({
+                data: dados.data,
+                horario_inicio: dados.horario || '',
+                horario_fim: dados.horario_fim || ''
+            });
+        }
+
+        console.log('[DEBUG atualizarEvento] dados processados:', { latitude, longitude, datasNormalizadas, horario_fim: dados.horario_fim });
+
+        console.log('[DEBUG atualizarEvento] Validações:', {
+            latitude: latitude,
+            longitude: longitude,
+            isFiniteLatitude: Number.isFinite(latitude),
+            isFiniteLongitude: Number.isFinite(longitude),
+            datasCount: datasNormalizadas.length
+        });
+
+        const dadosTratados = {
+            ...dados,
+            organizador: dados.organizador || 'Não informado',
+            preco: Number(String(dados.preco).replace(',', '.')) || 0,
+            gratuito: String(dados.gratuito) === 'true',
+            latitude: Number.isFinite(latitude) ? latitude : null,
+            longitude: Number.isFinite(longitude) ? longitude : null,
+            datas: datasNormalizadas,
+            data: datasNormalizadas[0]?.data || dados.data || '',
+            horario: datasNormalizadas[0]?.horario_inicio || dados.horario || '',
+            horario_fim: datasNormalizadas[0]?.horario_fim || dados.horario_fim || ''
+        };
+
+        console.log('[DEBUG atualizarEvento] dadosTratados:', { latitude: dadosTratados.latitude, longitude: dadosTratados.longitude });
+
+        // 2. Atualiza o evento com timeout
+        const resultado = await Promise.race([
+            Evento.findByIdAndUpdate(id, dadosTratados, { new: true, runValidators: true }),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout ao atualizar evento')), 10000)
+            )
+        ]);
+
+        if (!resultado) {
+            console.log('[DEBUG atualizarEvento] Evento não encontrado para atualização, ID:', id);
+            throw new Error('Evento não encontrado');
+        }
+
+        console.log('[DEBUG atualizarEvento] Evento atualizado com sucesso:', { id: resultado._id, latitude: resultado.latitude, longitude: resultado.longitude });
         
-        console.log(`[DEBUG listarEventosComInteresses] Antes do filtro: ${eventos.length} eventos`);
-        const filtrados = eventos.filter(eventoEstaAtivo);
-        console.log(`[DEBUG listarEventosComInteresses] Após filtro: ${filtrados.length} eventos`);
-        return filtrados;
+        return resultado;
     } catch (err) {
-        throw new Error("Erro ao buscar eventos: " + err.message);
+        console.error("❌ Erro ao atualizar evento no MongoDB:", err.message);
+        console.error("❌ Stack trace:", err.stack);
+        throw err;
     }
 }
 
-module.exports = { cadastrarEvento, listarEventos, listarEventosComInteresses, deletarEvento, buscarEventoPorId, eventoEstaAtivo, EventoModel: Evento };
+module.exports = { cadastrarEvento, listarEventos, deletarEvento, buscarEventoPorId, atualizarEvento, eventoEstaAtivo, EventoModel: Evento };
