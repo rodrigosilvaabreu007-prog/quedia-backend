@@ -64,10 +64,10 @@ function normalizarDatasEntrada(datasInput) {
         });
 }
 
-function parseBrazilDateTime(data, hora) {
-    if (!data || !hora) return null;
+function parseBrazilDateTime(data, hora = '00:00') {
+    if (!data) return null;
     const [year, month, day] = data.split('-').map(Number);
-    const [hours, minutes] = hora.split(':').map(Number);
+    const [hours, minutes] = (hora || '00:00').split(':').map(Number);
     if (![year, month, day, hours, minutes].every(Number.isFinite)) return null;
     // Converte horário local do Brasil (UTC-3) para UTC adicionando 3 horas
     return new Date(Date.UTC(year, month - 1, day, hours + 3, minutes, 0));
@@ -107,16 +107,10 @@ function eventoEstaAtivo(evento) {
 }
 
 async function removerEventosExpirados() {
-    try {
-        const todos = await Evento.find({});
-        const expirados = todos.filter(e => !eventoEstaAtivo(e));
-        if (expirados.length > 0) {
-            const ids = expirados.map(e => e._id);
-            await Evento.deleteMany({ _id: { $in: ids } });
-        }
-    } catch (err) {
-        console.warn('Não foi possível limpar eventos expirados:', err.message);
-    }
+    // Desabilitado para evitar exclusões acidentais de eventos.
+    // Eventos não devem ser removidos automaticamente apenas porque o sistema foi atualizado
+    // ou porque a data/hora pode ter sido interpretada de forma incorreta.
+    return;
 }
 
 async function cadastrarEvento(dados) {
@@ -192,7 +186,6 @@ async function cadastrarEvento(dados) {
 
 async function listarEventos(filtros = {}) {
     try {
-        await removerEventosExpirados();
         let query = {};
         if (filtros.cidade) query.cidade = new RegExp(filtros.cidade, 'i');
         if (filtros.categoria) query.categoria = filtros.categoria;
@@ -215,14 +208,10 @@ async function deletarEvento(id) {
 async function buscarEventoPorId(id) {
     try {
         const evento = await Evento.findById(id);
-        if (evento && !eventoEstaAtivo(evento)) {
-            await Evento.findByIdAndDelete(id);
-            return null;
-        }
         
         // Se evento existe, popula interesses do banco Interesse
         if (evento) {
-            const { contarInteresses, listarInteressesEvento } = require('./interesses');
+            const { listarInteressesEvento } = require('./interesses');
             try {
                 const interessesIds = await listarInteressesEvento(id);
                 evento.interesses = interessesIds;
@@ -240,7 +229,6 @@ async function buscarEventoPorId(id) {
 
 async function listarEventosComInteresses(filtros = {}) {
     try {
-        await removerEventosExpirados();
         let query = {};
         if (filtros.cidade) query.cidade = new RegExp(filtros.cidade, 'i');
         if (filtros.categoria) query.categoria = filtros.categoria;
