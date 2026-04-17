@@ -212,14 +212,7 @@ router.get('/eventos/:id', (req, res) => {
     if (!evento || !eventoEstaAtivoMemory(evento)) {
       return res.status(404).json({ erro: 'Evento não encontrado' });
     }
-    // Enriquecer com os usuários interessados
-    const eventoComInteresses = {
-      ...evento,
-      interesses: db.interesses
-        .filter(i => i.evento_id === evento.id || i.evento_id === String(evento.id))
-        .map(i => i.usuario_id)
-    };
-    res.json(eventoComInteresses);
+    res.json(evento);
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao buscar evento', detalhes: err.message });
   }
@@ -296,7 +289,6 @@ router.post('/eventos', upload.any(), (req, res) => {
       subcategorias: Array.isArray(subcategorias) ? subcategorias : [subcategorias || ''],
       imagem: imagemCapaUrl,
       imagens: imagens,
-      interesses: [],
       criado_em: new Date()
     };
     db.eventos.push(novoEvento);
@@ -388,15 +380,6 @@ router.delete('/eventos/:id', (req, res) => {
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao deletar evento', detalhes: err.message });
   }
-});
-
-// Rota para marcar/contar interesses
-router.post('/eventos/:id/interesse', (req, res) => {
-  res.json({ mensagem: 'Interesse marcado' });
-});
-
-router.get('/eventos/:id/interesse', (req, res) => {
-  res.json({ interessados: Math.floor(Math.random() * 50) });
 });
 
 // Rota para obter usuário por ID

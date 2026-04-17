@@ -620,7 +620,6 @@ function verificarToken(req, res, next) {
     }
 }
 
-<<<<<<< HEAD
 // 11. ROTA POST: TOGGLE INTERESSE (adicionar/remover)
 router.post('/interesses', verificarToken, async (req, res) => {
     try {

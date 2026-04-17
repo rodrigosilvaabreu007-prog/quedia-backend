@@ -223,48 +223,4 @@ router.delete('/eventos/:id', verificarToken, async (req, res) => {
   }
 });
 
-// ============ INTERESSES ============
-
-// Obter número de interessados
-router.get('/eventos/:id/interesse', async (req, res) => {
-  try {
-    const total = await dbFirestore.contarInteresses(req.params.id);
-    res.json({ evento_id: req.params.id, total });
-  } catch (err) {
-    res.status(400).json({ erro: 'Erro ao contar interesses', detalhes: err.message });
-  }
-});
-
-// Marcar interesse
-router.post('/eventos/:id/interesse', verificarToken, async (req, res) => {
-  try {
-    const { usuario_id } = req.body;
-    const eventoId = req.params.id;
-    
-    // Usar ID do token se não fornecido no body
-    const uid = usuario_id || req.usuario_id;
-
-    await dbFirestore.adicionarInteresse(uid, eventoId);
-    const total = await dbFirestore.contarInteresses(eventoId);
-    
-    res.json({ evento_id: eventoId, usuario_id: uid, total });
-  } catch (err) {
-    res.status(400).json({ erro: 'Erro ao marcar interesse', detalhes: err.message });
-  }
-});
-
-// Remover interesse
-router.delete('/eventos/:id/interesse', verificarToken, async (req, res) => {
-  try {
-    const eventoId = req.params.id;
-    
-    await dbFirestore.removerInteresse(req.usuario_id, eventoId);
-    const total = await dbFirestore.contarInteresses(eventoId);
-    
-    res.json({ evento_id: eventoId, usuario_id: req.usuario_id, total });
-  } catch (err) {
-    res.status(400).json({ erro: 'Erro ao remover interesse', detalhes: err.message });
-  }
-});
-
 module.exports = router;
