@@ -2,7 +2,7 @@ git add frontend/perfil.html
 if not exist .git\index goto no_git
 git commit -m "Fix profile close button dimensions"
 if %errorlevel% neq 0 goto commit_failed
-firebase deploy --only hosting --project quedia-backend
+firebase deploy --only hosting --project quedia-bd2fb
 exit /b 0
 :no_git
 echo Git repository not found.
