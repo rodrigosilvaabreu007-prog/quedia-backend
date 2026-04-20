@@ -34,15 +34,22 @@ const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
 const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
 const SMTP_SECURE = process.env.SMTP_SECURE === 'true';
 
-const mailTransporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_SECURE,
-    auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASS
-    }
-});
+// Lazy-load mail transporter only when needed
+let mailTransporter = null;
+function getMailTransporter() {
+  if (!mailTransporter) {
+    mailTransporter = nodemailer.createTransport({
+        host: SMTP_HOST,
+        port: SMTP_PORT,
+        secure: SMTP_SECURE,
+        auth: {
+            user: SMTP_USER,
+            pass: SMTP_PASS
+        }
+    });
+  }
+  return mailTransporter;
+}
 
 async function enviarEmailContato({ nome, email, mensagem }) {
     if (!SMTP_PASS) {
@@ -58,7 +65,7 @@ async function enviarEmailContato({ nome, email, mensagem }) {
     };
 
     try {
-        return await mailTransporter.sendMail(mailOptions);
+        return await getMailTransporter().sendMail(mailOptions);
     } catch (err) {
         if (err.responseCode === 534 || /Application-specific password required/i.test(err.message)) {
             throw new Error('Erro de autenticação SMTP: o Gmail exige App Password para envio por SMTP. Gere um App Password em https://myaccount.google.com/apppasswords e configure-o em EMAIL_PASSWORD ou GMAIL_APP_PASSWORD.');

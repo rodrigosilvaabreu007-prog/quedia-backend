@@ -15,15 +15,22 @@ const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
 const SMTP_SECURE = process.env.SMTP_SECURE === 'true';
 const upload = multer({ storage: multer.memoryStorage() });
 
-const mailTransporter = nodemailer.createTransport({
-  host: SMTP_HOST,
-  port: SMTP_PORT,
-  secure: SMTP_SECURE,
-  auth: {
-    user: SMTP_USER,
-    pass: SMTP_PASS
+// Lazy-load mail transporter only when needed
+let mailTransporter = null;
+function getMailTransporter() {
+  if (!mailTransporter) {
+    mailTransporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: SMTP_SECURE,
+      auth: {
+        user: SMTP_USER,
+        pass: SMTP_PASS
+      }
+    });
   }
-});
+  return mailTransporter;
+}
 
 function parseLocalDateTime(data, hora) {
   if (!data) return null;
@@ -87,7 +94,7 @@ async function enviarEmailContatoMemory({ nome, email, mensagem }) {
   }
 
   try {
-    return await mailTransporter.sendMail({
+    return await getMailTransporter().sendMail({
       from: `Quedia Contato <${SMTP_USER}>`,
       to: CONTACT_EMAIL,
       replyTo: `${nome} <${email}>`,

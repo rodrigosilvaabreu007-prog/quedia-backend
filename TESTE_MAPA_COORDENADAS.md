@@ -26,7 +26,7 @@
 ## 🧪 PASSO A PASSO DO TESTE
 
 ### Teste 1: Verifica Logs do Formulário
-1. Abra [evento-form.html](https://quedia-bd2fb.web.app/event-form.html) (página de cadastro)
+1. Abra [evento-form.html](https://quedia-backend.web.app/event-form.html) (página de cadastro)
 2. Pressione F12 para abrir **Console**
 3. Preencha os campos:
    - Nome: "Teste Marcador"
@@ -61,7 +61,7 @@
 ---
 
 ### Teste 3: Verifica Debug Endpoint
-1. Abra: `https://quedia-bd2fb.web.app/api/debug/ultimos-eventos`
+1. Abra: `https://quedia-backend.web.app/api/debug/ultimos-eventos`
 2. Você verá os 3 últimos eventos com suas coordenadas:
    ```json
    {
@@ -131,5 +131,5 @@
 
 ## 🔗 URLs de Teste
 
-- Frontend: https://quedia-bd2fb.web.app/event-form.html
-- Último evento debug: https://quedia-bd2fb.web.app/api/debug/ultimos-eventos
+- Frontend: https://quedia-backend.web.app/event-form.html
+- Último evento debug: https://quedia-backend.web.app/api/debug/ultimos-eventos

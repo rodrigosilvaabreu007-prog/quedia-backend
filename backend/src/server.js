@@ -9,14 +9,13 @@ const { connectDB } = require('./db');
 const mongoUri = process.env.MONGO_URI ? process.env.MONGO_URI.trim() : '';
 const useMemoryBackend = !mongoUri;
 
-if (useMemoryBackend && process.env.NODE_ENV === 'production') {
-  throw new Error('🚫 MONGO_URI não está configurado em produção. O backend não pode iniciar em modo memória.');
-}
-
 const apiRoutes = useMemoryBackend ? require('./routes-memory') : require('./routes');
 
 if (useMemoryBackend) {
   console.warn('⚠️ MONGO_URI não configurado. Iniciando backend em modo memória (não persistente).');
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('⚠️ Executando em MODO PRODUÇÃO SEM PERSISTÊNCIA. Dados não serão salvos!');
+  }
 }
 
 // Middlewares
