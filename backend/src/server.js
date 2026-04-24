@@ -3,11 +3,16 @@ require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const mongoose = require('mongoose');
-const { connectDB } = require('./db');
 
 const mongoUri = process.env.MONGO_URI ? process.env.MONGO_URI.trim() : '';
 const useMemoryBackend = !mongoUri;
+
+// Importar dependências apenas quando necessário
+let mongoose, connectDB;
+if (!useMemoryBackend) {
+  mongoose = require('mongoose');
+  ({ connectDB } = require('./db'));
+}
 
 // Permitir modo memory em produção também (para testes e falhas de conexão)
 console.log(`🔧 Modo do backend: ${useMemoryBackend ? 'MEMÓRIA' : 'MONGODB'}`);
