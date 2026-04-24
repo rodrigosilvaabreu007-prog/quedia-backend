@@ -9,7 +9,7 @@ COPY package*.json ./
 RUN npm install --production --no-optional
 
 # Copy source code
-COPY src ./src
+COPY . .
 
 # Set environment
 ENV NODE_ENV=production
