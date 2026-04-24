@@ -1,3 +1,6 @@
+// Flag para prevenir múltiplos envios do formulário
+let estahEnviandoFormulario = false;
+
 const ESTADOS_BRASIL = [
     { uf: 'AC', nome: 'Acre' },
     { uf: 'AL', nome: 'Alagoas' },
@@ -495,6 +498,12 @@ function construirPayloadEdicao() {
 
 async function enviarEdicao(event) {
     event.preventDefault();
+    
+    // Prevenir múltiplos envios
+    if (estahEnviandoFormulario) {
+        return;
+    }
+    
     const msg = document.getElementById('mensagem-evento');
     const btn = document.getElementById('btn-submit');
     const token = localStorage.getItem('eventhub-token');
@@ -530,6 +539,7 @@ async function enviarEdicao(event) {
         return;
     }
 
+    estahEnviandoFormulario = true;
     btn.disabled = true;
     if (msg) {
         msg.style.color = '#00bfff';
@@ -558,8 +568,10 @@ async function enviarEdicao(event) {
         } else {
             if (msg) {
                 msg.style.color = 'red';
-                msg.textContent = responseData.erro ; responseData.message ; 'Erro ao atualizar evento.';
+                msg.textContent = responseData.erro || responseData.message || 'Erro ao atualizar evento.';
             }
+            estahEnviandoFormulario = false;
+            btn.disabled = false;
         }
     } catch (error) {
         if (msg) {
@@ -567,7 +579,7 @@ async function enviarEdicao(event) {
             msg.textContent = 'Erro de conexao. Tente novamente.';
         }
         console.error('Erro de fetch:', error);
-    } finally {
+        estahEnviandoFormulario = false;
         btn.disabled = false;
     }
 }
@@ -646,6 +658,12 @@ async function inicializarFormulario() {
         form.addEventListener('submit', async (e) => {
             if (IS_EDIT_MODE) {
                 await enviarEdicao(e);
+                return;
+            }
+
+            // Prevenir múltiplos envios
+            if (estahEnviandoFormulario) {
+                e.preventDefault();
                 return;
             }
 
@@ -757,6 +775,7 @@ async function inicializarFormulario() {
             }
 
             try {
+                estahEnviandoFormulario = true;
                 btn.disabled = true;
                 if (msg) {
                     msg.style.color = '#00bfff';
@@ -786,6 +805,8 @@ async function inicializarFormulario() {
                         msg.textContent = dados.erro || dados.detalhe || dados.message || 'Falha no servidor';
                     }
                     console.error('Erro retornado pelo backend:', dados);
+                    estahEnviandoFormulario = false;
+                    btn.disabled = false;
                 }
             } catch (error) {
                 if (msg) {
@@ -793,7 +814,7 @@ async function inicializarFormulario() {
                     msg.textContent = 'Falha de conexao. O servidor pode estar iniciando.';
                 }
                 console.error('Erro de fetch:', error);
-            } finally {
+                estahEnviandoFormulario = false;
                 btn.disabled = false;
             }
         });
