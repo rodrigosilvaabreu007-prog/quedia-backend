@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Mensagens de Contato | QueDia</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="theme.css">
+    <link rel="icon" href="https://i.imgur.com/YourIcon.png" type="image/png">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="index.html">QueDia</a>
+            </div>
+            <div class="nav-links">
+                <a href="admin-eventos.html">Eventos</a>
+                <a href="admin-contato.html" class="active">Contato</a>
+                <a href="#" onclick="logout()">Sair</a>
+            </div>
+            <div class="hamburger-menu" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h1>Mensagens de Contato</h1>
+        
+        <div id="mensagens-container">
+            <div class="loading">Carregando mensagens...</div>
+        </div>
+    </main>
+
+    <!-- Modal de Resposta -->
+    <div id="modal-resposta" class="modal">
+        <div class="modal-content">
+            <h3>Responder Mensagem</h3>
+            <div id="mensagem-original"></div>
+            <textarea id="resposta-admin" placeholder="Digite sua resposta..."></textarea>
+            <div class="modal-actions">
+                <button onclick="cancelarResposta()">Cancelar</button>
+                <button onclick="enviarResposta()" class="btn-success">Enviar Resposta</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:8080/api' : 'https://quedia-backend-649702844549.us-central1.run.app/api';
+        let mensagens = [];
+        let mensagemParaResponder = null;
+
+        async function carregarMensagens() {
+            try {
+                const token = localStorage.getItem('eventhub-token');
+                if (!token) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/admin/mensagens`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.status === 403) {
+                    alert('Acesso negado. Você não é administrador.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar mensagens');
+                }
+
+                mensagens = await response.json();
+                renderizarMensagens();
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('mensagens-container').innerHTML = '<div class="error">Erro ao carregar mensagens</div>';
+            }
+        }
+
+        function renderizarMensagens() {
+            const container = document.getElementById('mensagens-container');
+            
+            if (mensagens.length === 0) {
+                container.innerHTML = '<div class="no-messages">Nenhuma mensagem recebida</div>';
+                return;
+            }
+
+            container.innerHTML = mensagens.map(mensagem => `
+                <div class="mensagem-card ${mensagem.respondida ? 'respondida' : 'pendente'}">
+                    <div class="mensagem-header">
+                        <h3>${mensagem.nome}</h3>
+                        <span class="mensagem-data">${formatarData(mensagem.criadoEm)}</span>
+                        <span class="mensagem-status ${mensagem.respondida ? 'respondida' : 'pendente'}">
+                            ${mensagem.respondida ? 'Respondida' : 'Pendente'}
+                        </span>
+                    </div>
+                    <div class="mensagem-info">
+                        <p><strong>Email:</strong> ${mensagem.email}</p>
+                        <p><strong>Mensagem:</strong></p>
+                        <div class="mensagem-texto">${mensagem.mensagem}</div>
+                        ${mensagem.resposta ? `
+                            <p><strong>Sua resposta:</strong></p>
+                            <div class="mensagem-resposta">${mensagem.resposta}</div>
+                            <p class="resposta-data">Respondido em: ${formatarData(mensagem.respondidoEm)}</p>
+                        ` : ''}
+                    </div>
+                    ${!mensagem.respondida ? `
+                        <div class="mensagem-actions">
+                            <button onclick="responderMensagem('${mensagem._id}')" class="btn-primary">Responder</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function responderMensagem(mensagemId) {
+            const mensagem = mensagens.find(m => m._id === mensagemId);
+            if (!mensagem) return;
+
+            mensagemParaResponder = mensagemId;
+            document.getElementById('mensagem-original').innerHTML = `
+                <p><strong>De:</strong> ${mensagem.nome} (${mensagem.email})</p>
+                <p><strong>Mensagem:</strong></p>
+                <div class="mensagem-preview">${mensagem.mensagem}</div>
+            `;
+            document.getElementById('modal-resposta').style.display = 'block';
+        }
+
+        function cancelarResposta() {
+            mensagemParaResponder = null;
+            document.getElementById('resposta-admin').value = '';
+            document.getElementById('modal-resposta').style.display = 'none';
+        }
+
+        async function enviarResposta() {
+            const resposta = document.getElementById('resposta-admin').value.trim();
+            if (!resposta) {
+                alert('Por favor, digite uma resposta');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('eventhub-token');
+                const response = await fetch(`${API_URL}/admin/mensagens/${mensagemParaResponder}/responder`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ resposta })
+                });
+
+                if (!response.ok) throw new Error('Erro ao enviar resposta');
+
+                alert('Resposta enviada com sucesso!');
+                cancelarResposta();
+                carregarMensagens(); // Recarregar lista
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao enviar resposta');
+            }
+        }
+
+        function formatarData(dataStr) {
+            if (!dataStr) return "";
+            const data = new Date(dataStr);
+            return data.toLocaleString('pt-BR');
+        }
+
+        function logout() {
+            localStorage.removeItem('eventhub-token');
+            localStorage.removeItem('eventhub-user');
+            window.location.href = 'login.html';
+        }
+
+        function toggleMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+
+        // Carregar mensagens ao iniciar
+        document.addEventListener('DOMContentLoaded', carregarMensagens);
+    </script>
+
+    <style>
+        .mensagem-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .mensagem-card.respondida {
+            border-left: 4px solid #28a745;
+        }
+
+        .mensagem-card.pendente {
+            border-left: 4px solid #ffc107;
+        }
+
+        .mensagem-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .mensagem-header h3 {
+            margin: 0;
+            color: var(--cor-principal);
+        }
+
+        .mensagem-data {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .mensagem-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .mensagem-status.respondida {
+            background: #28a745;
+            color: white;
+        }
+
+        .mensagem-status.pendente {
+            background: #ffc107;
+            color: black;
+        }
+
+        .mensagem-info p {
+            margin: 5px 0;
+            color: var(--text-primary);
+        }
+
+        .mensagem-texto, .mensagem-resposta, .mensagem-preview {
+            background: var(--bg-primary);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid var(--border);
+            white-space: pre-wrap;
+        }
+
+        .mensagem-resposta {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .resposta-data {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .mensagem-actions {
+            margin-top: 15px;
+        }
+
+        .btn-primary {
+            background: var(--cor-principal);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: var(--cor-principal);
+        }
+
+        .modal-content textarea {
+            width: 100%;
+            min-height: 150px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .mensagem-preview {
+            background: #f8f9fa;
+            margin-bottom: 15px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .no-messages {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 40px;
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 40px;
+        }
+
+        .error {
+            text-align: center;
+            color: #dc3545;
+            padding: 40px;
+        }
+    </style>
+</body>
+</html>

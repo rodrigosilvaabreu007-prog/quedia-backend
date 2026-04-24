@@ -34,11 +34,10 @@ async function registrarUsuario(dados) {
 
 // Função para autenticar usuário (MONGODB)
 async function autenticarUsuario(email, senha) {
-    const db = await connectDB();
-    if (!db) throw new Error("Não foi possível conectar ao banco de dados.");
-
+    const Usuario = require('./models/usuarios');
+    
     // Busca o usuário pelo e-mail
-    const usuario = await db.collection('usuarios').findOne({ email });
+    const usuario = await Usuario.findOne({ email });
     
     if (!usuario) {
         console.log("❌ Usuário não encontrado:", email);
@@ -64,7 +63,11 @@ async function autenticarUsuario(email, senha) {
     console.log('✅ TOKEN gerado:', token.substring(0, 20) + '...');
 
     // Remove a senha do objeto antes de enviar por segurança e normaliza IDs
-    const usuarioSemSenha = { ...usuario, _id: usuarioIdStr, id: usuarioIdStr };
+    const usuarioSemSenha = { 
+        ...usuario.toObject(), 
+        _id: usuarioIdStr, 
+        id: usuarioIdStr 
+    };
     delete usuarioSemSenha.senha;
     
     return { usuario: usuarioSemSenha, token };
@@ -72,23 +75,26 @@ async function autenticarUsuario(email, senha) {
 
 // Função para buscar usuário por ID (MONGODB)
 async function buscarUsuarioPorId(id) {
-    const db = await connectDB();
-    if (!db) throw new Error("Não foi possível conectar ao banco de dados.");
+    const Usuario = require('./models/usuarios');
 
     // Busca o usuário pelo ID
     try {
-        if (!ObjectId.isValid(id)) {
+        if (!mongoose.Types.ObjectId.isValid(id)) {
             return null;
         }
 
-        const usuario = await db.collection('usuarios').findOne({ _id: new ObjectId(id) });
+        const usuario = await Usuario.findById(id);
     
         if (!usuario) {
             return null;
         }
 
         // Remove a senha do objeto antes de enviar por segurança e normaliza IDs
-        const usuarioSemSenha = { ...usuario, _id: String(usuario._id), id: String(usuario._id) };
+        const usuarioSemSenha = { 
+            ...usuario.toObject(), 
+            _id: String(usuario._id), 
+            id: String(usuario._id) 
+        };
         delete usuarioSemSenha.senha;
         
         return usuarioSemSenha;

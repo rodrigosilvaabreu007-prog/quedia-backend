@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Eventos Pendentes | QueDia</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="theme.css">
+    <link rel="icon" href="https://i.imgur.com/YourIcon.png" type="image/png">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="index.html">QueDia</a>
+            </div>
+            <div class="nav-links">
+                <a href="admin-eventos.html" class="active">Eventos</a>
+                <a href="admin-contato.html">Contato</a>
+                <a href="#" onclick="logout()">Sair</a>
+            </div>
+            <div class="hamburger-menu" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h1>Eventos Pendentes de Aprovação</h1>
+        
+        <div id="eventos-container">
+            <div class="loading">Carregando eventos...</div>
+        </div>
+    </main>
+
+    <!-- Modal de Rejeição -->
+    <div id="modal-rejeicao" class="modal">
+        <div class="modal-content">
+            <h3>Rejeitar Evento</h3>
+            <p>Informe o motivo da rejeição:</p>
+            <textarea id="motivo-rejeicao" placeholder="Digite o motivo..."></textarea>
+            <div class="modal-actions">
+                <button onclick="cancelarRejeicao()">Cancelar</button>
+                <button onclick="confirmarRejeicao()" class="btn-danger">Rejeitar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:8080/api' : 'https://quedia-backend-649702844549.us-central1.run.app/api';
+        let eventosPendentes = [];
+        let eventoParaRejeitar = null;
+
+        async function carregarEventos() {
+            try {
+                const token = localStorage.getItem('eventhub-token');
+                if (!token) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/admin/eventos`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.status === 403) {
+                    alert('Acesso negado. Você não é administrador.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar eventos');
+                }
+
+                eventosPendentes = await response.json();
+                renderizarEventos();
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('eventos-container').innerHTML = '<div class="error">Erro ao carregar eventos</div>';
+            }
+        }
+
+        function renderizarEventos() {
+            const container = document.getElementById('eventos-container');
+            
+            if (eventosPendentes.length === 0) {
+                container.innerHTML = '<div class="no-events">Nenhum evento pendente de aprovação</div>';
+                return;
+            }
+
+            container.innerHTML = eventosPendentes.map(evento => `
+                <div class="evento-card">
+                    <div class="evento-header">
+                        <h3>${evento.nome}</h3>
+                        <span class="evento-data">${formatarData(evento.data)}</span>
+                    </div>
+                    <div class="evento-info">
+                        <p><strong>Organizador:</strong> ${evento.organizador}</p>
+                        <p><strong>Categoria:</strong> ${evento.categoria}</p>
+                        <p><strong>Local:</strong> ${evento.cidade}, ${evento.estado}</p>
+                        <p><strong>Descrição:</strong> ${evento.descricao}</p>
+                    </div>
+                    <div class="evento-imagens">
+                        ${evento.imagens && evento.imagens.length > 0 ? 
+                            evento.imagens.map(img => `<img src="${img}" alt="Imagem do evento" class="evento-thumb">`).join('') :
+                            '<p>Sem imagens</p>'
+                        }
+                    </div>
+                    <div class="evento-actions">
+                        <button onclick="aprovarEvento('${evento._id}')" class="btn-success">Aprovar</button>
+                        <button onclick="rejeitarEvento('${evento._id}')" class="btn-danger">Rejeitar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function aprovarEvento(eventoId) {
+            if (!confirm('Tem certeza que deseja aprovar este evento?')) return;
+
+            try {
+                const token = localStorage.getItem('eventhub-token');
+                const response = await fetch(`${API_URL}/admin/eventos/${eventoId}/aprovar`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Erro ao aprovar evento');
+
+                alert('Evento aprovado com sucesso!');
+                carregarEventos(); // Recarregar lista
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao aprovar evento');
+            }
+        }
+
+        function rejeitarEvento(eventoId) {
+            eventoParaRejeitar = eventoId;
+            document.getElementById('modal-rejeicao').style.display = 'block';
+        }
+
+        function cancelarRejeicao() {
+            eventoParaRejeitar = null;
+            document.getElementById('motivo-rejeicao').value = '';
+            document.getElementById('modal-rejeicao').style.display = 'none';
+        }
+
+        async function confirmarRejeicao() {
+            const motivo = document.getElementById('motivo-rejeicao').value.trim();
+            if (!motivo) {
+                alert('Por favor, informe o motivo da rejeição');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('eventhub-token');
+                const response = await fetch(`${API_URL}/admin/eventos/${eventoParaRejeitar}/rejeitar`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ motivo })
+                });
+
+                if (!response.ok) throw new Error('Erro ao rejeitar evento');
+
+                alert('Evento rejeitado com sucesso!');
+                cancelarRejeicao();
+                carregarEventos(); // Recarregar lista
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao rejeitar evento');
+            }
+        }
+
+        function formatarData(dataStr) {
+            if (!dataStr) return "A definir";
+            const isoMatch = dataStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (isoMatch) {
+                const data = new Date(isoMatch[1], isoMatch[2] - 1, isoMatch[3]);
+                return data.toLocaleDateString('pt-BR');
+            }
+            return dataStr;
+        }
+
+        function logout() {
+            localStorage.removeItem('eventhub-token');
+            localStorage.removeItem('eventhub-user');
+            window.location.href = 'login.html';
+        }
+
+        function toggleMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+
+        // Carregar eventos ao iniciar
+        document.addEventListener('DOMContentLoaded', carregarEventos);
+    </script>
+
+    <style>
+        .evento-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .evento-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .evento-header h3 {
+            margin: 0;
+            color: var(--cor-principal);
+        }
+
+        .evento-data {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .evento-info p {
+            margin: 5px 0;
+            color: var(--text-primary);
+        }
+
+        .evento-imagens {
+            margin: 15px 0;
+        }
+
+        .evento-thumb {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 10px;
+        }
+
+        .evento-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            margin: 20% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: var(--cor-principal);
+        }
+
+        .modal-content textarea {
+            width: 100%;
+            min-height: 100px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .no-events {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 40px;
+        }
+
+        .loading {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 40px;
+        }
+
+        .error {
+            text-align: center;
+            color: #dc3545;
+            padding: 40px;
+        }
+    </style>
+</body>
+</html>

@@ -98,9 +98,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         window.inicializarIconePerfil();
                     }
 
-                    // Redireciona após 1 segundo para destino de origem (ou index)
+                    // Verificar se é administrador e redirecionar para página apropriada
+                    const isAdmin = usuarioData && usuarioData.cargo === 'adm';
+                    const redirectPage = isAdmin ? 'admin-eventos.html' : redirectTarget;
+                    
+                    // Redireciona após 1 segundo para destino de origem (ou index para usuários, admin-eventos para admins)
                     setTimeout(() => {
-                        window.location.href = redirectTarget;
+                        window.location.href = redirectPage;
                     }, 1000);
                 } else {
                     mensagem.textContent = resultado.erro || '❌ Email ou senha incorretos.';

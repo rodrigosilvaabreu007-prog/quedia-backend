@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 let isConnected = false; // Flag para evitar reconexões desnecessárias
 
 async function connectDB() {
+    console.log('🔌 Iniciando connectDB...');
     if (isConnected && mongoose.connection.readyState === 1) {
         console.log("✅ Já conectado ao MongoDB via Mongoose!");
         return mongoose.connection.db;

@@ -26,7 +26,8 @@ const EventoSchema = new mongoose.Schema({
     preco: { type: Number, default: 0 },
     imagens: { type: [String], default: [] },
     organizador: { type: String, default: 'Não informado' },
-    organizador_id: { type: String, default: "sistema" }, 
+    organizador_id: { type: String, default: "sistema" },
+    status: { type: String, default: "pendente", enum: ["pendente", "aprovado", "rejeitado"] }, // Novo campo para aprovação
     criadoEm: { type: Date, default: Date.now }
 }, { 
     // ESSA LINHA É A MAIS IMPORTANTE:
@@ -213,33 +214,38 @@ async function buscarEventoPorId(id) {
     }
 }
 
-async function atualizarEvento(id, dados) {
-    console.log('[DEBUG atualizarEvento] Iniciando atualização do evento ID:', id);
-    console.log('[DEBUG atualizarEvento] Dados recebidos:', JSON.stringify(dados, null, 2));
-
+async function listarEventosComInteresses(filtros = {}, isAdmin = false) {
     try {
-        // 1. Verificação de segurança: O banco está mesmo conectado?
-        if (mongoose.connection.readyState !== 1) {
-            console.warn("⚠️ Conexão Mongoose não pronta para atualização. Estado:", mongoose.connection.readyState);
-            await Promise.race([
-                new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => reject(new Error('Timeout aguardando conexão com MongoDB')), 10000);
-                    mongoose.connection.once('connected', () => {
-                        clearTimeout(timeout);
-                        resolve();
-                    });
-                    mongoose.connection.once('error', (err) => {
-                        clearTimeout(timeout);
-                        reject(err);
-                    });
-                }),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout aguardando conexão com MongoDB')), 10000))
-            ]);
-
-            if (mongoose.connection.readyState !== 1) {
-                throw new Error("Ainda não há conexão ativa com o MongoDB. Tente novamente em alguns segundos.");
+        await removerEventosExpirados();
+        let query = {};
+        if (filtros.cidade) query.cidade = new RegExp(filtros.cidade, 'i');
+        if (filtros.categoria) query.categoria = filtros.categoria;
+        
+        // Se não for admin, só mostra eventos aprovados
+        if (!isAdmin) {
+            query.status = "aprovado";
+        }
+        
+        const eventos = await Evento.find(query).sort({ criadoEm: -1 });
+        
+        // Popula interesses em todos os eventos
+        const { listarInteressesEvento } = require('./interesses');
+        for (let evento of eventos) {
+            try {
+                const interessesIds = await listarInteressesEvento(evento._id.toString());
+                evento.interesses = interessesIds;
+            } catch (err) {
+                console.warn("Aviso: não conseguiu carregar interesses para", evento._id);
+                evento.interesses = [];
             }
         }
+
+        return eventos;
+    } catch (err) {
+        console.error("Erro ao listar eventos com interesses:", err);
+        throw err;
+    }
+}
 
         const latitude = Number(dados.latitude);
         const longitude = Number(dados.longitude);
