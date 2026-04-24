@@ -247,6 +247,8 @@ async function listarEventosComInteresses(filtros = {}, isAdmin = false) {
     }
 }
 
+async function atualizarEvento(id, dados) {
+    try {
         const latitude = Number(dados.latitude);
         const longitude = Number(dados.longitude);
         const datasNormalizadas = normalizarDatasEntrada(dados.datas || []);
