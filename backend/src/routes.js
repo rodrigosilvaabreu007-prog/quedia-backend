@@ -907,24 +907,4 @@ router.post('/admin/mensagens/:id/responder', verificarAdmin, async (req, res) =
         res.status(500).json({ erro: 'Erro interno do servidor' });
     }
 });
-
-// POST /contato - Enviar mensagem de contato
-router.post('/contato', async (req, res) => {
-    try {
-        const { nome, email, mensagem } = req.body;
-        
-        if (!nome || !email || !mensagem) {
-            return res.status(400).json({ erro: 'Nome, email e mensagem são obrigatórios' });
-        }
-        
-        const novaMensagem = new Mensagem({ nome, email, mensagem });
-        await novaMensagem.save();
-        
-        res.json({ mensagem: 'Mensagem enviada com sucesso' });
-    } catch (err) {
-        console.error('Erro ao enviar mensagem:', err);
-        res.status(500).json({ erro: 'Erro interno do servidor' });
-    }
-});
-
 module.exports = router;
