@@ -9,10 +9,7 @@ const { connectDB } = require('./db');
 const mongoUri = process.env.MONGO_URI ? process.env.MONGO_URI.trim() : '';
 const useMemoryBackend = !mongoUri;
 
-if (useMemoryBackend && process.env.NODE_ENV === 'production') {
-  throw new Error('🚫 MONGO_URI não está configurado em produção. O backend não pode iniciar em modo memória.');
-}
-
+// Permitir modo memory em produção também (para testes e falhas de conexão)
 console.log(`🔧 Modo do backend: ${useMemoryBackend ? 'MEMÓRIA' : 'MONGODB'}`);
 console.log(`🔧 MONGO_URI configurado: ${mongoUri ? 'SIM' : 'NÃO'}`);
 

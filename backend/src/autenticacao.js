@@ -34,6 +34,11 @@ async function registrarUsuario(dados) {
 
 // Função para autenticar usuário (MONGODB)
 async function autenticarUsuario(email, senha) {
+    // Se não houver MongoDB configurado, rejeitar
+    if (!process.env.MONGO_URI) {
+        throw new Error('MongoDB não está configurado');
+    }
+    
     await connectDB();
     const Usuario = require('./models/usuarios');
     
