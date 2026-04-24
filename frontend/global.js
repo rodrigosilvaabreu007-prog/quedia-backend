@@ -28,19 +28,95 @@ function normalizeSimplePath() {
     }
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', normalizeSimplePath);
-} else {
-    normalizeSimplePath();
+function getUsuarioData() {
+    try {
+        return JSON.parse(localStorage.getItem('eventhub-usuario') || 'null');
+    } catch {
+        return null;
+    }
 }
 
-// --- FUNÇÕES DE PERFIL E NAVEGAÇÃO ---
+function isAdminUser() {
+    const usuario = getUsuarioData();
+    return usuario && usuario.cargo === 'adm';
+}
 
-function inicializarIconePerfil() {
-    const token = localStorage.getItem('eventhub-token');
-    const usuario = localStorage.getItem('eventhub-usuario');
-    const iconePerfilImg = document.getElementById('icone-perfil-img');
-    const iconePerfil = document.getElementById('icone-perfil');
+function ajustarNavegacaoAdmin() {
+    if (!isAdminUser()) return;
+
+    const links = document.querySelectorAll('nav a, .menu a, .mobile-menu a, .nav-links a');
+    let temAdminEventos = false;
+
+    links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (!href) return;
+        const filename = href.replace(/^.*\//, '');
+
+        if (['login.html', 'cadastro.html', 'event-form.html', 'meus-eventos.html', 'perfil.html'].includes(filename)) {
+            link.style.display = 'none';
+            return;
+        }
+
+        if (filename === 'contato.html') {
+            link.setAttribute('href', 'admin-contato.html');
+            link.textContent = 'Contato';
+            return;
+        }
+
+        if (filename === 'admin-eventos.html') {
+            temAdminEventos = true;
+        }
+
+        if (filename === 'admin-contato.html') {
+            temAdminEventos = true;
+        }
+    });
+
+    if (!temAdminEventos) {
+        const nav = document.querySelector('nav.menu, .nav-links, .mobile-menu');
+        if (nav) {
+            const adminLink = document.createElement('a');
+            adminLink.href = 'admin-eventos.html';
+            adminLink.textContent = 'Eventos';
+            adminLink.style.marginLeft = '12px';
+            nav.appendChild(adminLink);
+        }
+    }
+}
+
+function protegerRotasAdmin() {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const adminOnlyPages = ['admin-eventos.html', 'admin-contato.html'];
+    const userOnlyPagesForAdmin = ['perfil.html', 'meus-eventos.html', 'event-form.html', 'editar-evento.html', 'evento-detalhes.html', 'contato.html'];
+
+    if (isAdminUser()) {
+        if (currentPage === 'contato.html') {
+            window.location.replace('admin-contato.html');
+            return;
+        }
+
+        if (userOnlyPagesForAdmin.includes(currentPage) || currentPage === 'login.html' || currentPage === 'cadastro.html') {
+            window.location.replace('admin-eventos.html');
+            return;
+        }
+    }
+
+    if (!isAdminUser() && adminOnlyPages.includes(currentPage)) {
+        window.location.replace('login.html');
+        return;
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        normalizeSimplePath();
+        protegerRotasAdmin();
+        ajustarNavegacaoAdmin();
+    });
+} else {
+    normalizeSimplePath();
+    protegerRotasAdmin();
+    ajustarNavegacaoAdmin();
 
     // Se não houver os elementos na página atual, sai da função
     if (!iconePerfil || !iconePerfilImg) return;
