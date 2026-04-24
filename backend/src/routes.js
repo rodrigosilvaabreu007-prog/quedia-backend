@@ -41,21 +41,8 @@ async function verificarAdmin(req, res, next) {
     const token = authHeader.substring(7);
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_fixa');
-
-        const mongoUri = process.env.MONGO_URI ? process.env.MONGO_URI.trim() : '';
-        const useMemoryBackend = !mongoUri;
-
-        let usuario;
-        if (useMemoryBackend) {
-            // Buscar usuário no array de memória
-            const db = require('./db-memory');
-            usuario = db.usuarios.find(u => u.id === decoded.id);
-        } else {
-            // Buscar usuário no MongoDB
-            usuario = await Usuario.findById(decoded.id);
-        }
-
-        if (!usuario || (useMemoryBackend ? usuario.tipo !== 'adm' : usuario.cargo !== 'adm')) {
+        const usuario = await Usuario.findById(decoded.id);
+        if (!usuario || usuario.cargo !== 'adm') {
             return res.status(403).json({ erro: 'Acesso negado. Apenas administradores.' });
         }
         req.usuario = usuario;
@@ -67,71 +54,23 @@ async function verificarAdmin(req, res, next) {
 
 // 3. MIDDLEWARE DE CONEXÃO (Tenta conectar, mas permite próximas rotas)
 router.use(async (req, res, next) => {
-    const mongoUri = process.env.MONGO_URI ? process.env.MONGO_URI.trim() : '';
-    const useMemoryBackend = !mongoUri;
-
-    if (!useMemoryBackend) {
+    try {
+        console.log('[DEBUG middleware] Tentando conectar ao banco...');
+        await connectDB();
+        console.log('[DEBUG middleware] Conexão estabelecida');
+        
+        // Inicializar administradores após conexão
         try {
-            console.log('[DEBUG middleware] Tentando conectar ao banco...');
-            await connectDB();
-            console.log('[DEBUG middleware] Conexão estabelecida');
-
-            // Inicializar administradores após conexão
-            try {
-                console.log('🚀 Iniciando inicialização de admins no middleware...');
-                const Usuario = require('./models/usuarios');
-                await Usuario.inicializarAdmins();
-                console.log('✅ Inicialização de admins concluída no middleware.');
-            } catch (err) {
-                console.error('❌ Erro ao inicializar admins no middleware:', err);
-            }
+            console.log('🚀 Iniciando inicialização de admins no middleware...');
+            const Usuario = require('./models/usuarios');
+            await Usuario.inicializarAdmins();
+            console.log('✅ Inicialização de admins concluída no middleware.');
         } catch (err) {
-            console.error("⚠️ Conexão com banco não disponível no middleware:", err.message);
-            // Continua mesmo se banco não conectar - algumas rotas podem funcionar sem banco
+            console.error('❌ Erro ao inicializar admins no middleware:', err);
         }
-    } else {
-        // Modo memory: inicializar admins diretamente no array de memória
-        try {
-            console.log('🚀 Iniciando inicialização de admins em modo memória...');
-            const bcrypt = require('bcryptjs');
-            const db = require('./db-memory');
-
-            // Lista de administradores hardcoded
-            const ADMINISTRADORES = [
-                {
-                    nome: "rodrigo",
-                    email: "rodrigo.silva.abreu554466@gmail.com",
-                    senha: "Rdrg_2007",
-                    cargo: "adm"
-                }
-            ];
-
-            for (const admin of ADMINISTRADORES) {
-                console.log(`🔍 Verificando se admin ${admin.email} existe em memória...`);
-                const existe = db.usuarios.find(u => u.email === admin.email);
-                if (!existe) {
-                    console.log(`➕ Criando admin ${admin.nome} em memória...`);
-                    const adminComHash = {
-                        id: db.usuarios.length + 1,
-                        nome: admin.nome,
-                        email: admin.email,
-                        senha: await bcrypt.hash(admin.senha, 10),
-                        estado: 'Não informado',
-                        cidade: 'Não informado',
-                        preferencias: [],
-                        tipo: 'adm', // Usar 'adm' para compatibilidade com memory
-                        criado_em: new Date()
-                    };
-                    db.usuarios.push(adminComHash);
-                    console.log(`✅ Admin ${admin.nome} criado em memória com sucesso.`);
-                } else {
-                    console.log(`✅ Admin ${admin.email} já existe em memória.`);
-                }
-            }
-            console.log('🎉 Inicialização de admins em memória concluída.');
-        } catch (err) {
-            console.error('❌ Erro ao inicializar admins em memória:', err);
-        }
+    } catch (err) {
+        console.error("⚠️ Conexão com banco não disponível no middleware:", err.message);
+        // Continua mesmo se banco não conectar - algumas rotas podem funcionar sem banco
     }
     next();
 });
@@ -279,22 +218,9 @@ router.get('/eventos', async (req, res) => {
             const token = authHeader.substring(7);
             try {
                 const decoded = require('jsonwebtoken').verify(token, process.env.JWT_SECRET || 'seu_segredo_jwt');
-
-                const mongoUri = process.env.MONGO_URI ? process.env.MONGO_URI.trim() : '';
-                const useMemoryBackend = !mongoUri;
-
-                let usuario;
-                if (useMemoryBackend) {
-                    // Buscar usuário no array de memória
-                    const db = require('./db-memory');
-                    usuario = db.usuarios.find(u => u.id === decoded.id);
-                    isAdmin = usuario && usuario.tipo === 'adm';
-                } else {
-                    // Buscar usuário no MongoDB
-                    const Usuario = require('./models/usuarios');
-                    usuario = await Usuario.findById(decoded.id);
-                    isAdmin = usuario && usuario.cargo === 'adm';
-                }
+                const Usuario = require('./models/usuarios');
+                const usuario = await Usuario.findById(decoded.id);
+                isAdmin = usuario && usuario.cargo === 'adm';
             } catch (err) {
                 // Token inválido, continua como usuário normal
             }
@@ -769,21 +695,8 @@ async function verificarAdmin(req, res, next) {
     const token = authHeader.substring(7);
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_fixa');
-
-        const mongoUri = process.env.MONGO_URI ? process.env.MONGO_URI.trim() : '';
-        const useMemoryBackend = !mongoUri;
-
-        let usuario;
-        if (useMemoryBackend) {
-            // Buscar usuário no array de memória
-            const db = require('./db-memory');
-            usuario = db.usuarios.find(u => u.id === decoded.id);
-        } else {
-            // Buscar usuário no MongoDB
-            usuario = await Usuario.findById(decoded.id);
-        }
-
-        if (!usuario || (useMemoryBackend ? usuario.tipo !== 'adm' : usuario.cargo !== 'adm')) {
+        const usuario = await Usuario.findById(decoded.id);
+        if (!usuario || usuario.cargo !== 'adm') {
             return res.status(403).json({ erro: 'Acesso negado. Apenas administradores.' });
         }
         req.usuario = usuario;
