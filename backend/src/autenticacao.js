@@ -34,6 +34,7 @@ async function registrarUsuario(dados) {
 
 // Função para autenticar usuário (MONGODB)
 async function autenticarUsuario(email, senha) {
+    await connectDB();
     const Usuario = require('./models/usuarios');
     
     // Busca o usuário pelo e-mail
@@ -75,6 +76,7 @@ async function autenticarUsuario(email, senha) {
 
 // Função para buscar usuário por ID (MONGODB)
 async function buscarUsuarioPorId(id) {
+    await connectDB();
     const Usuario = require('./models/usuarios');
 
     // Busca o usuário pelo ID

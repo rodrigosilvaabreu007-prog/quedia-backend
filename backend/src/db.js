@@ -27,10 +27,22 @@ async function connectDB() {
         // Conecta usando Mongoose (compatível com o modelo eventos.js)
         await mongoose.connect(mongoUri, {
             // Opções para ambientes serverless
-            serverSelectionTimeoutMS: 5000, // Timeout para seleção do servidor
-            socketTimeoutMS: 45000, // Timeout do socket
-            bufferCommands: false, // Não enfileira comandos se não conectado
-            maxPoolSize: 10 // Pool de conexões
+            serverSelectionTimeoutMS: 10000,
+            socketTimeoutMS: 45000,
+            bufferCommands: true,
+            maxPoolSize: 10
+        });
+
+        // Aguardar a conexão estar realmente pronta
+        await new Promise((resolve) => {
+            const checkReady = () => {
+                if (mongoose.connection.readyState === 1) {
+                    resolve();
+                } else {
+                    setTimeout(checkReady, 100);
+                }
+            };
+            checkReady();
         });
 
         isConnected = true;
