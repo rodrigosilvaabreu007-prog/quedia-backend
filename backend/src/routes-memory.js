@@ -673,4 +673,184 @@ router.post('/interesses', (req, res) => {
   }
 });
 
+// Middleware para verificar token JWT
+async function verificarToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ erro: 'Token de autenticação necessário' });
+  }
+  const token = authHeader.substring(7);
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.usuario = { id: decoded.id };
+    next();
+  } catch (err) {
+    return res.status(401).json({ erro: 'Token inválido' });
+  }
+}
+
+// Middleware para verificar se usuário é admin
+async function verificarAdmin(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ erro: 'Token de autenticação necessário' });
+  }
+  const token = authHeader.substring(7);
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const usuario = db.usuarios.find(u => u.id === decoded.id);
+    if (!usuario || usuario.tipo !== 'adm') {
+      return res.status(403).json({ erro: 'Acesso negado. Apenas administradores.' });
+    }
+    req.usuario = usuario;
+    next();
+  } catch (err) {
+    return res.status(401).json({ erro: 'Token inválido' });
+  }
+}
+
+// Função para enviar email de contato
+async function enviarEmailContato(dados) {
+  const { nome, email, mensagem } = dados;
+  
+  // Salvar mensagem no banco de memória
+  const novaMensagem = {
+    id: db.mensagens.length + 1,
+    nome,
+    email,
+    mensagem,
+    criadoEm: new Date(),
+    respondida: false,
+    resposta: null,
+    respondidoEm: null
+  };
+  db.mensagens.push(novaMensagem);
+  
+  const mailOptions = {
+    from: CONTACT_EMAIL,
+    to: CONTACT_EMAIL,
+    subject: `Nova mensagem de contato - ${nome}`,
+    html: `
+      <h2>Nova mensagem de contato</h2>
+      <p><strong>Nome:</strong> ${nome}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Mensagem:</strong></p>
+      <p>${mensagem.replace(/\n/g, '<br>')}</p>
+      <hr>
+      <p><em>Enviado em: ${new Date().toLocaleString('pt-BR')}</em></p>
+    `
+  };
+
+  try {
+    const transporter = getMailTransporter();
+    await transporter.sendMail(mailOptions);
+    console.log('✅ Email de contato enviado com sucesso');
+  } catch (error) {
+    console.error('❌ Erro ao enviar email de contato:', error);
+    throw error;
+  }
+}
+
+// Rota POST: CONTATO (apenas usuários logados podem enviar)
+router.post('/contato', verificarToken, async (req, res) => {
+  try {
+    const { nome, email, mensagem } = req.body;
+    if (!nome || !email || !mensagem) {
+      return res.status(400).json({ erro: 'Nome, email e mensagem são obrigatórios' });
+    }
+
+    await enviarEmailContato({ nome, email, mensagem });
+    return res.json({ mensagem: 'Mensagem enviada com sucesso! Entraremos em contato em breve.' });
+  } catch (err) {
+    console.error('Erro na rota POST /contato:', err);
+    return res.status(500).json({ erro: 'Erro ao enviar mensagem. Verifique a configuração de e-mail.', detalhe: err.message });
+  }
+});
+
+// GET /admin/eventos - Listar eventos pendentes para aprovação
+router.get('/admin/eventos', verificarAdmin, (req, res) => {
+  try {
+    const eventos = db.eventos.filter(e => e.status === 'pendente');
+    res.json(eventos);
+  } catch (err) {
+    console.error('Erro ao listar eventos pendentes:', err);
+    res.status(500).json({ erro: 'Erro interno do servidor' });
+  }
+});
+
+// POST /admin/eventos/:id/aprovar - Aprovar evento
+router.post('/admin/eventos/:id/aprovar', verificarAdmin, (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const evento = db.eventos.find(e => e.id === id);
+    if (!evento) {
+      return res.status(404).json({ erro: 'Evento não encontrado' });
+    }
+    evento.status = 'aprovado';
+    res.json({ mensagem: 'Evento aprovado com sucesso', evento });
+  } catch (err) {
+    console.error('Erro ao aprovar evento:', err);
+    res.status(500).json({ erro: 'Erro interno do servidor' });
+  }
+});
+
+// POST /admin/eventos/:id/rejeitar - Rejeitar evento
+router.post('/admin/eventos/:id/rejeitar', verificarAdmin, (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { motivo } = req.body;
+    
+    const evento = db.eventos.find(e => e.id === id);
+    if (!evento) {
+      return res.status(404).json({ erro: 'Evento não encontrado' });
+    }
+    
+    evento.status = 'rejeitado';
+    evento.motivo_rejeicao = motivo;
+    
+    res.json({ mensagem: 'Evento rejeitado', evento });
+  } catch (err) {
+    console.error('Erro ao rejeitar evento:', err);
+    res.status(500).json({ erro: 'Erro interno do servidor' });
+  }
+});
+
+// Simular modelo de mensagens para modo memória
+if (!db.mensagens) {
+  db.mensagens = [];
+}
+
+// GET /admin/mensagens - Listar mensagens de contato
+router.get('/admin/mensagens', verificarAdmin, (req, res) => {
+  try {
+    const mensagens = db.mensagens.sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm));
+    res.json(mensagens);
+  } catch (err) {
+    console.error('Erro ao listar mensagens:', err);
+    res.status(500).json({ erro: 'Erro interno do servidor' });
+  }
+});
+
+// POST /admin/mensagens/:id/responder - Responder mensagem
+router.post('/admin/mensagens/:id/responder', verificarAdmin, (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { resposta } = req.body;
+    
+    const mensagem = db.mensagens.find(m => m.id === id);
+    if (!mensagem) {
+      return res.status(404).json({ erro: 'Mensagem não encontrada' });
+    }
+    
+    mensagem.resposta = resposta;
+    mensagem.respondida = true;
+    mensagem.respondidoEm = new Date();
+    
+    res.json({ mensagem: 'Resposta enviada com sucesso', mensagem });
+  } catch (err) {
+    console.error('Erro ao responder mensagem:', err);
+    res.status(500).json({ erro: 'Erro interno do servidor' });
+  }
+});
+
 module.exports = router;
