@@ -28,7 +28,7 @@ gcloud run deploy eventhub-api `
   --memory 512Mi `
   --cpu 1 `
   --timeout 3600 `
-  --set-env-vars "PORT=8080,NODE_ENV=production"
+  --set-env-vars "NODE_ENV=production"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""

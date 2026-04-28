@@ -45,7 +45,7 @@ gcloud run deploy eventhub-api `
     --memory 512Mi `
     --cpu 1 `
     --timeout 3600 `
-    --set-env-vars "PORT=8080"
+    --set-env-vars "NODE_ENV=production"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Cloud Run deploy falhou!" -ForegroundColor Red
