@@ -16,8 +16,6 @@
             </div>
             <div class="nav-links">
                 <a href="admin-inicio.html">Início</a>
-                <a href="admin-perfil.html" class="active">Perfil Admin</a>
-                <a href="admin-meus-eventos.html">Meus Eventos</a>
                 <a href="admin-eventos.html">Aprovações</a>
                 <a href="admin-contato.html">Contato</a>
                 <a href="#" onclick="logout()">Sair</a>
@@ -45,30 +43,18 @@
 
             <div class="admin-stats">
                 <div class="stat-card">
-                    <div class="stat-number" id="stat-eventos">0</div>
-                    <div class="stat-label">Eventos Criados</div>
-                </div>
-                <div class="stat-card">
                     <div class="stat-number" id="stat-pendentes">0</div>
-                    <div class="stat-label">Pendentes de Aprovação</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="stat-aprovados">0</div>
-                    <div class="stat-label">Eventos Aprovados</div>
+                    <div class="stat-label">Aprovação Pendente</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="stat-mensagens">0</div>
-                    <div class="stat-label">Mensagens Recebidas</div>
+                    <div class="stat-label">Respostas Pendentes</div>
                 </div>
             </div>
 
             <div class="admin-actions">
                 <h2>Ações Administrativas</h2>
                 <div class="actions-grid">
-                    <button onclick="window.location.href='admin-meus-eventos.html'" class="action-btn">
-                        <span class="action-icon">📝</span>
-                        <span class="action-text">Meus Eventos</span>
-                    </button>
                     <button onclick="window.location.href='admin-eventos.html'" class="action-btn">
                         <span class="action-icon">✅</span>
                         <span class="action-text">Aprovar Eventos</span>
@@ -107,6 +93,8 @@
             </div>
         </section>
     </main>
+
+    <div id="icone-perfil" title="Meu Perfil" onclick="irParaPerfil()" style="cursor: pointer;"></div>
 
     <style>
         .admin-profile {
@@ -319,10 +307,8 @@
 
                 if (statsResponse.ok) {
                     const stats = await statsResponse.json();
-                    document.getElementById('stat-eventos').textContent = stats.totalEventos || 0;
-                    document.getElementById('stat-pendentes').textContent = stats.eventosPendentes || 0;
-                    document.getElementById('stat-aprovados').textContent = stats.eventosAprovados || 0;
-                    document.getElementById('stat-mensagens').textContent = stats.mensagensRecebidas || 0;
+                    document.getElementById('stat-pendentes').textContent = stats.eventosPendentes || stats.pendentesAprovacao || 0;
+                    document.getElementById('stat-mensagens').textContent = stats.respostasPendentes || stats.mensagensRecebidas || 0;
                 }
 
                 // Formato de datas

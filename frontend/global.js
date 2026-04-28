@@ -206,6 +206,7 @@ if (document.readyState === 'loading') {
         normalizeSimplePath();
         protegerRotasAdmin();
         ajustarNavegacaoAdmin();
+        inicializarIconePerfil();
     });
 } else {
     normalizeSimplePath();
@@ -242,11 +243,13 @@ function irParaPerfil() {
     }
 
     const currentPage = window.location.pathname.split('/').pop();
-    if (currentPage === 'perfil.html' || currentPage === 'perfil') {
+    const admin = isAdminUser();
+    const target = admin ? 'admin-perfil.html' : 'perfil.html';
+    if (currentPage === target || currentPage === 'perfil' || currentPage === 'admin-perfil.html') {
         return;
     }
 
-    window.location.href = 'perfil.html';
+    window.location.href = target;
 }
 
 async function mostrarModalPerfil() {

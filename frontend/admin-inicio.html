@@ -1,82 +1,133 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Início | QueDia</title>
-    <link rel="stylesheet" href="styles.css?v=20260424">
-    <link rel="stylesheet" href="theme.css?v=20260424">
-    <link rel="icon" href="https://i.imgur.com/YourIcon.png" type="image/png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Início | QueDia</title>
+  <link rel="stylesheet" href="styles.css?v=20260424">
+  <link rel="stylesheet" href="theme.css?v=20260424">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <a href="admin-inicio.html">QueDia</a>
-            </div>
-            <div class="nav-links">
-                <a href="admin-inicio.html" class="active">Início</a>
-                <a href="admin-perfil.html">Perfil Admin</a>
-                <a href="admin-meus-eventos.html">Meus Eventos</a>
-                <a href="admin-eventos.html">Aprovações</a>
-                <a href="admin-contato.html">Contato</a>
-                <a href="#" onclick="logout()">Sair</a>
-            </div>
-            <div class="hamburger-menu" onclick="toggleMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>
-    </nav>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <a href="admin-inicio.html">QueDia</a>
+      </div>
+      <div class="nav-links">
+        <a href="admin-inicio.html" class="active">Início</a>
+        <a href="admin-eventos.html">Aprovações</a>
+        <a href="admin-contato.html">Contato</a>
+        <a href="#" onclick="logout()">Sair</a>
+      </div>
+      <div class="hamburger-menu" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </nav>
 
-    <main class="container">
-        <section class="admin-summary">
-            <h1>Bem-vindo, Administrador</h1>
-            <p>Esta é a área exclusiva para gerenciamento de eventos e mensagens do site. Utilize o menu para acessar as seções de aprovação e atendimento.</p>
-        </section>
+  <div class="container">
+    <div class="hero-section">
+      <h1 class="logo">Quedia.com.br</h1>
+      <p class="subtitle">Descubra e divulgue eventos na sua cidade</p>
+    </div>
 
-        <section class="admin-cards">
-            <div class="admin-card">
-                <h2>Eventos</h2>
-                <p>Veja todos os eventos pendentes e aprove ou rejeite com motivo.</p>
-                <a href="admin-eventos.html" class="btn-primary">Ir para Eventos</a>
-            </div>
-            <div class="admin-card">
-                <h2>Contato</h2>
-                <p>Visualize todas as mensagens enviadas pelos usuários e responda diretamente.</p>
-                <a href="admin-contato.html" class="btn-primary">Ir para Contato</a>
-            </div>
-        </section>
+    <main>
+      <div style="margin-bottom: 32px;">
+        <input type="text" id="search-input" placeholder="🔍 Buscar por evento, cidade ou categoria..." style="width: 100%; padding: 16px; border: 2px solid var(--cor-principal, #00bfff); border-radius: 8px; background: var(--bg-secondary, #1a2332); color: var(--text-color, #fff); font-size: 16px;">
+      </div>
+
+      <div style="margin-bottom: 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <button id="toggle-filtros" onclick="window.toggleFiltros()" class="btn btn-primary">
+          Filtros ▼
+        </button>
+        <button id="view-eventos" onclick="window.setView('eventos')" class="btn btn-outline">
+          📋 Eventos
+        </button>
+        <button id="view-calendario" onclick="window.setView('calendario')" class="btn btn-outline">
+          📅 Calendário
+        </button>
+      </div>
+
+      <div id="filtros-container" style="display: none; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 32px; padding: 20px; background: rgba(0, 191, 255, 0.05); border-radius: 8px;">
+        <div><label style="color: #888; font-size: 12px;">Estado</label><select id="filtro-estado" class="filtro-select"><option value="">Todos</option></select></div>
+        <div><label style="color: #888; font-size: 12px;">Cidade</label><select id="filtro-cidade" class="filtro-select"><option value="">Todas</option></select></div>
+        <div><label style="color: #888; font-size: 12px;">Categoria</label><select id="filtro-categoria" class="filtro-select"><option value="">Todas</option></select></div>
+        <div><label style="color: #888; font-size: 12px;">Preço Máx</label><input type="number" id="filtro-preco" class="filtro-select" placeholder="R$"></div>
+        <div><label style="color: #888; font-size: 12px;">Data</label><input type="date" id="filtro-data" class="filtro-select"></div>
+        <div><label style="color: #888; font-size: 12px;">Horário</label><input type="time" id="filtro-horario" class="filtro-select"></div>
+        <div style="display: flex; align-items: flex-end;"><button onclick="window.limparFiltros()" class="btn btn-secondary">Limpar</button></div>
+      </div>
+
+      <section id="section-para-voce" style="margin-bottom: 48px;">
+        <h2 class="section-title">Eventos para Você</h2>
+        <div id="eventos-para-voce" class="event-grid"></div>
+        <p id="mensagem-para-voce" class="msg-vazia"></p>
+      </section>
+
+      <section id="section-seus-eventos" style="margin-bottom: 48px; display: none;">
+        <h2 class="section-title">Seus Eventos</h2>
+        <div id="eventos-usuario" class="event-grid"></div>
+        <p id="mensagem-seus-eventos" class="msg-vazia"></p>
+      </section>
+
+      <section id="section-todos">
+        <h2 class="section-title">Todos os Eventos</h2>
+        <div id="event-cards" class="event-grid"></div>
+        <p id="mensagem-eventos" class="msg-vazia"></p>
+      </section>
+
+      <section id="section-calendario" style="display: none; margin-bottom: 48px;">
+        <h2 class="section-title">Calendário de Eventos</h2>
+        <div id="calendario-container"></div>
+      </section>
     </main>
+  </div>
 
-    <script src="global.js"></script>
-    <script>
-        function logout() {
-            localStorage.removeItem('eventhub-token');
-            localStorage.removeItem('eventhub-usuario');
-            window.location.href = 'login.html';
-        }
+  <div id="event-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <span class="close-modal" onclick="window.fecharModal()">×</span>
+      <div id="modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn-mais-info" onclick="window.irParaDetalhes()">Mais Informações</button>
+      </div>
+    </div>
+  </div>
 
-        function toggleMenu() {
-            const navLinks = document.querySelector('.nav-links');
-            navLinks.classList.toggle('active');
-        }
+  <div id="icone-perfil" title="Meu Perfil" onclick="irParaPerfil()" style="cursor: pointer;"></div>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = localStorage.getItem('eventhub-token');
-            if (!token) {
-                window.location.href = 'login.html';
-                return;
-            }
+  <script src="theme.js?v=20260424"></script>
+  <script src="cidades-brasil.js?v=20260424"></script>
+  <script src="global.js?v=20260424"></script>
+  <script src="evento-list.js?v=20260424"></script>
+  <script src="hamburger-menu.js?v=20260424"></script>
+  <script>
+    function logout() {
+      localStorage.removeItem('eventhub-token');
+      localStorage.removeItem('eventhub-usuario');
+      window.location.href = 'login.html';
+    }
 
-            const usuario = JSON.parse(localStorage.getItem('eventhub-usuario') || '{}');
-            if (!usuario || usuario.cargo !== 'adm') {
-                window.location.href = 'index.html';
-                return;
-            }
-        });
-    </script>
+    function toggleMenu() {
+      const navLinks = document.querySelector('.nav-links');
+      navLinks.classList.toggle('active');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('eventhub-token');
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const usuario = JSON.parse(localStorage.getItem('eventhub-usuario') || '{}');
+      if (!usuario || usuario.cargo !== 'adm') {
+        window.location.href = 'index.html';
+        return;
+      }
+    });
+  </script>
 </body>
 </html>
 
