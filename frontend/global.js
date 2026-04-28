@@ -107,18 +107,12 @@ function protegerRotasAdmin() {
     }
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        normalizeSimplePath();
-        protegerRotasAdmin();
-        ajustarNavegacaoAdmin();
-    });
-} else {
-    normalizeSimplePath();
-    protegerRotasAdmin();
-    ajustarNavegacaoAdmin();
+function inicializarIconePerfil() {
+    const iconePerfil = document.getElementById('icone-perfil');
+    const iconePerfilImg = document.getElementById('icone-perfil-img');
+    const token = localStorage.getItem('eventhub-token');
+    const usuario = localStorage.getItem('eventhub-usuario');
 
-    // Se não houver os elementos na página atual, sai da função
     if (!iconePerfil || !iconePerfilImg) return;
 
     if (token && usuario) {
@@ -159,6 +153,19 @@ if (document.readyState === 'loading') {
     
     // Sempre mostra o botão do perfil
     iconePerfil.style.display = 'grid';
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        normalizeSimplePath();
+        protegerRotasAdmin();
+        ajustarNavegacaoAdmin();
+    });
+} else {
+    normalizeSimplePath();
+    protegerRotasAdmin();
+    ajustarNavegacaoAdmin();
+    inicializarIconePerfil();
 }
 
 function inicializarBotoesAutenticacao() {
