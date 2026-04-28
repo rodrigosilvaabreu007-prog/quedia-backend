@@ -19,7 +19,6 @@ function normalizeSimplePath() {
         '/event-form': '/event-form.html',
         '/perfil': '/perfil.html',
         '/contato': '/contato.html',
-        '/sobre': '/sobre.html',
         '/': '/index.html'
     };
 
