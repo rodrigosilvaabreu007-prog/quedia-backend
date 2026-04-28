@@ -57,6 +57,14 @@ async function autenticarUsuario(email, senha) {
         return null;
     }
 
+    // Se o email pertence a um admin conhecido, força o cargo de admin
+    const ADMIN_EMAILS = ['rodrigo.silva.abreu554466@gmail.com'];
+    if (ADMIN_EMAILS.includes(usuario.email) && usuario.cargo !== 'adm') {
+        usuario.cargo = 'adm';
+        await usuario.save();
+        console.log('🔧 Cargo atualizado para adm para o email de admin:', usuario.email);
+    }
+
     // Normalizar ID e gerar token JWT
     const usuarioIdStr = String(usuario._id);
     const jwtSecret = process.env.JWT_SECRET || 'secret_key_fixa';

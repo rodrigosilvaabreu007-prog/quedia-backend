@@ -85,34 +85,33 @@ function isAdminUser() {
 
 function ajustarNavegacaoAdmin() {
     console.log('🧭 Executando ajustarNavegacaoAdmin()');
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    const adminPages = ['admin-inicio.html', 'admin-perfil.html', 'admin-meus-eventos.html', 'admin-eventos.html', 'admin-contato.html'];
     const navElements = document.querySelectorAll('nav.menu, .mobile-menu');
     if (!navElements.length) {
         console.log('❌ Elemento de navegação não encontrado');
         return;
     }
 
-    const publicNav = `
-        <a href="index.html">Início</a>
-        <a href="event-form.html">Cadastrar Evento</a>
-        <a href="sobre.html">Sobre</a>
-        <a href="contato.html">Contato</a>
-        <a href="meus-eventos.html">Seus Eventos</a>
-        <a href="login.html">Login</a>
-        <a href="cadastro.html">Cadastro</a>
-    `;
+    const publicNav = [
+        '<a href="index.html">Início</a>',
+        '<a href="event-form.html">Cadastrar Evento</a>',
+        '<a href="sobre.html">Sobre</a>',
+        '<a href="contato.html">Contato</a>',
+        '<a href="meus-eventos.html">Seus Eventos</a>',
+        '<a href="login.html">Login</a>',
+        '<a href="cadastro.html">Cadastro</a>'
+    ].join('');
 
-    const adminNav = `
-        <a href="admin-inicio.html">Início</a>
-        <a href="admin-perfil.html">Perfil Admin</a>
-        <a href="admin-meus-eventos.html">Meus Eventos</a>
-        <a href="admin-eventos.html">Aprovações</a>
-        <a href="admin-contato.html">Contato</a>
-        <a href="#" onclick="logout()">Sair</a>
-    `;
+    const adminNav = [
+        '<a href="admin-inicio.html">Início</a>',
+        '<a href="admin-perfil.html">Perfil Admin</a>',
+        '<a href="admin-meus-eventos.html">Meus Eventos</a>',
+        '<a href="admin-eventos.html">Aprovações</a>',
+        '<a href="admin-contato.html">Contato</a>',
+        '<a href="#" onclick="logout()">Sair</a>'
+    ].join('');
 
-    if (isAdminUser()) {
+    const admin = isAdminUser();
+    if (admin) {
         console.log('👑 Usuário é admin, aplicando navegação admin');
         navElements.forEach(nav => nav.innerHTML = adminNav);
         return;
@@ -129,7 +128,8 @@ function protegerRotasAdmin() {
     const adminOnlyPages = ['admin-inicio.html', 'admin-perfil.html', 'admin-meus-eventos.html', 'admin-eventos.html', 'admin-contato.html'];
     const userOnlyPagesForAdmin = ['perfil.html', 'meus-eventos.html', 'event-form.html', 'editar-evento.html', 'evento-detalhes.html', 'contato.html', 'sobre.html'];
 
-    if (isAdminUser()) {
+    const admin = isAdminUser();
+    if (admin) {
         console.log('👑 Usuário é admin, aplicando proteção de rotas');
         if (currentPage === 'contato.html') {
             console.log('🔄 Redirecionando contato.html para admin-contato.html');
@@ -146,7 +146,7 @@ function protegerRotasAdmin() {
         console.log('👤 Usuário não é admin, nenhuma proteção aplicada');
     }
 
-    if (!isAdminUser() && adminOnlyPages.includes(currentPage)) {
+    if (!admin && adminOnlyPages.includes(currentPage)) {
         window.location.replace('login.html');
         return;
     }
