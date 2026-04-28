@@ -52,7 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             
             const formData = new FormData(form);
-            const dados = Object.fromEntries(formData);
+            const dados = {
+                email: String(formData.get('email') || '').trim().toLowerCase(),
+                senha: String(formData.get('senha') || '')
+            };
             
             try {
                 // Feedback visual

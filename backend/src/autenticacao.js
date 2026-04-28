@@ -34,6 +34,8 @@ async function registrarUsuario(dados) {
 
 // Função para autenticar usuário (MONGODB)
 async function autenticarUsuario(email, senha) {
+    email = String(email || '').trim().toLowerCase();
+
     // Se não houver MongoDB configurado, rejeitar
     if (!process.env.MONGO_URI) {
         throw new Error('MongoDB não está configurado');
@@ -42,8 +44,9 @@ async function autenticarUsuario(email, senha) {
     await connectDB();
     const Usuario = require('./models/usuarios');
     
-    // Busca o usuário pelo e-mail
-    const usuario = await Usuario.findOne({ email });
+    // Busca o usuário pelo e-mail de forma case-insensitive
+    const emailRegex = new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+    const usuario = await Usuario.findOne({ email: emailRegex });
     
     if (!usuario) {
         console.log("❌ Usuário não encontrado:", email);
@@ -58,8 +61,11 @@ async function autenticarUsuario(email, senha) {
     }
 
     // Se o email pertence a um admin conhecido, força o cargo de admin
-    const ADMIN_EMAILS = ['rodrigo.silva.abreu554466@gmail.com'];
-    if (ADMIN_EMAILS.includes(usuario.email) && usuario.cargo !== 'adm') {
+    const ADMIN_EMAILS = [
+        'rodrigo.silva.abreu554466@gmail.com',
+        'rodrigo.silva.abreu@554466@gmail.com'
+    ];
+    if (ADMIN_EMAILS.includes(String(usuario.email || '').toLowerCase()) && usuario.cargo !== 'adm') {
         usuario.cargo = 'adm';
         await usuario.save();
         console.log('🔧 Cargo atualizado para adm para o email de admin:', usuario.email);

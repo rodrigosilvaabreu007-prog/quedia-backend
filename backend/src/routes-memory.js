@@ -126,18 +126,21 @@ router.get('/verificar-email', (req, res) => {
 // Middleware: Inicializar admin automaticamente
 (async () => {
   try {
-    const ADMIN_EMAIL = 'rodrigo.silva.abreu554466@gmail.com';
+    const ADMIN_EMAILS = [
+      'rodrigo.silva.abreu554466@gmail.com',
+      'rodrigo.silva.abreu@554466@gmail.com'
+    ];
     const ADMIN_SENHA = 'Rdrg_2007';
     
-    // Verificar se admin já existe
-    const adminExiste = db.usuarios.find(u => u.email === ADMIN_EMAIL);
+    // Verificar se admin já existe em qualquer formato conhecido
+    const adminExiste = db.usuarios.find(u => ADMIN_EMAILS.includes(String(u.email || '').toLowerCase()));
     if (!adminExiste) {
       console.log('🚀 Criando admin automaticamente...');
       const senhaCriptografada = await bcrypt.hash(ADMIN_SENHA, 10);
       const admin = {
         id: db.usuarios.length + 1,
         nome: 'Rodrigo',
-        email: ADMIN_EMAIL,
+        email: ADMIN_EMAILS[0],
         senha: senhaCriptografada,
         estado: 'Não informado',
         cidade: 'Não informado',
