@@ -5,6 +5,8 @@ const MensagemSchema = new mongoose.Schema({
     nome: { type: String, required: true },
     email: { type: String, required: true },
     mensagem: { type: String, required: true },
+    usuario_id: { type: String, default: '' },
+    usuario_email: { type: String, default: '' },
     resposta: { type: String, default: "" }, // Resposta do admin
     respondida: { type: Boolean, default: false },
     criadoEm: { type: Date, default: Date.now },

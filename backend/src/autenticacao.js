@@ -62,7 +62,7 @@ async function autenticarUsuario(email, senha) {
     const jwtSecret = process.env.JWT_SECRET || 'secret_key_fixa';
     console.log('🔐 LOGIN: Gerando token com JWT_SECRET length:', jwtSecret.length);
     const token = jwt.sign(
-        { id: usuarioIdStr, email: usuario.email }, 
+        { id: usuarioIdStr, email: usuario.email, cargo: usuario.cargo }, 
         jwtSecret, 
         { expiresIn: process.env.JWT_EXPIRES_IN || '30d' }
     );

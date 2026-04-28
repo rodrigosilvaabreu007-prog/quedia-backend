@@ -8,6 +8,8 @@ const { registrarUsuario, autenticarUsuario, buscarUsuarioPorId, atualizarUsuari
 
 // 1. IMPORTAÇÃO DOS MODELS (Caminho corrigido para a pasta models)
 const { cadastrarEvento, listarEventos, deletarEvento, buscarEventoPorId } = require('./models/eventos');
+const Usuario = require('./models/usuarios');
+const Mensagem = require('./models/mensagens');
 
 // 2. CONFIGURAÇÃO DO CLOUDINARY
 cloudinary.config({
@@ -38,6 +40,15 @@ router.use(async (req, res, next) => {
     }
     next();
 });
+
+(async () => {
+    try {
+        await connectDB();
+        await Usuario.inicializarAdmins();
+    } catch (err) {
+        console.error('❌ Falha ao inicializar admins:', err.message);
+    }
+})();
 
 // 4. ROTA POST: CRIAR EVENTO
 router.post('/eventos', upload.any(), async (req, res) => {
@@ -249,6 +260,30 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// 7.1. ROTA POST: ENVIAR MENSAGEM DE CONTATO
+router.post('/contato', verificarToken, async (req, res) => {
+    try {
+        const { nome, email, mensagem } = req.body;
+        if (!nome || !email || !mensagem) {
+            return res.status(400).json({ erro: 'Nome, email e mensagem são obrigatórios' });
+        }
+
+        const novaMensagem = new Mensagem({
+            nome,
+            email,
+            mensagem,
+            usuario_id: req.usuario?.id || '',
+            usuario_email: req.usuario?.email || ''
+        });
+
+        await novaMensagem.save();
+        return res.json({ mensagem: 'Mensagem enviada com sucesso!' });
+    } catch (err) {
+        console.error('Erro na rota POST /contato:', err.message);
+        return res.status(500).json({ erro: 'Erro ao enviar mensagem.', detalhe: err.message });
+    }
+});
+
 // 8. ROTA GET: BUSCAR USUÁRIO POR ID
 router.get('/usuario/:id', async (req, res) => {
     try {
@@ -285,6 +320,115 @@ router.get('/usuarios/:id', async (req, res) => {
     } catch (err) {
         console.error('Erro na rota GET /usuarios/:id:', err.message);
         return res.status(500).json({ erro: err.message || 'Erro ao buscar usuário' });
+    }
+});
+
+// 10. ROTA GET: LISTAR EVENTOS PENDENTES DE APROVAÇÃO (ADMIN)
+router.get('/admin/eventos', verificarAdmin, async (req, res) => {
+    try {
+        const eventosPendentes = await require('./models/eventos').EventoModel.find({ status: 'pendente' }).sort({ criadoEm: -1 });
+        return res.json(eventosPendentes);
+    } catch (err) {
+        console.error('Erro na rota GET /admin/eventos:', err.message);
+        return res.status(500).json({ erro: 'Erro ao buscar eventos pendentes.', detalhe: err.message });
+    }
+});
+
+// 10.1. ROTA POST: APROVAR EVENTO (ADMIN)
+router.post('/admin/eventos/:id/aprovar', verificarAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ erro: 'ID do evento é obrigatório' });
+        }
+
+        const eventoAprovado = await require('./models/eventos').EventoModel.findByIdAndUpdate(
+            id,
+            { status: 'aprovado', motivo_rejeicao: '' },
+            { new: true }
+        );
+
+        if (!eventoAprovado) {
+            return res.status(404).json({ erro: 'Evento não encontrado' });
+        }
+
+        return res.json({ mensagem: 'Evento aprovado com sucesso', evento: eventoAprovado });
+    } catch (err) {
+        console.error('Erro na rota POST /admin/eventos/:id/aprovar:', err.message);
+        return res.status(500).json({ erro: 'Erro ao aprovar evento.', detalhe: err.message });
+    }
+});
+
+// 10.2. ROTA POST: REJEITAR EVENTO (ADMIN)
+router.post('/admin/eventos/:id/rejeitar', verificarAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { motivo } = req.body;
+
+        if (!id) {
+            return res.status(400).json({ erro: 'ID do evento é obrigatório' });
+        }
+
+        if (!motivo || !motivo.trim()) {
+            return res.status(400).json({ erro: 'Motivo da rejeição é obrigatório' });
+        }
+
+        const eventoRejeitado = await require('./models/eventos').EventoModel.findByIdAndUpdate(
+            id,
+            { status: 'rejeitado', motivo_rejeicao: motivo.trim() },
+            { new: true }
+        );
+
+        if (!eventoRejeitado) {
+            return res.status(404).json({ erro: 'Evento não encontrado' });
+        }
+
+        return res.json({ mensagem: 'Evento rejeitado com sucesso', evento: eventoRejeitado });
+    } catch (err) {
+        console.error('Erro na rota POST /admin/eventos/:id/rejeitar:', err.message);
+        return res.status(500).json({ erro: 'Erro ao rejeitar evento.', detalhe: err.message });
+    }
+});
+
+// 11. ROTA GET: LISTAR MENSAGENS DE CONTATO (ADMIN)
+router.get('/admin/mensagens', verificarAdmin, async (req, res) => {
+    try {
+        const mensagens = await Mensagem.find({}).sort({ respondida: 1, criadoEm: -1 });
+        return res.json(mensagens);
+    } catch (err) {
+        console.error('Erro na rota GET /admin/mensagens:', err.message);
+        return res.status(500).json({ erro: 'Erro ao buscar mensagens.', detalhe: err.message });
+    }
+});
+
+// 11.1. ROTA POST: RESPONDER MENSAGEM (ADMIN)
+router.post('/admin/mensagens/:id/responder', verificarAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { resposta } = req.body;
+
+        if (!id) {
+            return res.status(400).json({ erro: 'ID da mensagem é obrigatório' });
+        }
+
+        if (!resposta || !resposta.trim()) {
+            return res.status(400).json({ erro: 'Resposta é obrigatória' });
+        }
+
+        const mensagemAtualizada = await Mensagem.findByIdAndUpdate(
+            id,
+            { resposta: resposta.trim(), respondida: true, respondidoEm: new Date() },
+            { new: true }
+        );
+
+        if (!mensagemAtualizada) {
+            return res.status(404).json({ erro: 'Mensagem não encontrada' });
+        }
+
+        return res.json({ mensagem: 'Resposta enviada com sucesso', mensagem: mensagemAtualizada });
+    } catch (err) {
+        console.error('Erro na rota POST /admin/mensagens/:id/responder:', err.message);
+        return res.status(500).json({ erro: 'Erro ao responder mensagem.', detalhe: err.message });
     }
 });
 
@@ -453,6 +597,26 @@ function verificarToken(req, res, next) {
         console.error(`❌ verificarToken erro:`, err.message, 'jurSecret length:', (process.env.JWT_SECRET || '').length);
         return res.status(403).json({ erro: 'Token inválido', details: err.message });
     }
+}
+
+async function verificarAdmin(req, res, next) {
+    if (req.usuario?.cargo === 'adm') {
+        return next();
+    }
+
+    try {
+        if (req.usuario?.id) {
+            const usuario = await Usuario.findById(req.usuario.id).lean();
+            if (usuario && usuario.cargo === 'adm') {
+                req.usuario.cargo = 'adm';
+                return next();
+            }
+        }
+    } catch (err) {
+        console.error('Erro ao verificar admin:', err.message);
+    }
+
+    return res.status(403).json({ erro: 'Acesso negado. Você não é administrador.' });
 }
 
 module.exports = router;

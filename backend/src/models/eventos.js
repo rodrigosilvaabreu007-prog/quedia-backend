@@ -27,6 +27,8 @@ const EventoSchema = new mongoose.Schema({
     imagens: { type: [String], default: [] },
     organizador: { type: String, default: 'Não informado' },
     organizador_id: { type: String, default: "sistema" }, 
+    status: { type: String, enum: ['pendente', 'aprovado', 'rejeitado'], default: 'pendente' },
+    motivo_rejeicao: { type: String, default: '' },
     criadoEm: { type: Date, default: Date.now }
 }, { 
     // ESSA LINHA É A MAIS IMPORTANTE:
@@ -169,7 +171,9 @@ async function cadastrarEvento(dados) {
             datas: datasNormalizadas,
             data: datasNormalizadas[0]?.data || dados.data || '',
             horario: datasNormalizadas[0]?.horario_inicio || dados.horario || '',
-            horario_fim: datasNormalizadas[0]?.horario_fim || dados.horario_fim || ''
+            horario_fim: datasNormalizadas[0]?.horario_fim || dados.horario_fim || '',
+            status: dados.status || 'pendente',
+            motivo_rejeicao: dados.motivo_rejeicao || ''
         };
         console.log('[DEBUG] dadosTratados:', { latitude: dadosTratados.latitude, longitude: dadosTratados.longitude });
 
@@ -191,13 +195,18 @@ async function cadastrarEvento(dados) {
     }
 }
 
+function eventoFoiAprovado(evento) {
+    if (!evento || typeof evento.status !== 'string') return true;
+    return evento.status === 'aprovado';
+}
+
 async function listarEventos(filtros = {}) {
     try {
         let query = {};
         if (filtros.cidade) query.cidade = new RegExp(filtros.cidade, 'i');
         if (filtros.categoria) query.categoria = filtros.categoria;
         const eventos = await Evento.find(query).sort({ criadoEm: -1 });
-        return eventos.filter(eventoEstaAtivo);
+        return eventos.filter(eventoEstaAtivo).filter(eventoFoiAprovado);
     } catch (err) {
         throw new Error("Erro ao buscar eventos: " + err.message);
     }
