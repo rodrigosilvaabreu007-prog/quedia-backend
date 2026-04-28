@@ -26,8 +26,7 @@ const EventoSchema = new mongoose.Schema({
     preco: { type: Number, default: 0 },
     imagens: { type: [String], default: [] },
     organizador: { type: String, default: 'Não informado' },
-    organizador_id: { type: String, default: "sistema" },
-    status: { type: String, default: "pendente", enum: ["pendente", "aprovado", "rejeitado"] }, // Novo campo para aprovação
+    organizador_id: { type: String, default: "sistema" }, 
     criadoEm: { type: Date, default: Date.now }
 }, { 
     // ESSA LINHA É A MAIS IMPORTANTE:
@@ -73,22 +72,6 @@ function parseBrazilDateTime(data, hora = '00:00') {
     return new Date(Date.UTC(year, month - 1, day, hours + 3, minutes, 0));
 }
 
-function calcularExpiracaoEvento(item) {
-    const inicio = parseBrazilDateTime(item.data, item.horario_inicio || '00:00');
-    if (!inicio || Number.isNaN(inicio.getTime())) {
-        return null;
-    }
-
-    if (item.horario_fim) {
-        const fim = parseBrazilDateTime(item.data, item.horario_fim);
-        if (fim && !Number.isNaN(fim.getTime())) {
-            return new Date(fim.getTime() + 12 * 60 * 60 * 1000);
-        }
-    }
-
-    return new Date(inicio.getTime() + 24 * 60 * 60 * 1000);
-}
-
 function eventoEstaAtivo(evento) {
     const datas = normalizarDatasEntrada(evento.datas || []);
     if (datas.length === 0 && evento.data) {
@@ -100,10 +83,34 @@ function eventoEstaAtivo(evento) {
     }
 
     const agora = new Date();
-    return datas.some(item => {
-        const expiracao = calcularExpiracaoEvento(item);
-        return expiracao && expiracao > agora;
+    console.log(`[DEBUG eventoEstaAtivo] Verificando evento ${evento._id} - título: ${evento.titulo || evento.nome}`);
+    console.log(`[DEBUG eventoEstaAtivo] Agora: ${agora.toISOString()}`);
+    console.log(`[DEBUG eventoEstaAtivo] Datas do evento:`, datas);
+    
+    const ativo = datas.some(item => {
+        const inicio = parseBrazilDateTime(item.data, item.horario_inicio || '00:00');
+        const fim = item.horario_fim ? parseBrazilDateTime(item.data, item.horario_fim) : null;
+        console.log(`[DEBUG eventoEstaAtivo] Item: data=${item.data}, inicio=${item.horario_inicio}, fim=${item.horario_fim}`);
+        console.log(`[DEBUG eventoEstaAtivo] Parsed: inicio=${inicio?.toISOString()}, fim=${fim?.toISOString()}`);
+        
+        if (!inicio) {
+            console.log(`[DEBUG eventoEstaAtivo] Sem horário de início válido`);
+            return false;
+        }
+
+        if (fim && !Number.isNaN(fim.getTime())) {
+            const result = fim > agora;
+            console.log(`[DEBUG eventoEstaAtivo] Comparação fim > agora: ${fim.toISOString()} > ${agora.toISOString()} = ${result}`);
+            return result;
+        } else {
+            // Se não há horário de fim, o evento aparece sempre (disponível indefinidamente)
+            console.log(`[DEBUG eventoEstaAtivo] Sem horário de fim, evento sempre ativo`);
+            return true;
+        }
     });
+    
+    console.log(`[DEBUG eventoEstaAtivo] Evento ${ativo ? 'ATIVO' : 'INATIVO'}`);
+    return ativo;
 }
 
 async function removerEventosExpirados() {
@@ -214,98 +221,4 @@ async function buscarEventoPorId(id) {
     }
 }
 
-async function listarEventosComInteresses(filtros = {}, isAdmin = false) {
-    try {
-        await removerEventosExpirados();
-        let query = {};
-        if (filtros.cidade) query.cidade = new RegExp(filtros.cidade, 'i');
-        if (filtros.categoria) query.categoria = filtros.categoria;
-        
-        // Se não for admin, só mostra eventos aprovados
-        if (!isAdmin) {
-            query.status = "aprovado";
-        }
-        
-        const eventos = await Evento.find(query).sort({ criadoEm: -1 });
-        
-        // Popula interesses em todos os eventos
-        const { listarInteressesEvento } = require('./interesses');
-        for (let evento of eventos) {
-            try {
-                const interessesIds = await listarInteressesEvento(evento._id.toString());
-                evento.interesses = interessesIds;
-            } catch (err) {
-                console.warn("Aviso: não conseguiu carregar interesses para", evento._id);
-                evento.interesses = [];
-            }
-        }
-
-        return eventos;
-    } catch (err) {
-        console.error("Erro ao listar eventos com interesses:", err);
-        throw err;
-    }
-}
-
-async function atualizarEvento(id, dados) {
-    try {
-        const latitude = Number(dados.latitude);
-        const longitude = Number(dados.longitude);
-        const datasNormalizadas = normalizarDatasEntrada(dados.datas || []);
-        if (datasNormalizadas.length === 0 && dados.data) {
-            datasNormalizadas.push({
-                data: dados.data,
-                horario_inicio: dados.horario || '',
-                horario_fim: dados.horario_fim || ''
-            });
-        }
-
-        console.log('[DEBUG atualizarEvento] dados processados:', { latitude, longitude, datasNormalizadas, horario_fim: dados.horario_fim });
-
-        console.log('[DEBUG atualizarEvento] Validações:', {
-            latitude: latitude,
-            longitude: longitude,
-            isFiniteLatitude: Number.isFinite(latitude),
-            isFiniteLongitude: Number.isFinite(longitude),
-            datasCount: datasNormalizadas.length
-        });
-
-        const dadosTratados = {
-            ...dados,
-            organizador: dados.organizador || 'Não informado',
-            preco: Number(String(dados.preco).replace(',', '.')) || 0,
-            gratuito: String(dados.gratuito) === 'true',
-            latitude: Number.isFinite(latitude) ? latitude : null,
-            longitude: Number.isFinite(longitude) ? longitude : null,
-            datas: datasNormalizadas,
-            data: datasNormalizadas[0]?.data || dados.data || '',
-            horario: datasNormalizadas[0]?.horario_inicio || dados.horario || '',
-            horario_fim: datasNormalizadas[0]?.horario_fim || dados.horario_fim || ''
-        };
-
-        console.log('[DEBUG atualizarEvento] dadosTratados:', { latitude: dadosTratados.latitude, longitude: dadosTratados.longitude });
-
-        // 2. Atualiza o evento com timeout
-        const resultado = await Promise.race([
-            Evento.findByIdAndUpdate(id, dadosTratados, { new: true, runValidators: true }),
-            new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout ao atualizar evento')), 10000)
-            )
-        ]);
-
-        if (!resultado) {
-            console.log('[DEBUG atualizarEvento] Evento não encontrado para atualização, ID:', id);
-            throw new Error('Evento não encontrado');
-        }
-
-        console.log('[DEBUG atualizarEvento] Evento atualizado com sucesso:', { id: resultado._id, latitude: resultado.latitude, longitude: resultado.longitude });
-        
-        return resultado;
-    } catch (err) {
-        console.error("❌ Erro ao atualizar evento no MongoDB:", err.message);
-        console.error("❌ Stack trace:", err.stack);
-        throw err;
-    }
-}
-
-module.exports = { cadastrarEvento, listarEventos, deletarEvento, buscarEventoPorId, atualizarEvento, eventoEstaAtivo, EventoModel: Evento };
+module.exports = { cadastrarEvento, listarEventos, deletarEvento, buscarEventoPorId, eventoEstaAtivo, EventoModel: Evento };

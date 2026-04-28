@@ -3,15 +3,11 @@ const router = express.Router();
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const jwt = require('jsonwebtoken');
 const { connectDB } = require('./db'); 
 const { registrarUsuario, autenticarUsuario, buscarUsuarioPorId, atualizarUsuario, deletarUsuario } = require('./autenticacao');
 
 // 1. IMPORTAÇÃO DOS MODELS (Caminho corrigido para a pasta models)
-const { cadastrarEvento, listarEventos, listarEventosComInteresses, deletarEvento, buscarEventoPorId, EventoModel } = require('./models/eventos');
-const { adicionarInteresse, removerInteresse, usuarioTemInteresse, contarInteresses, listarInteressesUsuario, removerInteressesPorUsuario, listarInteressesEvento } = require('./models/interesses');
-const Usuario = require('./models/usuarios');
-const Mensagem = require('./models/mensagens');
+const { cadastrarEvento, listarEventos, deletarEvento, buscarEventoPorId } = require('./models/eventos');
 
 // 2. CONFIGURAÇÃO DO CLOUDINARY
 cloudinary.config({
@@ -29,28 +25,6 @@ const storage = new CloudinaryStorage({
 });
 
 const upload = multer({ storage: storage });
-const nodemailer = require('nodemailer');
-
-// Middleware para verificar se é admin
-async function verificarAdmin(req, res, next) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ erro: 'Token não fornecido' });
-    }
-
-    const token = authHeader.substring(7);
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_fixa');
-        const usuario = await Usuario.findById(decoded.id);
-        if (!usuario || usuario.cargo !== 'adm') {
-            return res.status(403).json({ erro: 'Acesso negado. Apenas administradores.' });
-        }
-        req.usuario = usuario;
-        next();
-    } catch (err) {
-        return res.status(401).json({ erro: 'Token inválido' });
-    }
-}
 
 // 3. MIDDLEWARE DE CONEXÃO (Tenta conectar, mas permite próximas rotas)
 router.use(async (req, res, next) => {
@@ -58,69 +32,12 @@ router.use(async (req, res, next) => {
         console.log('[DEBUG middleware] Tentando conectar ao banco...');
         await connectDB();
         console.log('[DEBUG middleware] Conexão estabelecida');
-        
-        // Inicializar administradores após conexão
-        try {
-            console.log('🚀 Iniciando inicialização de admins no middleware...');
-            const Usuario = require('./models/usuarios');
-            await Usuario.inicializarAdmins();
-            console.log('✅ Inicialização de admins concluída no middleware.');
-        } catch (err) {
-            console.error('❌ Erro ao inicializar admins no middleware:', err);
-        }
     } catch (err) {
         console.error("⚠️ Conexão com banco não disponível no middleware:", err.message);
         // Continua mesmo se banco não conectar - algumas rotas podem funcionar sem banco
     }
     next();
 });
-
-const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'quedia.com.br@gmail.com';
-const SMTP_USER = process.env.SMTP_USER || process.env.SMTP_EMAIL || process.env.EMAIL_USER || 'quedia.com.br@gmail.com';
-const SMTP_PASS = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASSWORD || '';
-const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
-const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
-const SMTP_SECURE = process.env.SMTP_SECURE === 'true';
-
-// Lazy-load mail transporter only when needed
-let mailTransporter = null;
-function getMailTransporter() {
-  if (!mailTransporter) {
-    mailTransporter = nodemailer.createTransport({
-        host: SMTP_HOST,
-        port: SMTP_PORT,
-        secure: SMTP_SECURE,
-        auth: {
-            user: SMTP_USER,
-            pass: SMTP_PASS
-        }
-    });
-  }
-  return mailTransporter;
-}
-
-async function enviarEmailContato({ nome, email, mensagem }) {
-    if (!SMTP_PASS) {
-        throw new Error('SMTP credentials não configuradas. Defina SMTP_PASS ou SMTP_PASSWORD.');
-    }
-
-    const mailOptions = {
-        from: `Quedia Contato <${SMTP_USER}>`,
-        to: CONTACT_EMAIL,
-        replyTo: `${nome} <${email}>`,
-        subject: `Contato do site: ${nome}`,
-        text: `Nova mensagem de contato\n\nNome: ${nome}\nEmail: ${email}\nMensagem:\n${mensagem}`
-    };
-
-    try {
-        return await getMailTransporter().sendMail(mailOptions);
-    } catch (err) {
-        if (err.responseCode === 534 || /Application-specific password required/i.test(err.message)) {
-            throw new Error('Erro de autenticação SMTP: o Gmail exige App Password para envio por SMTP. Gere um App Password em https://myaccount.google.com/apppasswords e configure-o em EMAIL_PASSWORD ou GMAIL_APP_PASSWORD.');
-        }
-        throw err;
-    }
-}
 
 // 4. ROTA POST: CRIAR EVENTO
 router.post('/eventos', upload.any(), async (req, res) => {
@@ -186,8 +103,7 @@ router.post('/eventos', upload.any(), async (req, res) => {
             preco: precoLimpo,
             gratuito: String(req.body.gratuito) === 'true' || precoLimpo === 0,
             organizador: req.body.organizador || 'Não informado',
-            organizador_id: req.body.organizador_id || "sistema",
-            status: "pendente" // Todos os eventos começam como pendentes
+            organizador_id: req.body.organizador_id || "sistema"
         };
 
         // Salva no Banco de Dados via Model
@@ -211,22 +127,7 @@ router.post('/eventos', upload.any(), async (req, res) => {
 router.get('/eventos', async (req, res) => {
     console.log('[DEBUG] Rota /eventos chamada');
     try {
-        // Verificar se é admin através do token
-        let isAdmin = false;
-        const authHeader = req.headers.authorization;
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            const token = authHeader.substring(7);
-            try {
-                const decoded = require('jsonwebtoken').verify(token, process.env.JWT_SECRET || 'seu_segredo_jwt');
-                const Usuario = require('./models/usuarios');
-                const usuario = await Usuario.findById(decoded.id);
-                isAdmin = usuario && usuario.cargo === 'adm';
-            } catch (err) {
-                // Token inválido, continua como usuário normal
-            }
-        }
-
-        const eventos = await listarEventosComInteresses(req.query, isAdmin);
+        const eventos = await listarEventos(req.query);
         res.json(eventos || []);
     } catch (err) {
         console.error("Erro na rota GET /eventos:", err.message);
@@ -271,108 +172,6 @@ router.get('/eventos/:id', async (req, res) => {
     } catch (err) {
         console.error('Erro na rota GET /eventos/:id:', err.message);
         res.status(500).json({ erro: 'Erro ao buscar evento.' });
-    }
-});
-
-// 5.2. ROTA PUT: ATUALIZAR EVENTO
-router.put('/eventos/:id', upload.any(), async (req, res) => {
-    try {
-        const { id } = req.params;
-        if (!id) {
-            return res.status(400).json({ erro: 'ID do evento é obrigatório' });
-        }
-
-        // Verificar se o evento existe
-        const eventoExistente = await buscarEventoPorId(id);
-        if (!eventoExistente) {
-            return res.status(404).json({ erro: 'Evento não encontrado' });
-        }
-
-        // Tratamento das Imagens vindas do Cloudinary (se enviadas)
-        const linksImagens = (req.files && req.files.length > 0) 
-            ? req.files.map(f => f.path) 
-            : eventoExistente.imagens || []; // Manter imagens existentes se não enviadas novas
-        
-        // Limpeza de Preço (Trata R$, espaços e vírgulas)
-        let precoLimpo = eventoExistente.preco || 0; // Manter preço existente se não enviado
-        if (req.body.preco !== undefined) {
-            const strPreco = String(req.body.preco).replace(/R\$|\s/g, '').replace(',', '.');
-            precoLimpo = parseFloat(strPreco) || 0;
-        }
-
-        // Montagem do objeto conforme o Schema do MongoDB
-        const latitude = req.body.latitude !== undefined ? Number(req.body.latitude) : eventoExistente.latitude;
-        const longitude = req.body.longitude !== undefined ? Number(req.body.longitude) : eventoExistente.longitude;
-        
-        console.log('[DEBUG PUT /eventos/:id] Backend recebeu:', {
-            id,
-            latitude: req.body.latitude,
-            longitude: req.body.longitude,
-            latitudeNumber: latitude,
-            longitudeNumber: longitude,
-            isFiniteLatitude: Number.isFinite(latitude),
-            isFiniteLongitude: Number.isFinite(longitude)
-        });
-
-        let datasRecebidas = eventoExistente.datas || []; // Manter datas existentes se não enviadas
-        if (req.body.datas !== undefined) {
-            if (Array.isArray(req.body.datas)) {
-                datasRecebidas = req.body.datas;
-            } else if (typeof req.body.datas === 'string') {
-                try {
-                    const parsed = JSON.parse(req.body.datas);
-                    if (Array.isArray(parsed)) datasRecebidas = parsed;
-                } catch (err) {
-                    datasRecebidas = eventoExistente.datas || [];
-                }
-            }
-        }
-
-        const primeiraData = Array.isArray(datasRecebidas) && datasRecebidas.length > 0
-            ? datasRecebidas[0]
-            : { 
-                data: req.body.data || eventoExistente.data || '', 
-                horario_inicio: req.body.horario || eventoExistente.horario || '', 
-                horario_fim: req.body.horario_fim || eventoExistente.horario_fim || '' 
-            };
-
-        const dadosEvento = {
-            nome: req.body.nome || eventoExistente.nome,
-            descricao: req.body.descricao !== undefined ? req.body.descricao : eventoExistente.descricao,
-            cidade: req.body.cidade || eventoExistente.cidade,
-            estado: req.body.estado || eventoExistente.estado,
-            local: req.body.local || req.body.endereco || eventoExistente.local,
-            latitude: Number.isFinite(latitude) ? latitude : eventoExistente.latitude,
-            longitude: Number.isFinite(longitude) ? longitude : eventoExistente.longitude,
-            data: primeiraData.data || eventoExistente.data,
-            horario: primeiraData.horario_inicio || eventoExistente.horario,
-            horario_fim: primeiraData.horario_fim || eventoExistente.horario_fim,
-            datas: datasRecebidas,
-            categoria: req.body.categoria || eventoExistente.categoria,
-            subcategorias: req.body.subcategorias !== undefined 
-                ? (Array.isArray(req.body.subcategorias) ? req.body.subcategorias : [req.body.subcategorias].filter(Boolean))
-                : eventoExistente.subcategorias,
-            imagens: linksImagens,
-            preco: precoLimpo,
-            gratuito: req.body.gratuito !== undefined ? String(req.body.gratuito) === 'true' : eventoExistente.gratuito,
-            organizador: req.body.organizador || eventoExistente.organizador,
-            organizador_id: req.body.organizador_id || eventoExistente.organizador_id
-        };
-
-        // Atualiza no Banco de Dados via Model
-        const eventoAtualizado = await atualizarEvento(id, dadosEvento);
-        
-        return res.status(200).json({ 
-            mensagem: '✅ Evento atualizado com sucesso!', 
-            evento: eventoAtualizado 
-        });
-
-    } catch (err) {
-        console.error("Erro na rota PUT /eventos/:id:", err.message);
-        res.status(500).json({ 
-            erro: "Falha ao atualizar evento", 
-            detalhe: err.message 
-        });
     }
 });
 
@@ -450,36 +249,7 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// 8. ROTA POST: CONTATO (apenas usuários logados podem enviar)
-router.post('/contato', verificarToken, async (req, res) => {
-    try {
-        const { nome, email, mensagem } = req.body;
-        if (!nome || !email || !mensagem) {
-            return res.status(400).json({ erro: 'Nome, email e mensagem são obrigatórios' });
-        }
-
-        await enviarEmailContato({ nome, email, mensagem });
-        return res.json({ mensagem: 'Mensagem enviada com sucesso! Entraremos em contato em breve.' });
-    } catch (err) {
-        console.error('Erro na rota POST /contato:', err);
-        return res.status(500).json({ erro: 'Erro ao enviar mensagem. Verifique a configuração de e-mail.', detalhe: err.message });
-    }
-});
-
-router.get('/debug/email-status', (req, res) => {
-    return res.json({
-        contactEmail: CONTACT_EMAIL,
-        smtpUserSet: !!SMTP_USER,
-        smtpPassSet: !!SMTP_PASS,
-        smtpHost: SMTP_HOST,
-        smtpPort: SMTP_PORT,
-        smtpSecure: SMTP_SECURE,
-        smtpUserMasked: SMTP_USER ? `${SMTP_USER.slice(0, 3)}***${SMTP_USER.slice(-3)}` : null,
-        smtpConfigured: !!SMTP_PASS
-    });
-});
-
-// 9. ROTA GET: BUSCAR USUÁRIO POR ID
+// 8. ROTA GET: BUSCAR USUÁRIO POR ID
 router.get('/usuario/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -685,226 +455,4 @@ function verificarToken(req, res, next) {
     }
 }
 
-// Middleware para verificar se é admin
-async function verificarAdmin(req, res, next) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ erro: 'Token não fornecido' });
-    }
-
-    const token = authHeader.substring(7);
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_fixa');
-        const usuario = await Usuario.findById(decoded.id);
-        if (!usuario || usuario.cargo !== 'adm') {
-            return res.status(403).json({ erro: 'Acesso negado. Apenas administradores.' });
-        }
-        req.usuario = usuario;
-        next();
-    } catch (err) {
-        return res.status(401).json({ erro: 'Token inválido' });
-    }
-}
-
-// 11. ROTA POST: TOGGLE INTERESSE (adicionar/remover)
-router.post('/interesses', verificarToken, async (req, res) => {
-    try {
-        const { evento_id } = req.body;
-        
-        // Extrair usuario_id do token com validação rigorosa
-        let usuario_id = req.usuario?.id;
-        if (!usuario_id) {
-            console.warn('⚠️ POST /interesses: usuario_id inválido no token:', req.usuario);
-            return res.status(401).json({ erro: 'Usuario_id inválido no token' });
-        }
-        usuario_id = String(usuario_id).trim();
-        
-        if (!usuario_id) {
-            console.warn('⚠️ POST /interesses: usuario_id vazio após conversão');
-            return res.status(401).json({ erro: 'Usuario_id vazio' });
-        }
-
-        if (!evento_id) {
-            return res.status(400).json({ erro: 'ID do evento é obrigatório' });
-        }
-
-        // Verificar se já tem interesse
-        const jaTemInteresse = await usuarioTemInteresse(usuario_id, evento_id);
-
-        let resultado;
-        if (jaTemInteresse) {
-            // Remover interesse
-            resultado = await removerInteresse(usuario_id, evento_id);
-        } else {
-            // Adicionar interesse
-            resultado = await adicionarInteresse(usuario_id, evento_id);
-        }
-
-        // Retornar dados atualizados
-        const contador = await contarInteresses(evento_id);
-        const interessesIds = await listarInteressesEvento(evento_id);
-        const temInteresse = !jaTemInteresse;
-        
-        return res.json({ 
-            mensagem: jaTemInteresse ? 'Interesse removido' : 'Interesse adicionado', 
-            acao: jaTemInteresse ? 'removido' : 'adicionado',
-            temInteresse,
-            contador: contador,
-            interesses: interessesIds
-        });
-    } catch (err) {
-        console.error('Erro na rota POST /interesses:', err.message);
-        return res.status(500).json({ erro: err.message || 'Erro ao processar interesse' });
-    }
-});
-
-// 12.1 ROTA GET: CONTADOR PÚBLICO DE INTERESSES (SEM AUTENTICAÇÃO)
-router.get('/interesses/contador/:evento_id', async (req, res) => {
-    try {
-        const { evento_id } = req.params;
-        if (!evento_id) {
-            return res.status(400).json({ erro: 'ID do evento é obrigatório' });
-        }
-
-        const contador = await contarInteresses(evento_id);
-        return res.json({ contador });
-    } catch (err) {
-        console.error('Erro na rota GET /interesses/contador/:evento_id:', err.message);
-        return res.status(500).json({ erro: err.message || 'Erro ao contar interesses' });
-    }
-});
-
-// 12. ROTA GET: VERIFICAR SE USUÁRIO TEM INTERESSE
-router.get('/interesses/:evento_id', verificarToken, async (req, res) => {
-    try {
-        const { evento_id } = req.params;
-        
-        // Extrair usuario_id do token com validação
-        let usuario_id = req.usuario?.id;
-        if (!usuario_id) {
-            return res.status(401).json({ erro: 'Usuario_id inválido no token' });
-        }
-        usuario_id = String(usuario_id).trim();
-
-        const temInteresse = await usuarioTemInteresse(usuario_id, evento_id);
-        const contador = await contarInteresses(evento_id);
-
-        return res.json({ 
-            temInteresse, 
-            contador,
-            evento_id,
-            usuario_id 
-        });
-    } catch (err) {
-        console.error('Erro na rota GET /interesses/:evento_id:', err.message);
-        return res.status(500).json({ erro: err.message || 'Erro ao verificar interesse' });
-    }
-});
-
-// 13. ROTA GET: LISTAR INTERESSES DO USUÁRIO
-router.get('/interesses/usuario/:usuario_id', verificarToken, async (req, res) => {
-    try {
-        const { usuario_id } = req.params;
-        
-        // Extrair usuario_id do token com validação
-        let tokenUserId = req.usuario?.id;
-        if (!tokenUserId) {
-            return res.status(401).json({ erro: 'Usuario_id inválido no token' });
-        }
-        tokenUserId = String(tokenUserId).trim();
-
-        // Verificar se o usuário está pedindo seus próprios interesses
-        if (String(usuario_id).trim() !== tokenUserId) {
-            return res.status(403).json({ erro: 'Acesso negado' });
-        }
-
-        const interesses = await listarInteressesUsuario(usuario_id);
-        return res.json({ interesses });
-    } catch (err) {
-        console.error('Erro na rota GET /interesses/usuario/:usuario_id:', err.message);
-        return res.status(500).json({ erro: err.message || 'Erro ao listar interesses' });
-    }
-});
-
-// --- ROTAS DE ADMIN ---
-
-// GET /admin/eventos - Listar eventos pendentes para aprovação
-router.get('/admin/eventos', verificarAdmin, async (req, res) => {
-    try {
-        const eventos = await EventoModel.find({ status: 'pendente' }).sort({ criadoEm: -1 });
-        res.json(eventos);
-    } catch (err) {
-        console.error('Erro ao listar eventos pendentes:', err);
-        res.status(500).json({ erro: 'Erro interno do servidor' });
-    }
-});
-
-// POST /admin/eventos/:id/aprovar - Aprovar evento
-router.post('/admin/eventos/:id/aprovar', verificarAdmin, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const evento = await EventoModel.findByIdAndUpdate(id, { status: 'aprovado' }, { new: true });
-        if (!evento) {
-            return res.status(404).json({ erro: 'Evento não encontrado' });
-        }
-        res.json({ mensagem: 'Evento aprovado com sucesso', evento });
-    } catch (err) {
-        console.error('Erro ao aprovar evento:', err);
-        res.status(500).json({ erro: 'Erro interno do servidor' });
-    }
-});
-
-// POST /admin/eventos/:id/rejeitar - Rejeitar evento
-router.post('/admin/eventos/:id/rejeitar', verificarAdmin, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { motivo } = req.body;
-        
-        const evento = await EventoModel.findByIdAndUpdate(id, { 
-            status: 'rejeitado',
-            motivo_rejeicao: motivo 
-        }, { new: true });
-        
-        if (!evento) {
-            return res.status(404).json({ erro: 'Evento não encontrado' });
-        }
-        res.json({ mensagem: 'Evento rejeitado', evento });
-    } catch (err) {
-        console.error('Erro ao rejeitar evento:', err);
-        res.status(500).json({ erro: 'Erro interno do servidor' });
-    }
-});
-
-// GET /admin/mensagens - Listar mensagens de contato
-router.get('/admin/mensagens', verificarAdmin, async (req, res) => {
-    try {
-        const mensagens = await Mensagem.find().sort({ criadoEm: -1 });
-        res.json(mensagens);
-    } catch (err) {
-        console.error('Erro ao listar mensagens:', err);
-        res.status(500).json({ erro: 'Erro interno do servidor' });
-    }
-});
-
-// POST /admin/mensagens/:id/responder - Responder mensagem
-router.post('/admin/mensagens/:id/responder', verificarAdmin, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { resposta } = req.body;
-        
-        const mensagem = await Mensagem.findByIdAndUpdate(id, { 
-            resposta,
-            respondida: true,
-            respondidoEm: new Date()
-        }, { new: true });
-        
-        if (!mensagem) {
-            return res.status(404).json({ erro: 'Mensagem não encontrada' });
-        }
-        res.json({ mensagem: 'Resposta enviada', mensagem });
-    } catch (err) {
-        console.error('Erro ao responder mensagem:', err);
-        res.status(500).json({ erro: 'Erro interno do servidor' });
-    }
-});
 module.exports = router;

@@ -45,29 +45,22 @@ function parseLocalDateTime(dataStr, horaStr) {
     return new Date(ano, mes - 1, dia, hora, minuto, 0);
 }
 
-function calcularExpiracaoEventoFrontend(item) {
-    const inicio = parseLocalDateTime(item.data, item.horario_inicio || '00:00');
-    if (!inicio || Number.isNaN(inicio.getTime())) return null;
-
-    if (item.horario_fim) {
-        const fim = parseLocalDateTime(item.data, item.horario_fim);
-        if (fim && !Number.isNaN(fim.getTime())) {
-            return new Date(fim.getTime() + 12 * 60 * 60 * 1000);
-        }
-    }
-
-    return new Date(inicio.getTime() + 24 * 60 * 60 * 1000);
-}
-
 function eventoEstaAtivoFrontend(evento) {
     const datas = extrairDatasEvento(evento);
     if (datas.length === 0) return true;
 
     const agora = new Date();
     return datas.some(item => {
-        if (!item.data) return false;
-        const expiracao = calcularExpiracaoEventoFrontend(item);
-        return expiracao && expiracao > agora;
+        if (!item.data) return true;
+        
+        const inicio = parseLocalDateTime(item.data, item.horario_inicio || '00:00');
+        if (!inicio || Number.isNaN(inicio.getTime())) return true;
+        
+        const fim = item.horario_fim ? parseLocalDateTime(item.data, item.horario_fim) : null;
+        if (fim && Number.isFinite(fim.getTime()) && fim <= agora) {
+            return false;
+        }
+        return true;
     });
 }
 
