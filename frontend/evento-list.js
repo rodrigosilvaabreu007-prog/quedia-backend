@@ -130,11 +130,123 @@ function criarCardEvento(evento, mostrarFavorito = true) {
                 <span>📍 ${evento.cidade || 'Local não informado'}</span>
             </div>
             <p class="event-price">${precoTexto}</p>
+            <div class="event-actions">
+                <button type="button" class="interest-btn">☆ Interessado</button>
+                <span class="interest-count">0 interessados</span>
+            </div>
         </div>
     `;
 
+    const interestButton = div.querySelector('.interest-btn');
+    const interestCount = div.querySelector('.interest-count');
+
+    if (interestButton) {
+        interestButton.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!isUsuarioLogado()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            await alternarInteresseEvento(eventoId, div);
+        });
+    }
+
     div.onclick = () => window.abrirPrevia(evento, imagemFinal);
+    carregarStatusInteresseCard(div, eventoId);
     return div;
+}
+
+function isUsuarioLogado() {
+    return !!localStorage.getItem('eventhub-token') && !!localStorage.getItem('eventhub-usuario');
+}
+
+function getAuthHeaders() {
+    const token = localStorage.getItem('eventhub-token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+function pluralizarInteressados(contador) {
+    if (!Number.isFinite(contador) || contador === 0) return '0 interessados';
+    return `${contador} interessado${contador === 1 ? '' : 's'}`;
+}
+
+function atualizarBotaoInteresse(button, contadorEl, temInteresse, contador) {
+    if (!button || !contadorEl) return;
+    button.textContent = temInteresse ? '★ Desmarcar' : '☆ Interessado';
+    button.classList.toggle('interessado', temInteresse);
+    contadorEl.textContent = pluralizarInteressados(contador || 0);
+    if (!isUsuarioLogado()) {
+        button.textContent = '☆ Login para marcar';
+        button.title = 'Faça login para marcar interesse';
+        button.disabled = true;
+    } else {
+        button.title = temInteresse ? 'Clique para remover interesse' : 'Clique para marcar interesse';
+        button.disabled = false;
+    }
+}
+
+async function carregarStatusInteresseCard(card, eventoId) {
+    if (!card) return;
+    const button = card.querySelector('.interest-btn');
+    const contadorEl = card.querySelector('.interest-count');
+    if (!button || !contadorEl) return;
+
+    if (!eventoId) {
+        atualizarBotaoInteresse(button, contadorEl, false, 0);
+        return;
+    }
+
+    try {
+        const response = await fetch(`${window.API_URL}/interesses/${encodeURIComponent(eventoId)}`, {
+            headers: getAuthHeaders()
+        });
+        const data = await response.json();
+        if (response.ok) {
+            atualizarBotaoInteresse(button, contadorEl, data.temInteresse, data.contador);
+        } else {
+            atualizarBotaoInteresse(button, contadorEl, false, 0);
+        }
+    } catch (err) {
+        atualizarBotaoInteresse(button, contadorEl, false, 0);
+    }
+}
+
+async function alternarInteresseEvento(eventoId, card) {
+    if (!card) return;
+    const button = card.querySelector('.interest-btn');
+    const contadorEl = card.querySelector('.interest-count');
+    if (!button || !contadorEl) return;
+
+    button.disabled = true;
+    try {
+        const response = await fetch(`${window.API_URL}/interesses`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeaders()
+            },
+            body: JSON.stringify({ evento_id: eventoId })
+        });
+        const data = await response.json();
+
+        if (response.ok && data) {
+            const temInteresse = data.acao === 'adicionado';
+            atualizarBotaoInteresse(button, contadorEl, temInteresse, data.contador);
+            if (typeof window.showNotification === 'function') {
+                window.showNotification(data.mensagem || 'Interesse atualizado', 'success');
+            }
+        } else {
+            if (typeof window.showNotification === 'function') {
+                window.showNotification(data.erro || 'Falha ao atualizar interesse', 'error');
+            }
+        }
+    } catch (err) {
+        if (typeof window.showNotification === 'function') {
+            window.showNotification('Erro ao comunicar com o servidor', 'error');
+        }
+    } finally {
+        if (isUsuarioLogado()) button.disabled = false;
+    }
 }
 
 // --- FUNÇÕES DE PREFERÊNCIAS ---
