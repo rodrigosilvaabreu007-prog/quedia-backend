@@ -16,7 +16,7 @@ async function carregarMeusEventos() {
 
     const usuario = JSON.parse(usuarioStr);
     const usuarioId = String(usuario.id || usuario._id || '');
-    const apiUrl = window.API_URL || `${window.BASE_URL}/api`;
+    const apiUrl = window.API_URL;
 
     if (!usuarioId) {
         container.innerHTML = '<p>Usuário não identificado. Faça login novamente.</p>';
