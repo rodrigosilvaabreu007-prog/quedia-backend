@@ -100,9 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Verificar se é administrador e redirecionar para página apropriada
                     const isAdmin = usuarioData && usuarioData.cargo === 'adm';
-                    const redirectPage = isAdmin ? 'admin-inicio.html' : redirectTarget;
+                    const redirectPage = isAdmin ? 'admin-eventos.html' : redirectTarget;
                     
-                    // Redireciona após 1 segundo para destino de origem (ou index para usuários, admin home para admins)
+                    // Redireciona após 1 segundo para destino de origem (ou index para usuários, admin-eventos para admins)
                     setTimeout(() => {
                         window.location.href = redirectPage;
                     }, 1000);
