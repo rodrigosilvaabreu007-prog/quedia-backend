@@ -461,19 +461,10 @@ async function carregarEventos() {
     try {
         container.innerHTML = '<p style="color:white;">🚀 Buscando eventos...</p>';
         
-        console.log('🔍 Tentando conectar na API:', `${window.API_URL}/eventos`);
         const response = await fetch(`${window.API_URL}/eventos`);
-        console.log('📡 Resposta da API - Status:', response.status, 'OK:', response.ok);
-        console.log('📡 Headers:', Object.fromEntries(response.headers.entries()));
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Erro na resposta:', errorText);
-            throw new Error(`Erro na resposta do servidor (${response.status}): ${errorText}`);
-        }
+        if (!response.ok) throw new Error('Erro na resposta do servidor');
         
         const dados = await response.json();
-        console.log('✅ Dados recebidos:', dados);
         todosEventos = Array.isArray(dados) ? dados : [];
         todosEventos = todosEventos.filter(eventoEstaAtivoFrontend);
         

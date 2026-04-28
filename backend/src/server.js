@@ -30,12 +30,7 @@ if (useMemoryBackend) {
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: true, // Permite qualquer origem
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With']
-}));
+app.use(cors());
 
 app.get('/', (req, res) => {
   res.send('🚀 API QUE DIA - ONLINE');
