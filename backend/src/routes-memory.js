@@ -212,8 +212,25 @@ router.post('/login', async (req, res) => {
     }
     
     console.log('✓ Login bem-sucedido:', email);
-    const token = jwt.sign({ id: usuario.id, tipo: usuario.tipo }, JWT_SECRET, { expiresIn: '2h' });
-    res.json({ usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email, estado: usuario.estado, cidade: usuario.cidade, preferencias: usuario.preferencias || [] }, token });
+    const tokenPayload = {
+      id: usuario.id,
+      tipo: usuario.tipo,
+      cargo: usuario.tipo === 'adm' ? 'adm' : 'usuario'
+    };
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '2h' });
+    res.json({
+      usuario: {
+        id: usuario.id,
+        nome: usuario.nome,
+        email: usuario.email,
+        estado: usuario.estado,
+        cidade: usuario.cidade,
+        preferencias: usuario.preferencias || [],
+        tipo: usuario.tipo,
+        cargo: tokenPayload.cargo
+      },
+      token
+    });
   } catch (err) {
     console.error('❌ Erro ao autenticar:', err);
     res.status(400).json({ erro: 'Erro ao autenticar', detalhes: err.message });

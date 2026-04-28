@@ -57,12 +57,13 @@ function getTokenPayload() {
 
 function getUsuarioCargo() {
     const usuario = getUsuarioData();
-    if (usuario && usuario.cargo) {
-        return usuario.cargo;
+    if (usuario) {
+        if (usuario.cargo) return usuario.cargo;
+        if (usuario.tipo) return usuario.tipo;
     }
 
     const payload = getTokenPayload();
-    return payload?.cargo || null;
+    return payload?.cargo || payload?.tipo || null;
 }
 
 function normalizarCargoUsuario() {

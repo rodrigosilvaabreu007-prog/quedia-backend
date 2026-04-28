@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             const payload = partes[1].replace(/-/g, '+').replace(/_/g, '/');
                             const json = decodeURIComponent(Array.prototype.map.call(atob(payload), c => '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
                             const data = JSON.parse(json);
-                            return data.cargo || null;
+                            return data.cargo || data.tipo || null;
                         } catch {
                             return null;
                         }
@@ -110,6 +110,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         userId = String(userId || '');
                         usuarioData = { ...usuarioData, id: userId, _id: userId };
+                        if (!usuarioData.cargo && usuarioData.tipo) {
+                            usuarioData.cargo = usuarioData.tipo;
+                        }
                         if (tokenCargo && !usuarioData.cargo) {
                             usuarioData.cargo = tokenCargo;
                         }
