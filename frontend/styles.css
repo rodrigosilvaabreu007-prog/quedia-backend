@@ -1235,17 +1235,18 @@ header {
   right: 10px;
   background: rgba(0, 0, 0, 0.7);
   border: none;
-  border-radius: 50%;
+  border-radius: 8px;
   width: 40px;
   height: 40px;
   cursor: pointer;
-  font-size: 22px;
+  font-size: 20px;
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
   z-index: 10;
+  padding: 0;
 }
 
 .interest-btn-corner:hover:not(:disabled) {

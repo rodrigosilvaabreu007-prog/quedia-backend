@@ -210,6 +210,17 @@ async function carregarStatusInteresseCard(card, eventoId) {
     }
 }
 
+function sincronizarTodosOsCards(eventoId, temInteresse, contador) {
+    const todosOsCards = document.querySelectorAll(`[data-evento-id="${eventoId}"]`);
+    todosOsCards.forEach(card => {
+        const btn = card.querySelector('.interest-btn-corner');
+        const count = card.querySelector('.interest-count');
+        if (btn && count) {
+            atualizarBotaoInteresse(btn, count, temInteresse, contador);
+        }
+    });
+}
+
 async function alternarInteresseEvento(eventoId, card) {
     if (!card) return;
     const button = card.querySelector('.interest-btn-corner');
@@ -230,7 +241,7 @@ async function alternarInteresseEvento(eventoId, card) {
 
         if (response.ok && data) {
             const temInteresse = data.acao === 'adicionado';
-            atualizarBotaoInteresse(button, contadorEl, temInteresse, data.contador);
+            sincronizarTodosOsCards(eventoId, temInteresse, data.contador);
             if (typeof window.showNotification === 'function') {
                 window.showNotification(data.mensagem || 'Interesse atualizado', 'success');
             }
