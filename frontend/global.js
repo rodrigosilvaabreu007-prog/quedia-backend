@@ -41,18 +41,28 @@ function isAdminUser() {
     return usuario && usuario.cargo === 'adm';
 }
 
+function esconderSobreLink() {
+    document.querySelectorAll('a[href="sobre.html"], a[href="/sobre.html"], a[href="sobre"]').forEach(link => {
+        if (link.closest('nav')) {
+            link.remove();
+        }
+    });
+}
+
 function ajustarNavegacaoAdmin() {
     if (!isAdminUser()) return;
 
     const links = document.querySelectorAll('nav a, .menu a, .mobile-menu a, .nav-links a');
+    let temAdminInicio = false;
     let temAdminEventos = false;
+    let temAdminContato = false;
 
     links.forEach(link => {
         const href = link.getAttribute('href');
         if (!href) return;
         const filename = href.replace(/^.*\//, '');
 
-        if (['login.html', 'cadastro.html', 'event-form.html', 'meus-eventos.html', 'perfil.html'].includes(filename)) {
+        if (['login.html', 'cadastro.html', 'event-form.html', 'meus-eventos.html', 'perfil.html', 'sobre.html'].includes(filename)) {
             link.style.display = 'none';
             return;
         }
@@ -60,6 +70,7 @@ function ajustarNavegacaoAdmin() {
         if (filename === 'contato.html') {
             link.setAttribute('href', 'admin-contato.html');
             link.textContent = 'Contato';
+            temAdminContato = true;
             return;
         }
 
@@ -68,18 +79,36 @@ function ajustarNavegacaoAdmin() {
         }
 
         if (filename === 'admin-contato.html') {
-            temAdminEventos = true;
+            temAdminContato = true;
+        }
+
+        if (filename === 'admin-inicio.html') {
+            temAdminInicio = true;
         }
     });
 
-    if (!temAdminEventos) {
-        const nav = document.querySelector('nav.menu, .nav-links, .mobile-menu');
-        if (nav) {
-            const adminLink = document.createElement('a');
-            adminLink.href = 'admin-eventos.html';
-            adminLink.textContent = 'Eventos';
-            adminLink.style.marginLeft = '12px';
-            nav.appendChild(adminLink);
+    const nav = document.querySelector('nav.menu, .nav-links, .mobile-menu');
+    if (nav) {
+        if (!temAdminInicio) {
+            const adminInicioLink = document.createElement('a');
+            adminInicioLink.href = 'admin-inicio.html';
+            adminInicioLink.textContent = 'Início';
+            adminInicioLink.style.marginLeft = '12px';
+            nav.insertBefore(adminInicioLink, nav.firstChild);
+        }
+        if (!temAdminEventos) {
+            const adminEventosLink = document.createElement('a');
+            adminEventosLink.href = 'admin-eventos.html';
+            adminEventosLink.textContent = 'Eventos';
+            adminEventosLink.style.marginLeft = '12px';
+            nav.appendChild(adminEventosLink);
+        }
+        if (!temAdminContato) {
+            const adminContatoLink = document.createElement('a');
+            adminContatoLink.href = 'admin-contato.html';
+            adminContatoLink.textContent = 'Contato';
+            adminContatoLink.style.marginLeft = '12px';
+            nav.appendChild(adminContatoLink);
         }
     }
 }
@@ -95,8 +124,8 @@ function protegerRotasAdmin() {
             return;
         }
 
-        if (userOnlyPagesForAdmin.includes(currentPage) || currentPage === 'login.html' || currentPage === 'cadastro.html') {
-            window.location.replace('admin-eventos.html');
+        if (userOnlyPagesForAdmin.includes(currentPage) || currentPage === 'login.html' || currentPage === 'cadastro.html' || currentPage === 'index.html') {
+            window.location.replace('admin-inicio.html');
             return;
         }
     }
@@ -158,11 +187,13 @@ function inicializarIconePerfil() {
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         normalizeSimplePath();
+        esconderSobreLink();
         protegerRotasAdmin();
         ajustarNavegacaoAdmin();
     });
 } else {
     normalizeSimplePath();
+    esconderSobreLink();
     protegerRotasAdmin();
     ajustarNavegacaoAdmin();
     inicializarIconePerfil();
