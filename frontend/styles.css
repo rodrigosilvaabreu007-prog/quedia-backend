@@ -685,6 +685,7 @@ header {
   cursor: pointer;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .event-card:hover {
@@ -1228,37 +1229,49 @@ header {
   font-size: 1rem; 
 }
 
-.event-actions {
+.interest-btn-corner {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 22px;
+  color: #fff;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 16px;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
 }
 
-.interest-btn {
-  background: rgba(0, 191, 255, 0.12);
-  color: #00d4ff;
-  border: 1px solid rgba(0, 191, 255, 0.35);
-  border-radius: 12px;
-  padding: 10px 14px;
-  cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.2s ease;
+.interest-btn-corner:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
 }
 
-.interest-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
-
-.interest-btn.interessado {
+.interest-btn-corner.interessado {
   background: var(--cor-principal);
   color: #000;
-  border-color: transparent;
+}
+
+.interest-badge {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 6px 10px;
+  border-radius: 8px;
+  z-index: 10;
 }
 
 .interest-count {
-  color: #ccc;
-  font-size: 0.95rem;
+  color: #00d4ff;
+  font-size: 0.9rem;
+  font-weight: 600;
   white-space: nowrap;
 }
 

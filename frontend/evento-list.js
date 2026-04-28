@@ -120,6 +120,7 @@ function criarCardEvento(evento, mostrarFavorito = true) {
         <div class="event-img-container">
             <img src="${imagemFinal}" class="event-img" alt="${evento.nome}"
                  onerror="this.onerror=null;this.src='https://via.placeholder.com/400x200?text=Imagem+Indisponível';">
+            <button type="button" class="interest-btn-corner">☆</button>
         </div>
         <div class="event-info">
             <h3>${evento.nome || 'Evento sem Nome'}</h3>
@@ -130,14 +131,13 @@ function criarCardEvento(evento, mostrarFavorito = true) {
                 <span>📍 ${evento.cidade || 'Local não informado'}</span>
             </div>
             <p class="event-price">${precoTexto}</p>
-            <div class="event-actions">
-                <button type="button" class="interest-btn">☆ Interessado</button>
-                <span class="interest-count">0 interessados</span>
-            </div>
+        </div>
+        <div class="interest-badge">
+            <span class="interest-count">👥 0</span>
         </div>
     `;
 
-    const interestButton = div.querySelector('.interest-btn');
+    const interestButton = div.querySelector('.interest-btn-corner');
     const interestCount = div.querySelector('.interest-count');
 
     if (interestButton) {
@@ -166,17 +166,16 @@ function getAuthHeaders() {
 }
 
 function pluralizarInteressados(contador) {
-    if (!Number.isFinite(contador) || contador === 0) return '0 interessados';
-    return `${contador} interessado${contador === 1 ? '' : 's'}`;
+    if (!Number.isFinite(contador) || contador === 0) return '0';
+    return String(contador);
 }
 
 function atualizarBotaoInteresse(button, contadorEl, temInteresse, contador) {
     if (!button || !contadorEl) return;
-    button.textContent = temInteresse ? '★ Desmarcar' : '☆ Interessado';
+    button.textContent = temInteresse ? '★' : '☆';
     button.classList.toggle('interessado', temInteresse);
-    contadorEl.textContent = pluralizarInteressados(contador || 0);
+    contadorEl.textContent = `👥 ${pluralizarInteressados(contador || 0)}`;
     if (!isUsuarioLogado()) {
-        button.textContent = '☆ Login para marcar';
         button.title = 'Faça login para marcar interesse';
         button.disabled = true;
     } else {
@@ -187,7 +186,7 @@ function atualizarBotaoInteresse(button, contadorEl, temInteresse, contador) {
 
 async function carregarStatusInteresseCard(card, eventoId) {
     if (!card) return;
-    const button = card.querySelector('.interest-btn');
+    const button = card.querySelector('.interest-btn-corner');
     const contadorEl = card.querySelector('.interest-count');
     if (!button || !contadorEl) return;
 
@@ -213,7 +212,7 @@ async function carregarStatusInteresseCard(card, eventoId) {
 
 async function alternarInteresseEvento(eventoId, card) {
     if (!card) return;
-    const button = card.querySelector('.interest-btn');
+    const button = card.querySelector('.interest-btn-corner');
     const contadorEl = card.querySelector('.interest-count');
     if (!button || !contadorEl) return;
 
