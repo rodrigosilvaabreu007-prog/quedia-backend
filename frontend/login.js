@@ -83,6 +83,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Salva o Token e os Dados do Usuário
                     localStorage.setItem('eventhub-token', resultado.token);
                     let usuarioData = resultado.usuario || resultado.user;
+
+                    // Tenta obter cargo do token JWT quando não estiver presente no objeto do usuário
+                    const getCargoFromToken = (token) => {
+                        if (!token) return null;
+                        const partes = token.split('.');
+                        if (partes.length !== 3) return null;
+                        try {
+                            const payload = partes[1].replace(/-/g, '+').replace(/_/g, '/');
+                            const json = decodeURIComponent(Array.prototype.map.call(atob(payload), c => '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                            const data = JSON.parse(json);
+                            return data.cargo || null;
+                        } catch {
+                            return null;
+                        }
+                    };
+
+                    const tokenCargo = getCargoFromToken(resultado.token);
                     if (usuarioData) {
                         let userId = usuarioData.id || usuarioData._id || '';
                         if (userId && typeof userId === 'object' && typeof userId.toString === 'function') {
@@ -90,7 +107,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         userId = String(userId || '');
                         usuarioData = { ...usuarioData, id: userId, _id: userId };
+                        if (tokenCargo && !usuarioData.cargo) {
+                            usuarioData.cargo = tokenCargo;
+                        }
                     }
+
                     localStorage.setItem('eventhub-usuario', JSON.stringify(usuarioData));
                     
                     // Atualiza interface se a função existir
@@ -99,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     // Verificar se é administrador e redirecionar para página apropriada
-                    const isAdmin = usuarioData && usuarioData.cargo === 'adm';
+                    const isAdmin = (usuarioData && usuarioData.cargo === 'adm') || tokenCargo === 'adm';
                     const redirectPage = isAdmin ? 'admin-inicio.html' : redirectTarget;
                     
                     // Redireciona após 1 segundo para destino de origem (ou a home do admin para admins)
