@@ -49,7 +49,7 @@
     </div>
 
     <script>
-        const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:8080/api' : 'https://quedia-backend-649702844549.us-central1.run.app/api';
+        const API_URL = window.API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:8080/api' : 'https://quedia-backend-649702844549.us-central1.run.app/api');
         let mensagens = [];
         let mensagemParaResponder = null;
 
@@ -177,7 +177,7 @@
 
         function logout() {
             localStorage.removeItem('eventhub-token');
-            localStorage.removeItem('eventhub-user');
+            localStorage.removeItem('eventhub-usuario');
             window.location.href = 'login.html';
         }
 
