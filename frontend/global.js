@@ -104,11 +104,8 @@ function ajustarNavegacaoAdmin() {
 
     const adminNav = [
         '<a href="admin-inicio.html">Início</a>',
-        '<a href="admin-perfil.html">Perfil Admin</a>',
-        '<a href="admin-meus-eventos.html">Meus Eventos</a>',
         '<a href="admin-eventos.html">Aprovações</a>',
-        '<a href="admin-contato.html">Contato</a>',
-        '<a href="#" onclick="logout()">Sair</a>'
+        '<a href="admin-contato.html">Contato</a>'
     ].join('');
 
     const admin = isAdminUser();
