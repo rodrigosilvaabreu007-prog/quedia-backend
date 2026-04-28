@@ -16,7 +16,7 @@ async function carregarMeusEventos() {
 
     const usuario = JSON.parse(usuarioStr);
     const usuarioId = String(usuario.id || usuario._id || '');
-    const apiUrl = window.API_URL || (window.BASE_URL ? `${window.BASE_URL}/api` : 'https://eventhub-api-649702844549.us-central1.run.app/api');
+    const apiUrl = window.API_URL || (window.BASE_URL ? `${window.BASE_URL}/api` : 'https://quedia-backend-649702844549.us-central1.run.app/api');
 
     if (!usuarioId) {
         container.innerHTML = '<p>Usuário não identificado. Faça login novamente.</p>';

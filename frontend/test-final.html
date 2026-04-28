@@ -64,7 +64,7 @@
       el.innerHTML = '⏳ Testando...';
       
       // Se Global.js está carregado, usar window.API_URL
-      const apiUrl = window.API_URL || 'https://eventhub-api-649702844549.us-central1.run.app/api';
+      const apiUrl = window.API_URL || 'https://quedia-backend-649702844549.us-central1.run.app/api';
       
       fetch(apiUrl + '/eventos', {
         headers: {
@@ -82,7 +82,7 @@
       const el = document.getElementById('test-cors');
       el.innerHTML = '⏳ Testando...';
       
-      const apiUrl = window.API_URL || 'https://eventhub-api-649702844549.us-central1.run.app/api';
+      const apiUrl = window.API_URL || 'https://quedia-backend-649702844549.us-central1.run.app/api';
       
       fetch(apiUrl + '/eventos')
         .then(r => {

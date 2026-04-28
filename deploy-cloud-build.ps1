@@ -56,5 +56,5 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host ""
 Write-Host "✅✅✅ Deploy concluído com sucesso!" -ForegroundColor Green
 Write-Host ""
-Write-Host "🌐 API URL: https://eventhub-api-649702844549.us-central1.run.app/api" -ForegroundColor Cyan
+Write-Host "🌐 API URL: https://quedia-backend-649702844549.us-central1.run.app/api" -ForegroundColor Cyan
 Write-Host ""

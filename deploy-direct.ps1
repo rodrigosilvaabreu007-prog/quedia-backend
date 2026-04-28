@@ -40,12 +40,12 @@ Write-Host ""
 Write-Host "✅✅✅ DEPLOY CONCLUÍDO COM SUCESSO!" -ForegroundColor Green
 Write-Host ""
 Write-Host "🌐 API está disponível em:" -ForegroundColor Cyan
-Write-Host "   https://eventhub-api-649702844549.us-central1.run.app/api" -ForegroundColor Green
+Write-Host "   https://quedia-backend-649702844549.us-central1.run.app/api" -ForegroundColor Green
 Write-Host ""
 Write-Host "Testando conexão..." -ForegroundColor Yellow
 Start-Sleep -Seconds 5
 
-$testUrl = "https://eventhub-api-649702844549.us-central1.run.app/api/eventos"
+$testUrl = "https://quedia-backend-649702844549.us-central1.run.app/api/eventos"
 try {
     $response = Invoke-WebRequest -Uri $testUrl -UseBasicParsing -TimeoutSec 10 -ErrorAction Stop
     Write-Host "✅ API está respondendo!" -ForegroundColor Green
