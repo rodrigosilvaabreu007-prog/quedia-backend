@@ -20,7 +20,7 @@ gcloud run deploy eventhub-api `
   --port 8080 `
   --memory 512Mi `
   --cpu 1 `
-  --set-env-vars "PORT=8080,NODE_ENV=production" `
+  --set-env-vars "NODE_ENV=production" `
   --no-traffic 2>&1
 
 $exitCode = $LASTEXITCODE
