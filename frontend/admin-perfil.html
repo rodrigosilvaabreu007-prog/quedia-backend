@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Perfil Administrativo | QueDia</title>
+    <link rel="stylesheet" href="styles.css?v=20260424">
+    <link rel="stylesheet" href="theme.css?v=20260424">
+    <link rel="icon" href="https://i.imgur.com/YourIcon.png" type="image/png">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="admin-inicio.html">QueDia</a>
+            </div>
+            <div class="nav-links">
+                <a href="admin-inicio.html">Início</a>
+                <a href="admin-perfil.html" class="active">Perfil Admin</a>
+                <a href="admin-meus-eventos.html">Meus Eventos</a>
+                <a href="admin-eventos.html">Aprovações</a>
+                <a href="admin-contato.html">Contato</a>
+                <a href="#" onclick="logout()">Sair</a>
+            </div>
+            <div class="hamburger-menu" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="admin-profile">
+            <div class="profile-header">
+                <div class="profile-avatar" id="profile-avatar">
+                    <span>👤</span>
+                </div>
+                <div class="profile-info">
+                    <h1 id="admin-nome">Carregando...</h1>
+                    <p id="admin-email" class="admin-email">Carregando...</p>
+                    <span class="admin-badge">Administrador</span>
+                </div>
+            </div>
+
+            <div class="admin-stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-eventos">0</div>
+                    <div class="stat-label">Eventos Criados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-pendentes">0</div>
+                    <div class="stat-label">Pendentes de Aprovação</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-aprovados">0</div>
+                    <div class="stat-label">Eventos Aprovados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-mensagens">0</div>
+                    <div class="stat-label">Mensagens Recebidas</div>
+                </div>
+            </div>
+
+            <div class="admin-actions">
+                <h2>Ações Administrativas</h2>
+                <div class="actions-grid">
+                    <button onclick="window.location.href='admin-meus-eventos.html'" class="action-btn">
+                        <span class="action-icon">📝</span>
+                        <span class="action-text">Meus Eventos</span>
+                    </button>
+                    <button onclick="window.location.href='admin-eventos.html'" class="action-btn">
+                        <span class="action-icon">✅</span>
+                        <span class="action-text">Aprovar Eventos</span>
+                    </button>
+                    <button onclick="window.location.href='admin-contato.html'" class="action-btn">
+                        <span class="action-icon">💬</span>
+                        <span class="action-text">Responder Mensagens</span>
+                    </button>
+                    <button onclick="editarPerfil()" class="action-btn">
+                        <span class="action-icon">⚙️</span>
+                        <span class="action-text">Editar Perfil</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="admin-details">
+                <h2>Informações Administrativas</h2>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <label>Última Atividade</label>
+                        <span id="ultima-atividade">Carregando...</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Status</label>
+                        <span class="status-ativo">🟢 Ativo</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Nível de Acesso</label>
+                        <span>Administrador Pleno</span>
+                    </div>
+                    <div class="detail-item">
+                        <label>Membro Desde</label>
+                        <span id="membro-desde">Carregando...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <style>
+        .admin-profile {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 2px solid var(--cor-principal);
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--cor-principal), #0099cc);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            flex-shrink: 0;
+        }
+
+        .profile-info h1 {
+            margin: 0 0 10px 0;
+            color: var(--text-color);
+            font-size: 28px;
+        }
+
+        .admin-email {
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .admin-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--cor-principal), #0099cc);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border-left: 4px solid var(--cor-principal);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--cor-principal);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .admin-actions {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .admin-actions h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .action-btn {
+            background: var(--bg-primary);
+            border: 2px solid var(--cor-principal);
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            color: var(--text-color);
+        }
+
+        .action-btn:hover {
+            background: var(--cor-principal);
+            color: white;
+            transform: translateY(-5px);
+        }
+
+        .action-icon {
+            font-size: 32px;
+        }
+
+        .action-text {
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .admin-details {
+            background: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 12px;
+        }
+
+        .admin-details h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-item label {
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .detail-item span {
+            color: var(--text-color);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .status-ativo {
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+
+    <script>
+        const API_URL = window.API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:8080/api' : 'https://eventhub-api-649702844549.us-central1.run.app/api');
+
+        function logout() {
+            localStorage.removeItem('eventhub-token');
+            localStorage.removeItem('eventhub-usuario');
+            window.location.href = 'login.html';
+        }
+
+        function toggleMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+
+        function editarPerfil() {
+            alert('Funcionalidade de edição de perfil em desenvolvimento');
+        }
+
+        async function carregarDadosAdmin() {
+            try {
+                const token = localStorage.getItem('eventhub-token');
+                const usuario = JSON.parse(localStorage.getItem('eventhub-usuario') || '{}');
+
+                if (!token || usuario.cargo !== 'adm') {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // Preencher informações básicas
+                document.getElementById('admin-nome').textContent = usuario.nome || 'Administrador';
+                document.getElementById('admin-email').textContent = usuario.email || 'email@example.com';
+
+                // Carregar estatísticas
+                const statsResponse = await fetch(`${API_URL}/admin/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (statsResponse.ok) {
+                    const stats = await statsResponse.json();
+                    document.getElementById('stat-eventos').textContent = stats.totalEventos || 0;
+                    document.getElementById('stat-pendentes').textContent = stats.eventosPendentes || 0;
+                    document.getElementById('stat-aprovados').textContent = stats.eventosAprovados || 0;
+                    document.getElementById('stat-mensagens').textContent = stats.mensagensRecebidas || 0;
+                }
+
+                // Formato de datas
+                const agora = new Date();
+                document.getElementById('ultima-atividade').textContent = agora.toLocaleString('pt-BR');
+                document.getElementById('membro-desde').textContent = usuario.criadoEm ? 
+                    new Date(usuario.criadoEm).toLocaleDateString('pt-BR') : 
+                    'Sem data';
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarDadosAdmin);
+    </script>
+</body>
+</html>

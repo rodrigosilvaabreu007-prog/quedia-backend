@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Meus Eventos | QueDia</title>
+    <link rel="stylesheet" href="styles.css?v=20260424">
+    <link rel="stylesheet" href="theme.css?v=20260424">
+    <link rel="icon" href="https://i.imgur.com/YourIcon.png" type="image/png">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="admin-inicio.html">QueDia</a>
+            </div>
+            <div class="nav-links">
+                <a href="admin-inicio.html">Início</a>
+                <a href="admin-perfil.html">Perfil Admin</a>
+                <a href="admin-meus-eventos.html" class="active">Meus Eventos</a>
+                <a href="admin-eventos.html">Aprovações</a>
+                <a href="admin-contato.html">Contato</a>
+                <a href="#" onclick="logout()">Sair</a>
+            </div>
+            <div class="hamburger-menu" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="admin-events-header">
+            <h1>Meus Eventos Criados</h1>
+            <button onclick="criarNovoEvento()" class="btn-primary">+ Novo Evento</button>
+        </div>
+
+        <div class="events-filters">
+            <select id="filtro-status" onchange="filtrarEventos()">
+                <option value="">Todos os Status</option>
+                <option value="pendente">Pendente de Aprovação</option>
+                <option value="aprovado">Aprovado</option>
+                <option value="rejeitado">Rejeitado</option>
+            </select>
+            <input type="search" id="search-eventos" placeholder="Buscar evento..." onkeyup="filtrarEventos()">
+        </div>
+
+        <div id="admin-events-container">
+            <div class="loading">Carregando seus eventos...</div>
+        </div>
+    </main>
+
+    <!-- Modal de Detalhes do Evento -->
+    <div id="modal-evento" class="modal">
+        <div class="modal-content-evento">
+            <button class="close-modal" onclick="fecharModalEvento()">×</button>
+            <h2 id="evento-titulo">Detalhes do Evento</h2>
+            
+            <div id="evento-detalhes" class="evento-detalhes-admin">
+                <!-- Preenchido por JavaScript -->
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="fecharModalEvento()" class="btn-secondary">Fechar</button>
+                <button id="btn-editar-evento" onclick="editarEvento()" class="btn-primary">Editar</button>
+                <button id="btn-excluir-evento" onclick="excluirEvento()" class="btn-danger">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .admin-events-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .admin-events-header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .events-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .events-filters select,
+        .events-filters input {
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        #admin-events-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .event-card-admin {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .event-card-admin:hover {
+            border-color: var(--cor-principal);
+            box-shadow: 0 4px 12px rgba(0, 191, 255, 0.2);
+            transform: translateY(-4px);
+        }
+
+        .event-card-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .event-card-header h3 {
+            margin: 0 0 10px 0;
+            color: var(--text-color);
+        }
+
+        .event-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-pendente {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .status-aprovado {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-rejeitado {
+            background: #dc3545;
+            color: white;
+        }
+
+        .event-card-body {
+            padding: 15px;
+            flex-grow: 1;
+        }
+
+        .event-card-body p {
+            margin: 8px 0;
+            color: #888;
+            font-size: 14px;
+        }
+
+        .event-card-body strong {
+            color: var(--text-color);
+        }
+
+        .event-card-footer {
+            padding: 10px 15px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 191, 255, 0.05);
+        }
+
+        .btn-small {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-view {
+            background: var(--cor-principal);
+            color: white;
+        }
+
+        .btn-view:hover {
+            background: #0099cc;
+        }
+
+        .btn-edit {
+            background: #666;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #888;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content-evento {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .evento-detalhes-admin {
+            margin: 20px 0;
+        }
+
+        .evento-detalhes-admin p {
+            margin: 12px 0;
+            line-height: 1.6;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .loading,
+        .no-events {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+    </style>
+
+    <script>
+        const API_URL = window.API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:8080/api' : 'https://eventhub-api-649702844549.us-central1.run.app/api');
+        let eventosAdmin = [];
+        let eventoSelecionado = null;
+
+        function logout() {
+            localStorage.removeItem('eventhub-token');
+            localStorage.removeItem('eventhub-usuario');
+            window.location.href = 'login.html';
+        }
+
+        function toggleMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+
+        function criarNovoEvento() {
+            window.location.href = 'event-form.html';
+        }
+
+        async function carregarEventosAdmin() {
+            try {
+                const token = localStorage.getItem('eventhub-token');
+                const usuario = JSON.parse(localStorage.getItem('eventhub-usuario') || '{}');
+
+                if (!token || usuario.cargo !== 'adm') {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/usuario/${usuario.id || usuario._id}/eventos`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Erro ao carregar eventos');
+
+                eventosAdmin = await response.json();
+                renderizarEventos(eventosAdmin);
+            } catch (error) {
+                console.error('Erro:', error);
+                document.getElementById('admin-events-container').innerHTML = 
+                    '<div class="no-events">Erro ao carregar seus eventos. Tente novamente.</div>';
+            }
+        }
+
+        function renderizarEventos(eventos) {
+            const container = document.getElementById('admin-events-container');
+
+            if (eventos.length === 0) {
+                container.innerHTML = '<div class="no-events" style="grid-column: 1 / -1;">Você ainda não criou nenhum evento</div>';
+                return;
+            }
+
+            container.innerHTML = eventos.map(evento => `
+                <div class="event-card-admin" onclick="abrirModalEvento('${evento._id}')">
+                    <div class="event-card-header">
+                        <h3>${evento.nome}</h3>
+                        <span class="event-status status-${evento.aprovado ? 'aprovado' : evento.rejeitado ? 'rejeitado' : 'pendente'}">
+                            ${evento.aprovado ? 'Aprovado' : evento.rejeitado ? 'Rejeitado' : 'Pendente'}
+                        </span>
+                    </div>
+                    <div class="event-card-body">
+                        <p><strong>Local:</strong> ${evento.cidade}, ${evento.estado}</p>
+                        <p><strong>Data:</strong> ${formatarData(evento.data)}</p>
+                        <p><strong>Categoria:</strong> ${evento.categoria}</p>
+                        ${evento.motivo_rejeicao ? `<p><strong>Motivo Rejeição:</strong> ${evento.motivo_rejeicao}</p>` : ''}
+                    </div>
+                    <div class="event-card-footer">
+                        <button class="btn-small btn-view">Ver Detalhes</button>
+                        <button class="btn-small btn-edit">Editar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function abrirModalEvento(eventoId) {
+            eventoSelecionado = eventosAdmin.find(e => e._id === eventoId);
+            if (!eventoSelecionado) return;
+
+            document.getElementById('evento-titulo').textContent = eventoSelecionado.nome;
+            document.getElementById('evento-detalhes').innerHTML = `
+                <p><strong>Descrição:</strong> ${eventoSelecionado.descricao}</p>
+                <p><strong>Local:</strong> ${eventoSelecionado.cidade}, ${eventoSelecionado.estado}</p>
+                <p><strong>Data:</strong> ${formatarData(eventoSelecionado.data)}</p>
+                <p><strong>Hora:</strong> ${eventoSelecionado.hora || 'Não informado'}</p>
+                <p><strong>Categoria:</strong> ${eventoSelecionado.categoria}</p>
+                <p><strong>Preço:</strong> ${eventoSelecionado.preco ? `R$ ${eventoSelecionado.preco}` : 'Gratuito'}</p>
+                <p><strong>Status:</strong> ${eventoSelecionado.aprovado ? '✅ Aprovado' : eventoSelecionado.rejeitado ? '❌ Rejeitado' : '⏳ Pendente'}</p>
+                ${eventoSelecionado.motivo_rejeicao ? `<p><strong>Motivo da Rejeição:</strong> ${eventoSelecionado.motivo_rejeicao}</p>` : ''}
+            `;
+
+            document.getElementById('modal-evento').classList.add('active');
+        }
+
+        function fecharModalEvento() {
+            document.getElementById('modal-evento').classList.remove('active');
+            eventoSelecionado = null;
+        }
+
+        function editarEvento() {
+            if (!eventoSelecionado) return;
+            window.location.href = `editar-evento.html?id=${eventoSelecionado._id}`;
+        }
+
+        function excluirEvento() {
+            if (!eventoSelecionado) return;
+            if (confirm('Tem certeza que deseja excluir este evento?')) {
+                // Implementar lógica de exclusão
+                alert('Função de exclusão em desenvolvimento');
+            }
+        }
+
+        function formatarData(dataStr) {
+            if (!dataStr) return "A definir";
+            const isoMatch = dataStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (isoMatch) {
+                const data = new Date(isoMatch[1], isoMatch[2] - 1, isoMatch[3]);
+                return data.toLocaleDateString('pt-BR');
+            }
+            return dataStr;
+        }
+
+        function filtrarEventos() {
+            const status = document.getElementById('filtro-status').value;
+            const search = document.getElementById('search-eventos').value.toLowerCase();
+
+            let filtrados = eventosAdmin.filter(evento => {
+                const statusMatch = !status || 
+                    (status === 'pendente' && !evento.aprovado && !evento.rejeitado) ||
+                    (status === 'aprovado' && evento.aprovado) ||
+                    (status === 'rejeitado' && evento.rejeitado);
+                
+                const searchMatch = evento.nome.toLowerCase().includes(search) ||
+                    evento.descricao.toLowerCase().includes(search) ||
+                    evento.cidade.toLowerCase().includes(search);
+
+                return statusMatch && searchMatch;
+            });
+
+            renderizarEventos(filtrados);
+        }
+
+        document.addEventListener('DOMContentLoaded', carregarEventosAdmin);
+    </script>
+</body>
+</html>

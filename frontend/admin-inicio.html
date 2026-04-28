@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Início | QueDia</title>
+    <link rel="stylesheet" href="styles.css?v=20260424">
+    <link rel="stylesheet" href="theme.css?v=20260424">
+    <link rel="icon" href="https://i.imgur.com/YourIcon.png" type="image/png">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="admin-inicio.html">QueDia</a>
+            </div>
+            <div class="nav-links">
+                <a href="admin-inicio.html" class="active">Início</a>
+                <a href="admin-perfil.html">Perfil Admin</a>
+                <a href="admin-meus-eventos.html">Meus Eventos</a>
+                <a href="admin-eventos.html">Aprovações</a>
+                <a href="admin-contato.html">Contato</a>
+                <a href="#" onclick="logout()">Sair</a>
+            </div>
+            <div class="hamburger-menu" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="admin-summary">
+            <h1>Bem-vindo, Administrador</h1>
+            <p>Esta é a área exclusiva para gerenciamento de eventos e mensagens do site. Utilize o menu para acessar as seções de aprovação e atendimento.</p>
+        </section>
+
+        <section class="admin-cards">
+            <div class="admin-card">
+                <h2>Eventos</h2>
+                <p>Veja todos os eventos pendentes e aprove ou rejeite com motivo.</p>
+                <a href="admin-eventos.html" class="btn-primary">Ir para Eventos</a>
+            </div>
+            <div class="admin-card">
+                <h2>Contato</h2>
+                <p>Visualize todas as mensagens enviadas pelos usuários e responda diretamente.</p>
+                <a href="admin-contato.html" class="btn-primary">Ir para Contato</a>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function logout() {
+            localStorage.removeItem('eventhub-token');
+            localStorage.removeItem('eventhub-usuario');
+            window.location.href = 'login.html';
+        }
+
+        function toggleMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('eventhub-token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const usuario = JSON.parse(localStorage.getItem('eventhub-usuario') || '{}');
+            if (!usuario || usuario.cargo !== 'adm') {
+                window.location.href = 'index.html';
+                return;
+            }
+        });
+    </script>
+</body>
+</html>

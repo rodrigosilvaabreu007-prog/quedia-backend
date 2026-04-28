@@ -44,44 +44,21 @@ function isAdminUser() {
 function ajustarNavegacaoAdmin() {
     if (!isAdminUser()) return;
 
-    const links = document.querySelectorAll('nav a, .menu a, .mobile-menu a, .nav-links a');
-    let temAdminEventos = false;
+    const nav = document.querySelector('nav.menu, .nav-links, .mobile-menu');
+    if (!nav) return;
 
-    links.forEach(link => {
-        const href = link.getAttribute('href');
-        if (!href) return;
-        const filename = href.replace(/^.*\//, '');
+    // Para admins, substituir completamente a navegação
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const adminNav = `
+        <a href="admin-inicio.html" ${currentPage === 'admin-inicio.html' ? 'class="active"' : ''}>Início</a>
+        <a href="admin-perfil.html" ${currentPage === 'admin-perfil.html' ? 'class="active"' : ''}>Perfil Admin</a>
+        <a href="admin-meus-eventos.html" ${currentPage === 'admin-meus-eventos.html' ? 'class="active"' : ''}>Meus Eventos</a>
+        <a href="admin-eventos.html" ${currentPage === 'admin-eventos.html' ? 'class="active"' : ''}>Aprovações</a>
+        <a href="admin-contato.html" ${currentPage === 'admin-contato.html' ? 'class="active"' : ''}>Contato</a>
+        <a href="#" onclick="logout()">Sair</a>
+    `;
 
-        if (['login.html', 'cadastro.html', 'event-form.html', 'meus-eventos.html', 'perfil.html'].includes(filename)) {
-            link.style.display = 'none';
-            return;
-        }
-
-        if (filename === 'contato.html') {
-            link.setAttribute('href', 'admin-contato.html');
-            link.textContent = 'Contato';
-            return;
-        }
-
-        if (filename === 'admin-eventos.html') {
-            temAdminEventos = true;
-        }
-
-        if (filename === 'admin-contato.html') {
-            temAdminEventos = true;
-        }
-    });
-
-    if (!temAdminEventos) {
-        const nav = document.querySelector('nav.menu, .nav-links, .mobile-menu');
-        if (nav) {
-            const adminLink = document.createElement('a');
-            adminLink.href = 'admin-eventos.html';
-            adminLink.textContent = 'Eventos';
-            adminLink.style.marginLeft = '12px';
-            nav.appendChild(adminLink);
-        }
-    }
+    nav.innerHTML = adminNav;
 }
 
 function protegerRotasAdmin() {
@@ -95,8 +72,8 @@ function protegerRotasAdmin() {
             return;
         }
 
-        if (userOnlyPagesForAdmin.includes(currentPage) || currentPage === 'login.html' || currentPage === 'cadastro.html') {
-            window.location.replace('admin-eventos.html');
+        if (userOnlyPagesForAdmin.includes(currentPage) || currentPage === 'login.html' || currentPage === 'cadastro.html' || currentPage === 'index.html') {
+            window.location.replace('admin-inicio.html');
             return;
         }
     }
