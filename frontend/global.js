@@ -44,17 +44,22 @@ function isAdminUser() {
 function ajustarNavegacaoAdmin() {
     if (!isAdminUser()) return;
 
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const adminPages = ['admin-inicio.html', 'admin-perfil.html', 'admin-meus-eventos.html', 'admin-eventos.html', 'admin-contato.html'];
+
+    // Se já estamos em uma página admin, não alterar a navegação
+    if (adminPages.includes(currentPage)) return;
+
     const nav = document.querySelector('nav.menu, .nav-links, .mobile-menu');
     if (!nav) return;
 
-    // Para admins, substituir completamente a navegação
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    // Para páginas de usuário, substituir completamente a navegação por admin
     const adminNav = `
-        <a href="admin-inicio.html" ${currentPage === 'admin-inicio.html' ? 'class="active"' : ''}>Início</a>
-        <a href="admin-perfil.html" ${currentPage === 'admin-perfil.html' ? 'class="active"' : ''}>Perfil Admin</a>
-        <a href="admin-meus-eventos.html" ${currentPage === 'admin-meus-eventos.html' ? 'class="active"' : ''}>Meus Eventos</a>
-        <a href="admin-eventos.html" ${currentPage === 'admin-eventos.html' ? 'class="active"' : ''}>Aprovações</a>
-        <a href="admin-contato.html" ${currentPage === 'admin-contato.html' ? 'class="active"' : ''}>Contato</a>
+        <a href="admin-inicio.html">Início</a>
+        <a href="admin-perfil.html">Perfil Admin</a>
+        <a href="admin-meus-eventos.html">Meus Eventos</a>
+        <a href="admin-eventos.html">Aprovações</a>
+        <a href="admin-contato.html">Contato</a>
         <a href="#" onclick="logout()">Sair</a>
     `;
 
