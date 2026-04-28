@@ -38,20 +38,37 @@ function getUsuarioData() {
 
 function isAdminUser() {
     const usuario = getUsuarioData();
-    return usuario && usuario.cargo === 'adm';
+    console.log('🔍 Verificando se usuário é admin:', usuario);
+    const isAdmin = usuario && usuario.cargo === 'adm';
+    console.log('🔍 Resultado isAdminUser():', isAdmin);
+    return isAdmin;
 }
 
 function ajustarNavegacaoAdmin() {
-    if (!isAdminUser()) return;
+    console.log('🧭 Executando ajustarNavegacaoAdmin()');
+    if (!isAdminUser()) {
+        console.log('👤 Usuário não é admin, pulando ajuste de navegação');
+        return;
+    }
 
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     const adminPages = ['admin-inicio.html', 'admin-perfil.html', 'admin-meus-eventos.html', 'admin-eventos.html', 'admin-contato.html'];
 
-    // Se já estamos em uma página admin, não alterar a navegação
-    if (adminPages.includes(currentPage)) return;
+    console.log('📄 Página atual para navegação:', currentPage);
+    console.log('📋 Páginas admin:', adminPages);
 
+    // Se já estamos em uma página admin, não alterar a navegação
+    if (adminPages.includes(currentPage)) {
+        console.log('✅ Já estamos em página admin, mantendo navegação existente');
+        return;
+    }
+
+    console.log('🔄 Aplicando navegação admin em página de usuário');
     const nav = document.querySelector('nav.menu, .nav-links, .mobile-menu');
-    if (!nav) return;
+    if (!nav) {
+        console.log('❌ Elemento de navegação não encontrado');
+        return;
+    }
 
     // Para páginas de usuário, substituir completamente a navegação por admin
     const adminNav = `
@@ -64,23 +81,31 @@ function ajustarNavegacaoAdmin() {
     `;
 
     nav.innerHTML = adminNav;
+    console.log('✅ Navegação admin aplicada');
 }
 
 function protegerRotasAdmin() {
+    console.log('🛡️ Executando protegerRotasAdmin()');
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    console.log('📄 Página atual:', currentPage);
     const adminOnlyPages = ['admin-eventos.html', 'admin-contato.html'];
     const userOnlyPagesForAdmin = ['perfil.html', 'meus-eventos.html', 'event-form.html', 'editar-evento.html', 'evento-detalhes.html', 'contato.html'];
 
     if (isAdminUser()) {
+        console.log('👑 Usuário é admin, aplicando proteção de rotas');
         if (currentPage === 'contato.html') {
+            console.log('🔄 Redirecionando contato.html para admin-contato.html');
             window.location.replace('admin-contato.html');
             return;
         }
 
         if (userOnlyPagesForAdmin.includes(currentPage) || currentPage === 'login.html' || currentPage === 'cadastro.html' || currentPage === 'index.html') {
+            console.log('🔄 Redirecionando página de usuário para admin-inicio.html');
             window.location.replace('admin-inicio.html');
             return;
         }
+    } else {
+        console.log('👤 Usuário não é admin, nenhuma proteção aplicada');
     }
 
     if (!isAdminUser() && adminOnlyPages.includes(currentPage)) {
