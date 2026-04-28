@@ -243,10 +243,29 @@ router.get('/eventos', (req, res) => {
     const organizadorId = req.query.organizador_id;
     let eventosFiltrados = db.eventos;
 
+    // Verificar se usuário é admin
+    let isAdmin = false;
+    if (req.headers.authorization) {
+      try {
+        const token = req.headers.authorization.replace(/^Bearer\s+/i, '');
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const usuario = db.usuarios.find(u => u.id === decoded.id);
+        isAdmin = usuario && usuario.tipo === 'adm';
+      } catch (e) {
+        // Token inválido, continua como não-admin
+      }
+    }
+
+    // Filtrar por organizador se especificado
     if (organizadorId) {
       eventosFiltrados = eventosFiltrados.filter(evento =>
         String(evento.organizador_id) === String(organizadorId)
       );
+    }
+
+    // Se não for admin, mostrar apenas eventos aprovados
+    if (!isAdmin) {
+      eventosFiltrados = eventosFiltrados.filter(evento => evento.status === 'approved');
     }
 
     eventosFiltrados = eventosFiltrados.filter(eventoEstaAtivoMemory);
@@ -348,10 +367,11 @@ router.post('/eventos', upload.any(), (req, res) => {
       subcategorias: Array.isArray(subcategorias) ? subcategorias : [subcategorias || ''],
       imagem: imagemCapaUrl,
       imagens: imagens,
+      status: 'pending',
       criado_em: new Date()
     };
     db.eventos.push(novoEvento);
-    res.status(201).json({ mensagem: 'Evento cadastrado com sucesso!', id: novoEvento.id });
+    res.status(201).json({ mensagem: 'Evento enviado para análise! Será aprovado ou rejeitado em até 24 horas.', id: novoEvento.id });
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao cadastrar evento', detalhes: err.message });
   }
@@ -838,7 +858,7 @@ router.post('/admin/eventos/:id/aprovar', verificarAdmin, (req, res) => {
     if (!evento) {
       return res.status(404).json({ erro: 'Evento não encontrado' });
     }
-    evento.status = 'aprovado';
+    evento.status = 'approved';
     res.json({ mensagem: 'Evento aprovado com sucesso', evento });
   } catch (err) {
     console.error('Erro ao aprovar evento:', err);
@@ -857,8 +877,24 @@ router.post('/admin/eventos/:id/rejeitar', verificarAdmin, (req, res) => {
       return res.status(404).json({ erro: 'Evento não encontrado' });
     }
     
-    evento.status = 'rejeitado';
+    evento.status = 'rejected';
     evento.motivo_rejeicao = motivo;
+    
+    // Adicionar mensagem de contato para o usuário
+    const organizador = db.usuarios.find(u => u.id === evento.organizador_id);
+    if (organizador) {
+      const mensagemContato = {
+        id: db.mensagens.length + 1,
+        nome: organizador.nome,
+        email: organizador.email,
+        mensagem: `Seu evento "${evento.nome}" foi rejeitado. Motivo: ${motivo}`,
+        criadoEm: new Date(),
+        respondida: false,
+        resposta: null,
+        respondidoEm: null
+      };
+      db.mensagens.push(mensagemContato);
+    }
     
     res.json({ mensagem: 'Evento rejeitado', evento });
   } catch (err) {

@@ -794,7 +794,7 @@ async function inicializarFormulario() {
                 if (res.ok) {
                     if (msg) {
                         msg.style.color = 'lightgreen';
-                        msg.textContent = 'Evento publicado com sucesso!';
+                        msg.textContent = dados.mensagem || 'Evento enviado para análise! Será aprovado ou rejeitado em até 24 horas.';
                     }
                     setTimeout(() => {
                         window.location.href = 'index.html';
