@@ -149,6 +149,7 @@ router.get('/verificar-email', (req, res) => {
         criado_em: new Date()
       };
       db.usuarios.push(admin);
+      db.save();
       console.log('✅ Admin criado com sucesso!');
     } else {
       console.log('✅ Admin já existe');
@@ -184,6 +185,7 @@ router.post('/cadastro', async (req, res) => {
       criado_em: new Date()
     };
     db.usuarios.push(novoUsuario);
+    db.save();
     console.log('✓ Usuário cadastrado com sucesso! Total de usuários:', db.usuarios.length);
     res.status(201).json({ mensagem: 'Usuário cadastrado com sucesso!', id: novoUsuario.id });
   } catch (err) {
@@ -371,6 +373,7 @@ router.post('/eventos', upload.any(), (req, res) => {
       criado_em: new Date()
     };
     db.eventos.push(novoEvento);
+    db.save();
     res.status(201).json({ mensagem: 'Evento enviado para análise! Será aprovado ou rejeitado em até 24 horas.', id: novoEvento.id });
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao cadastrar evento', detalhes: err.message });
@@ -440,7 +443,7 @@ router.put('/eventos/:id', upload.any(), (req, res) => {
     Object.assign(evento, camposAtualizados);
     if (imagemCapaUrl) evento.imagem = imagemCapaUrl;
     if (imagens.length > 0) evento.imagens = imagens;
-
+    db.save();
     res.json({ mensagem: 'Evento atualizado com sucesso!' });
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao atualizar evento', detalhes: err.message });
@@ -455,6 +458,7 @@ router.delete('/eventos/:id', (req, res) => {
       return res.status(404).json({ erro: 'Evento não encontrado' });
     }
     db.eventos.splice(index, 1);
+    db.save();
     res.json({ mensagem: 'Evento deletado com sucesso!' });
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao deletar evento', detalhes: err.message });
@@ -522,6 +526,7 @@ router.put('/usuario/:id', (req, res) => {
     if (req.body.estado) usuario.estado = req.body.estado;
     if (req.body.cidade) usuario.cidade = req.body.cidade;
     if (req.body.preferencias) usuario.preferencias = req.body.preferencias;
+    db.save();
     
     const { senha, ...usuarioSemSenha } = usuario;
     res.json(usuarioSemSenha);
@@ -543,6 +548,7 @@ router.delete('/usuarios/:id', (req, res) => {
     
     // Remover eventos do usuário
     db.eventos = db.eventos.filter(e => e.organizador_id !== parseInt(req.params.id));
+    db.save();
     
     res.json({ mensagem: 'Usuário deletado com sucesso!' });
   } catch (err) {
@@ -559,6 +565,7 @@ router.delete('/usuario/:id', (req, res) => {
     db.usuarios.splice(index, 1);
     db.eventos = db.eventos.filter(e => e.organizador_id !== parseInt(req.params.id));
 
+    db.save();
     res.json({ mensagem: 'Usuário deletado com sucesso!' });
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao deletar usuário', detalhes: err.message });
@@ -724,6 +731,7 @@ router.post('/interesses', (req, res) => {
         data: new Date()
       });
     }
+    db.save();
 
     // Retornar novo contador (conta usuários únicos)
     const interessesParaEvento = db.interesses.filter(i => 
@@ -797,6 +805,7 @@ async function enviarEmailContato(dados) {
     respondidoEm: null
   };
   db.mensagens.push(novaMensagem);
+  db.save();
   
   const mailOptions = {
     from: CONTACT_EMAIL,
@@ -859,6 +868,7 @@ router.post('/admin/eventos/:id/aprovar', verificarAdmin, (req, res) => {
       return res.status(404).json({ erro: 'Evento não encontrado' });
     }
     evento.status = 'approved';
+    db.save();
     res.json({ mensagem: 'Evento aprovado com sucesso', evento });
   } catch (err) {
     console.error('Erro ao aprovar evento:', err);
@@ -879,6 +889,7 @@ router.post('/admin/eventos/:id/rejeitar', verificarAdmin, (req, res) => {
     
     evento.status = 'rejected';
     evento.motivo_rejeicao = motivo;
+    db.save();
     
     // Adicionar mensagem de contato para o usuário
     const organizador = db.usuarios.find(u => u.id === evento.organizador_id);
@@ -894,6 +905,7 @@ router.post('/admin/eventos/:id/rejeitar', verificarAdmin, (req, res) => {
         respondidoEm: null
       };
       db.mensagens.push(mensagemContato);
+      db.save();
     }
     
     res.json({ mensagem: 'Evento rejeitado', evento });
