@@ -60,14 +60,13 @@ router.post('/cadastro', async (req, res) => {
       return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
     }
 
-    // Hash da senha antes de salvar
-    const senhaHasheada = await bcrypt.hash(senha, 10);
-    console.log('🔐 Senha hasheada com sucesso');
+    // Hasher a senha ANTES de registrar
+    const senhaCriptografada = await bcrypt.hash(senha, 10);
 
     const id = await dbFirestore.registrarUsuario({
       nome,
       email,
-      senha: senhaHasheada,
+      senha: senhaCriptografada,
       estado: estado || 'Não informado',
       cidade: cidade || 'Não informado',
       preferencias
@@ -87,7 +86,8 @@ router.post('/cadastro', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   try {
-    const { email, senha } = req.body;
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const { senha } = req.body;
     console.log('🔐 Tentativa de login:', email);
 
     const usuario = await dbFirestore.autenticarUsuario(email, senha);

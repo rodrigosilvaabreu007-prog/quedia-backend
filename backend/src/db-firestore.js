@@ -63,7 +63,9 @@ function logOperacaoEvento(operacao, eventoId, dados = {}) {
 
 async function verificarEmailExistente(email) {
   try {
-    const snapshot = await db.collection('usuarios').where('email', '==', email).limit(1).get();
+    // Normalizar email para lowercase
+    const emailNormalizado = String(email || '').trim().toLowerCase();
+    const snapshot = await db.collection('usuarios').where('email', '==', emailNormalizado).limit(1).get();
     return !snapshot.empty;
   } catch (error) {
     console.error('Erro ao verificar email:', error);
@@ -75,16 +77,20 @@ async function registrarUsuario(dados) {
   try {
     const { nome, email, senha, estado, cidade, preferencias } = dados;
 
+    // Normalizar email para lowercase
+    const emailNormalizado = String(email || '').trim().toLowerCase();
+    console.log('📝 Registrando usuário com email normalizado:', emailNormalizado);
+
     // Verificar se email já existe
-    const emailExiste = await verificarEmailExistente(email);
+    const emailExiste = await verificarEmailExistente(emailNormalizado);
     if (emailExiste) {
       throw new Error('Email já cadastrado');
     }
 
     const usuario = {
       nome,
-      email,
-      senha, // Deve chegar já hasheada do routes-firestore.js
+      email: emailNormalizado,
+      senha, // Já deve estar hasheada
       estado: estado || '',
       cidade: cidade || '',
       preferencias: preferencias || [],
@@ -92,11 +98,9 @@ async function registrarUsuario(dados) {
       criado_em: admin.firestore.FieldValue.serverTimestamp(),
       atualizado_em: admin.firestore.FieldValue.serverTimestamp()
     };
-    
-    console.log('💾 Salvando usuário no Firestore:', { nome, email, estado, cidade, preferencias });
 
     const docRef = await db.collection('usuarios').add(usuario);
-    console.log('✅ Usuário salvo com ID:', docRef.id);
+    console.log('✅ Usuário registrado com sucesso:', emailNormalizado);
     return docRef.id;
   } catch (error) {
     console.error('Erro ao registrar usuário:', error);
@@ -106,23 +110,31 @@ async function registrarUsuario(dados) {
 
 async function autenticarUsuario(email, senha) {
   try {
-    const snapshot = await db.collection('usuarios').where('email', '==', email).limit(1).get();
+    // Normalizar email para lowercase
+    const emailNormalizado = String(email || '').trim().toLowerCase();
+    console.log('🔐 Autenticando com email normalizado:', emailNormalizado);
+    
+    const snapshot = await db.collection('usuarios').where('email', '==', emailNormalizado).limit(1).get();
 
     if (snapshot.empty) {
+      console.log('❌ Email não encontrado:', emailNormalizado);
       return null;
     }
 
     const usuarioDoc = snapshot.docs[0];
     const usuario = { id: usuarioDoc.id, ...usuarioDoc.data() };
 
-    // Verificar senha (assumindo que está hasheada)
+    // Verificar senha (deve estar hasheada no banco)
     const bcrypt = require('bcryptjs');
+    console.log('🔍 Comparando senhas...');
     const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
 
     if (!senhaCorreta) {
+      console.log('❌ Senha incorreta para:', emailNormalizado);
       return null;
     }
 
+    console.log('✅ Autenticação bem-sucedida para:', emailNormalizado);
     // Remover senha do retorno
     delete usuario.senha;
     return usuario;
