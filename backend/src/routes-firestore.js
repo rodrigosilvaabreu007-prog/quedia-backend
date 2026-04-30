@@ -3,12 +3,27 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const dbFirestore = require('./db-firestore');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_fixa';
 
-// Configuração do Multer para upload de arquivos
-const storage = multer.memoryStorage(); // Armazenar arquivos em memória
+// Configuração do Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dphg1u2i7',
+  api_key: process.env.CLOUDINARY_API_KEY || '727437553221359',
+  api_secret: process.env.CLOUDINARY_API_SECRET || 'ZHFHP0BAGjldGes6Uz8Ur6RBEb0'
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'quedia_eventos',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp']
+  }
+});
+
 const upload = multer({
   storage: storage,
   limits: {
@@ -227,6 +242,19 @@ router.post('/eventos', verificarToken, upload.fields([
       datasRecebidas = [{ data: data || '', horario_inicio: horario || '', horario_fim: horario_fim || '' }];
     }
 
+    const urlsImagens = [];
+    const imagemCapaArquivo = req.files?.imagemCapa?.[0];
+    const imagensExtras = req.files?.imagens || [];
+
+    if (imagemCapaArquivo && imagemCapaArquivo.path) {
+      urlsImagens.push(imagemCapaArquivo.path);
+    }
+    imagensExtras.forEach((file) => {
+      if (file && file.path) {
+        urlsImagens.push(file.path);
+      }
+    });
+
     const id = await dbFirestore.cadastrarEvento({
       nome,
       descricao,
@@ -244,8 +272,8 @@ router.post('/eventos', verificarToken, upload.fields([
       organizador_id: req.usuario_id,
       categoria,
       subcategorias,
-      imagemCapa: req.files.imagemCapa ? req.files.imagemCapa[0] : null,
-      imagens: req.files.imagens || [],
+      imagem: urlsImagens.length > 0 ? urlsImagens[0] : null,
+      imagens: urlsImagens,
       datas: datasRecebidas
     });
 
