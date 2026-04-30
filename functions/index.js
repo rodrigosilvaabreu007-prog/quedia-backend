@@ -6,6 +6,6 @@ if (!admin.apps.length) {
   admin.initializeApp();
 }
 
-const app = require('eventhub-backend/src/server');
+const app = require('./backend/src/server');
 
 exports.api = functions.https.onRequest(app);
