@@ -5,23 +5,41 @@ const cors = require('cors');
 const app = express();
 
 const mongoUri = process.env.MONGO_URI ? process.env.MONGO_URI.trim() : '';
-const useMemoryBackend = !mongoUri;
+const isFirebaseFunctions = !!process.env.FUNCTION_NAME || !!process.env.FUNCTION_TARGET || !!process.env.FUNCTION_SIGNATURE_TYPE || !!process.env.FIREBASE_CONFIG;
+const isCloudRun = !!process.env.GCLOUD_PROJECT || !!process.env.GCP_PROJECT || !!process.env.GOOGLE_CLOUD_PROJECT || process.env.NODE_ENV === 'production';
+const useMemoryBackend = !mongoUri && !isFirebaseFunctions && !isCloudRun;
 
 // Importar dependências apenas quando necessário
 let mongoose, connectDB;
-if (!useMemoryBackend) {
+if (!useMemoryBackend && mongoUri) {
   mongoose = require('mongoose');
   ({ connectDB } = require('./db'));
 }
 
-// Permitir modo memory em produção também (para testes e falhas de conexão)
-console.log(`🔧 Modo do backend: ${useMemoryBackend ? 'MEMÓRIA' : 'MONGODB'}`);
+// Detectar modo do backend
+let backendMode = 'MEMÓRIA';
+if (isFirebaseFunctions || isCloudRun) {
+  backendMode = 'FIRESTORE';
+} else if (mongoUri) {
+  backendMode = 'MONGODB';
+}
+
+console.log(`🔧 Modo do backend: ${backendMode}`);
+console.log(`🔧 Firebase Functions: ${isFirebaseFunctions ? 'SIM' : 'NÃO'}`);
+console.log(`🔧 Cloud Run: ${isCloudRun ? 'SIM' : 'NÃO'}`);
 console.log(`🔧 MONGO_URI configurado: ${mongoUri ? 'SIM' : 'NÃO'}`);
 
-const apiRoutes = useMemoryBackend ? require('./routes-memory') : require('./routes');
+let apiRoutes;
+if (isFirebaseFunctions || isCloudRun) {
+  apiRoutes = require('./routes-firestore');
+} else if (mongoUri) {
+  apiRoutes = require('./routes');
+} else {
+  apiRoutes = require('./routes-memory');
+}
 
 if (useMemoryBackend) {
-  console.warn('⚠️ MONGO_URI não configurado. Iniciando backend em modo memória (não persistente).');
+  console.warn('⚠️ Nenhum banco persistente configurado. Iniciando backend em modo memória (não persistente).');
   if (process.env.NODE_ENV === 'production') {
     console.warn('⚠️ Executando em MODO PRODUÇÃO SEM PERSISTÊNCIA. Dados não serão salvos!');
   }
@@ -57,10 +75,24 @@ app.get('/debug', async (req, res) => {
     });
   }
 
+  if (isFirebaseFunctions || isCloudRun) {
+    return res.json({
+      status: 'ok',
+      backend: 'firestore',
+      readyState: 'n/a',
+      connected: true,
+      cloudRun: isCloudRun,
+      project: process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || null,
+      hostname: require('os').hostname(),
+      now: new Date().toISOString()
+    });
+  }
+
   try {
     const db = await connectDB();
     return res.json({
       status: 'ok',
+      backend: 'mongodb',
       mongoUri: process.env.MONGO_URI ? process.env.MONGO_URI.replace(/\?.*$/, '?...') : null,
       readyState: mongoose.connection.readyState,
       connected: mongoose.connection.readyState === 1,
@@ -78,15 +110,25 @@ app.get('/debug', async (req, res) => {
 });
 
 // Uso do router de rotas API
-app.use('/api', apiRoutes);
+if (isFirebaseFunctions || isCloudRun) {
+  app.use(apiRoutes);
+} else {
+  app.use('/api', apiRoutes);
+}
 
 app.use((req, res) => {
   res.status(404).json({ erro: 'Rota não encontrada.' });
 });
 
-const PORT = process.env.PORT || 8080;
-console.log(`🚀 Iniciando servidor na porta ${PORT}...`);
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Servidor rodando na porta ${PORT}`);
-  console.log(`🌐 Escutando em 0.0.0.0:${PORT}`);
-});
+if (!isFirebaseFunctions) {
+  const PORT = process.env.PORT || 8080;
+  console.log(`🚀 Iniciando servidor na porta ${PORT}...`);
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ Servidor rodando na porta ${PORT}`);
+    console.log(`🌐 Escutando em 0.0.0.0:${PORT}`);
+  });
+} else {
+  console.log('⚠️ Executando em modo Firebase Functions, não chamando app.listen().');
+}
+
+module.exports = app;
