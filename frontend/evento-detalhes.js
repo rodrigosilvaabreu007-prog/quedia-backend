@@ -169,6 +169,8 @@ async function carregarDetalhesEvento(eventoId) {
         const imagemUrl = (evento.imagens && evento.imagens.length > 0) ? evento.imagens[0] : (evento.imagem || 'https://via.placeholder.com/800x450?text=Evento');
         document.getElementById('evento-imagem').src = imagemUrl;
 
+        await inicializarBotaoInteresse(eventoId);
+
         // Gallery
         const galeria = document.getElementById('evento-fotos');
         const galeriaContainer = document.getElementById('galeria-fotos');
@@ -198,6 +200,94 @@ async function carregarDetalhesEvento(eventoId) {
         console.error('Erro ao carregar detalhes do evento:', error);
         alert('Erro ao carregar detalhes do evento. Tente novamente.');
         window.location.href = 'index.html';
+    }
+}
+
+function atualizarBotaoInteresseDetalhes(temInteresse, contador) {
+    const button = document.getElementById('btn-interesse-evento');
+    const contadorEl = document.getElementById('contador-interesse');
+    if (!button || !contadorEl) return;
+
+    button.textContent = temInteresse ? '★ Interessado' : '☆ Interessado';
+    button.classList.toggle('interessado', temInteresse);
+    contadorEl.textContent = `👥 ${contador || 0}`;
+    button.title = temInteresse ? 'Clique para remover interesse' : 'Clique para marcar interesse';
+}
+
+function isUsuarioLogadoDetalhes() {
+    return !!localStorage.getItem('eventhub-token') && !!localStorage.getItem('eventhub-usuario');
+}
+
+function getAuthHeadersDetalhes() {
+    const token = localStorage.getItem('eventhub-token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function inicializarBotaoInteresse(eventoId) {
+    const btn = document.getElementById('btn-interesse-evento');
+    if (!btn) return;
+
+    btn.onclick = async () => {
+        if (!isUsuarioLogadoDetalhes()) {
+            window.location.href = 'login.html';
+            return;
+        }
+        btn.disabled = true;
+        await alternarInteresseDetalhes(eventoId);
+        btn.disabled = false;
+    };
+
+    await carregarStatusInteresseDetalhes(eventoId);
+}
+
+async function carregarStatusInteresseDetalhes(eventoId) {
+    const btn = document.getElementById('btn-interesse-evento');
+    const contadorEl = document.getElementById('contador-interesse');
+    if (!btn || !contadorEl) return;
+
+    try {
+        const response = await fetch(`${window.API_URL}/interesses/${encodeURIComponent(eventoId)}`, {
+            headers: getAuthHeadersDetalhes()
+        });
+        const data = await response.json();
+        if (response.ok) {
+            atualizarBotaoInteresseDetalhes(data.temInteresse, data.contador);
+        } else {
+            atualizarBotaoInteresseDetalhes(false, 0);
+        }
+    } catch (error) {
+        atualizarBotaoInteresseDetalhes(false, 0);
+    }
+}
+
+async function alternarInteresseDetalhes(eventoId) {
+    const btn = document.getElementById('btn-interesse-evento');
+    if (!btn) return;
+
+    try {
+        const response = await fetch(`${window.API_URL}/interesses`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeadersDetalhes()
+            },
+            body: JSON.stringify({ evento_id: eventoId })
+        });
+        const data = await response.json();
+        if (response.ok && data) {
+            atualizarBotaoInteresseDetalhes(data.acao === 'adicionado', data.contador);
+            if (typeof window.showNotification === 'function') {
+                window.showNotification(data.mensagem || 'Interesse atualizado', 'success');
+            }
+        } else {
+            if (typeof window.showNotification === 'function') {
+                window.showNotification(data.erro || 'Falha ao atualizar interesse', 'error');
+            }
+        }
+    } catch (error) {
+        if (typeof window.showNotification === 'function') {
+            window.showNotification('Erro ao comunicar com o servidor', 'error');
+        }
     }
 }
 

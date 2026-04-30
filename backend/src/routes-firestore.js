@@ -364,6 +364,62 @@ router.post('/admin/eventos/:id/aprovar', verificarToken, verificarAdmin, async 
   }
 });
 
+router.get('/interesses/:eventoId', async (req, res) => {
+  try {
+    const { eventoId } = req.params;
+    if (!eventoId) {
+      return res.status(400).json({ erro: 'ID do evento é obrigatório' });
+    }
+
+    const interesses = await dbFirestore.listarInteresses(eventoId);
+    const usuarios = Array.from(new Set(interesses.map(i => String(i.usuario_id))));
+    const contador = usuarios.length;
+    const temInteresse = req.usuario_id ? usuarios.includes(String(req.usuario_id)) : false;
+
+    return res.json({ contador, interesses: usuarios, temInteresse });
+  } catch (err) {
+    console.error('Erro na rota GET /interesses/:eventoId:', err.message);
+    return res.status(400).json({ erro: 'Erro ao obter interesses', detalhes: err.message });
+  }
+});
+
+router.post('/interesses', verificarToken, async (req, res) => {
+  try {
+    const { evento_id } = req.body;
+    if (!evento_id) {
+      return res.status(400).json({ erro: 'evento_id é obrigatório' });
+    }
+
+    const interessesAtuais = await dbFirestore.listarInteresses(evento_id);
+    const usuarios = interessesAtuais.map(i => String(i.usuario_id));
+    const jaInteressado = usuarios.includes(String(req.usuario_id));
+    let acao;
+
+    if (jaInteressado) {
+      await dbFirestore.removerInteresse(evento_id, req.usuario_id);
+      acao = 'removido';
+    } else {
+      await dbFirestore.adicionarInteresse(evento_id, req.usuario_id);
+      acao = 'adicionado';
+    }
+
+    const interessesAtualizados = await dbFirestore.listarInteresses(evento_id);
+    const usuariosAtualizados = Array.from(new Set(interessesAtualizados.map(i => String(i.usuario_id))));
+    const contador = usuariosAtualizados.length;
+
+    return res.json({
+      sucesso: true,
+      acao,
+      contador,
+      interesses: usuariosAtualizados,
+      mensagem: acao === 'adicionado' ? 'Interesse adicionado' : 'Interesse removido'
+    });
+  } catch (err) {
+    console.error('Erro na rota POST /interesses:', err.message);
+    return res.status(400).json({ erro: 'Erro ao atualizar interesse', detalhes: err.message });
+  }
+});
+
 router.post('/admin/eventos/:id/rejeitar', verificarToken, verificarAdmin, async (req, res) => {
   try {
     const { id } = req.params;
