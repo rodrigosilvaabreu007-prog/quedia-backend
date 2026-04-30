@@ -6,7 +6,7 @@ const app = express();
 
 const mongoUri = process.env.MONGO_URI ? process.env.MONGO_URI.trim() : '';
 const isFirebaseFunctions = !!process.env.FUNCTION_NAME || !!process.env.FUNCTION_TARGET || !!process.env.FUNCTION_SIGNATURE_TYPE || !!process.env.FIREBASE_CONFIG;
-const isCloudRun = !!process.env.K_SERVICE || !!process.env.K_REVISION || !!process.env.K_CONFIGURATION || !!process.env.GCLOUD_PROJECT || !!process.env.GCP_PROJECT || !!process.env.GOOGLE_CLOUD_PROJECT || process.env.NODE_ENV === 'production';
+const isCloudRun = !!process.env.GCLOUD_PROJECT || !!process.env.GCP_PROJECT || !!process.env.GOOGLE_CLOUD_PROJECT || process.env.NODE_ENV === 'production';
 const useMemoryBackend = !mongoUri && !isFirebaseFunctions && !isCloudRun;
 
 // Importar dependências apenas quando necessário
@@ -110,8 +110,12 @@ app.get('/debug', async (req, res) => {
 });
 
 // Uso do router de rotas API
-app.use(apiRoutes);
-if (!isFirebaseFunctions) {
+if (isCloudRun) {
+  app.use(apiRoutes);
+  app.use('/api', apiRoutes);
+} else if (isFirebaseFunctions) {
+  app.use(apiRoutes);
+} else {
   app.use('/api', apiRoutes);
 }
 
