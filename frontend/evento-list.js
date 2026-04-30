@@ -199,13 +199,15 @@ async function carregarStatusInteresseCard(card, eventoId) {
         const response = await fetch(`${window.API_URL}/interesses/${encodeURIComponent(eventoId)}`, {
             headers: getAuthHeaders()
         });
-        const data = await response.json();
         if (response.ok) {
-            atualizarBotaoInteresse(button, contadorEl, data.temInteresse, data.contador);
+            const data = await response.json();
+            atualizarBotaoInteresse(button, contadorEl, data.temInteresse || false, data.contador || 0);
         } else {
+            console.warn('Erro ao carregar interesses:', response.status);
             atualizarBotaoInteresse(button, contadorEl, false, 0);
         }
     } catch (err) {
+        console.warn('Erro ao comunicar com servidor de interesses:', err);
         atualizarBotaoInteresse(button, contadorEl, false, 0);
     }
 }
