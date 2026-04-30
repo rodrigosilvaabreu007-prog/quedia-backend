@@ -325,8 +325,11 @@ router.delete('/eventos/:id', verificarToken, async (req, res) => {
       return res.status(404).json({ erro: 'Evento não encontrado' });
     }
 
-    // Verificar se é o organizador
-    if (evento.organizador_id !== req.usuario_id) {
+    // Verificar se é o organizador ou admin (permitir ambos)
+    const isOrganizador = String(evento.organizador_id) === String(req.usuario_id);
+    const isAdmin = req.tipo && String(req.tipo).toLowerCase() === 'adm';
+
+    if (!isOrganizador && !isAdmin) {
       return res.status(403).json({ erro: 'Não autorizado a deletar este evento' });
     }
 
