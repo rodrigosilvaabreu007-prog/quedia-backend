@@ -1,6 +1,7 @@
 
 const DEFAULT_BASE_URL = window.BASE_URL || window.location.origin;
-const API_URL = window.API_URL || ((/localhost|127\.0\.0\.1|192\.168\.|::1/.test(window.location.hostname)) ? `${DEFAULT_BASE_URL}/api` : 'https://eventhub-api-649702844549.us-central1.run.app/api');
+const DEFAULT_API_URL = 'https://eventhub-api-649702844549.us-central1.run.app';
+const API_URL = window.API_URL || ((/localhost|127\.0\.0\.1|192\.168\.|::1/.test(window.location.hostname)) ? `${DEFAULT_BASE_URL}/api` : DEFAULT_API_URL);
 
 window.BASE_URL = DEFAULT_BASE_URL;
 window.API_URL = API_URL;

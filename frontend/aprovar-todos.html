@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprovar Todos Eventos - QueDia</title>
+</head>
+<body>
+    <h1>Aprovar Todos os Eventos Pendentes</h1>
+    <button onclick="aprovarTodos()">Aprovar Todos</button>
+    <div id="resultado"></div>
+
+    <script>
+        const API_URL = 'https://eventhub-api-649702844549.us-central1.run.app';
+
+        async function aprovarTodos() {
+            const token = prompt('Digite o token de admin:');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${API_URL}/admin/aprovar-todos`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const resultado = await response.json();
+                document.getElementById('resultado').innerHTML = `
+                    <p>✅ ${resultado.mensagem}</p>
+                    <p>Eventos aprovados: ${resultado.modificados}</p>
+                `;
+            } catch (error) {
+                document.getElementById('resultado').innerHTML = `<p>❌ Erro: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
