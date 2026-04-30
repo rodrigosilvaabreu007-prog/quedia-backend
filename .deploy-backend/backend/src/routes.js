@@ -390,25 +390,6 @@ router.post('/admin/eventos/:id/rejeitar', verificarAdmin, async (req, res) => {
     }
 });
 
-// TEMPORÁRIO: APROVAR TODOS OS EVENTOS PENDENTES
-router.post('/admin/aprovar-todos', verificarAdmin, async (req, res) => {
-    try {
-        const { EventoModel } = require('./models/eventos');
-        const resultado = await EventoModel.updateMany(
-            { status: 'pendente' },
-            { status: 'aprovado', motivo_rejeicao: '' }
-        );
-
-        return res.json({
-            mensagem: `Aprovados ${resultado.modifiedCount} eventos`,
-            modificados: resultado.modifiedCount
-        });
-    } catch (err) {
-        console.error('Erro ao aprovar todos:', err.message);
-        return res.status(500).json({ erro: 'Erro ao aprovar eventos.', detalhe: err.message });
-    }
-});
-
 // 11. ROTA GET: LISTAR MENSAGENS DE CONTATO (ADMIN)
 router.get('/admin/mensagens', verificarAdmin, async (req, res) => {
     try {

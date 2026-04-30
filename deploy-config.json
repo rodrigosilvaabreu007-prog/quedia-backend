@@ -1,0 +1,28 @@
+{
+  "protections": {
+    "backupBeforeDeploy": true,
+    "verifyIntegrityBeforeDeploy": true,
+    "blockMassDeleteOperations": true,
+    "logAllEventOperations": true,
+    "allowDeleteOnlyRejectedEvents": true
+  },
+  "deploy": {
+    "project": "quedia-backend",
+    "region": "us-central1",
+    "runtime": "nodejs20",
+    "memory": "256MB",
+    "timeout": "60s"
+  },
+  "monitoring": {
+    "logLevel": "INFO",
+    "alertOnDataLoss": true,
+    "backupRetentionDays": 30
+  },
+  "emergency": {
+    "backupFiles": [
+      "eventos_backup_latest.json",
+      "eventos_backup_*.json"
+    ],
+    "restoreCommand": "python backup_eventos.py --restore eventos_backup_latest.json"
+  }
+}

@@ -22,43 +22,6 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-// ============ PROTEÇÕES DE SEGURANÇA ============
-
-/**
- * Valida operações perigosas que podem causar perda de dados
- */
-async function validarOperacaoPerigosa(operacao, dados = {}) {
-  console.log(`🛡️ [SEGURANÇA] Validando operação: ${operacao}`, dados);
-
-  // Verificar se é uma operação de limpeza ou remoção em massa
-  if (operacao === 'LIMPAR_COLECAO' || operacao === 'DELETAR_TUDO') {
-    console.error(`🚨 [SEGURANÇA] Operação perigosa bloqueada: ${operacao}`);
-    throw new Error(`Operação perigosa bloqueada: ${operacao}. Eventos não podem ser deletados em massa.`);
-  }
-
-  // Verificar se há filtros muito amplos
-  if (operacao === 'DELETAR_MULTIPLOS' && dados.filtro === 'TODOS') {
-    console.error(`🚨 [SEGURANÇA] Operação perigosa bloqueada: deletar todos os eventos`);
-    throw new Error('Operação perigosa bloqueada: não é permitido deletar todos os eventos.');
-  }
-
-  console.log(`✅ [SEGURANÇA] Operação validada: ${operacao}`);
-  return true;
-}
-
-/**
- * Log detalhado de operações nos eventos
- */
-function logOperacaoEvento(operacao, eventoId, dados = {}) {
-  const timestamp = new Date().toISOString();
-  console.log(`📝 [EVENTO ${operacao}] ${timestamp} - ID: ${eventoId || 'N/A'}`, {
-    operacao,
-    eventoId,
-    dados: JSON.stringify(dados).substring(0, 200) + '...',
-    timestamp
-  });
-}
-
 // ============ USUÁRIOS ============
 
 async function verificarEmailExistente(email) {
@@ -160,19 +123,9 @@ async function atualizarUsuario(id, dados) {
 async function listarEventos() {
   try {
     const snapshot = await db.collection('eventos').orderBy('criado_em', 'desc').get();
-    const eventos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-    console.log(`📊 Eventos listados: ${eventos.length} encontrados`);
-
-    // Verificar integridade básica
-    const eventosInvalidos = eventos.filter(e => !e.nome || !e.categoria);
-    if (eventosInvalidos.length > 0) {
-      console.warn(`⚠️ Eventos com dados inválidos encontrados: ${eventosInvalidos.length}`);
-    }
-
-    return eventos;
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
-    console.error('❌ Erro ao listar eventos:', error);
+    console.error('Erro ao listar eventos:', error);
     throw error;
   }
 }
@@ -192,9 +145,6 @@ async function obterEventosPorOrganizador(organizadorId) {
 
 async function cadastrarEvento(dados) {
   try {
-    // Validar operação
-    await validarOperacaoPerigosa('CADASTRAR_EVENTO', dados);
-
     const evento = {
       ...dados,
       criado_em: admin.firestore.FieldValue.serverTimestamp(),
@@ -202,14 +152,9 @@ async function cadastrarEvento(dados) {
     };
 
     const docRef = await db.collection('eventos').add(evento);
-
-    // Log da operação
-    logOperacaoEvento('CRIADO', docRef.id, { nome: dados.nome, organizador: dados.organizador });
-
-    console.log(`✅ Evento cadastrado com sucesso: ${docRef.id} - ${dados.nome}`);
     return docRef.id;
   } catch (error) {
-    console.error('❌ Erro ao cadastrar evento:', error);
+    console.error('Erro ao cadastrar evento:', error);
     throw error;
   }
 }
@@ -240,68 +185,12 @@ async function atualizarEvento(id, dados) {
   }
 }
 
-async function listarEventosPendentes() {
-  try {
-    const snapshot = await db.collection('eventos')
-      .where('status', '==', 'pendente')
-      .orderBy('criado_em', 'desc')
-      .get();
-
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  } catch (error) {
-    console.error('Erro ao listar eventos pendentes:', error);
-    throw error;
-  }
-}
-
-async function atualizarStatusEvento(id, status, motivo_rejeicao = '') {
-  try {
-    const atualizacao = {
-      status,
-      motivo_rejeicao: motivo_rejeicao || '' ,
-      atualizado_em: admin.firestore.FieldValue.serverTimestamp()
-    };
-    await db.collection('eventos').doc(id).update(atualizacao);
-    return true;
-  } catch (error) {
-    console.error('Erro ao atualizar status do evento:', error);
-    throw error;
-  }
-}
-
 async function deletarEvento(id) {
   try {
-    // Validar operação perigosa
-    await validarOperacaoPerigosa('DELETAR_EVENTO', { id });
-
-    // Verificar se o evento existe antes de deletar
-    const evento = await obterEvento(id);
-    if (!evento) {
-      throw new Error(`Evento não encontrado: ${id}`);
-    }
-
-    // Log da operação ANTES de deletar
-    logOperacaoEvento('DELETAR_INICIADO', id, {
-      nome: evento.nome,
-      organizador: evento.organizador,
-      status: evento.status
-    });
-
-    // ⚠️ IMPORTANTE: Só permitir deletar eventos rejeitados ou de teste
-    if (evento.status !== 'rejeitado' && !evento.nome?.includes('[TESTE]')) {
-      console.error(`🚨 [SEGURANÇA] Tentativa de deletar evento ativo bloqueada: ${id} - ${evento.nome}`);
-      throw new Error('Não é permitido deletar eventos ativos. Apenas eventos rejeitados podem ser deletados.');
-    }
-
     await db.collection('eventos').doc(id).delete();
-
-    // Log da operação concluída
-    logOperacaoEvento('DELETADO', id, { nome: evento.nome });
-
-    console.log(`🗑️ Evento deletado com segurança: ${id} - ${evento.nome}`);
     return true;
   } catch (error) {
-    console.error('❌ Erro ao deletar evento:', error);
+    console.error('Erro ao deletar evento:', error);
     throw error;
   }
 }
@@ -406,70 +295,6 @@ async function marcarMensagemComoRespondida(id) {
   }
 }
 
-// ============ VERIFICAÇÃO DE INTEGRIDADE ============
-
-/**
- * Verifica a integridade dos dados no Firestore
- * Deve ser chamada após operações importantes
- */
-async function verificarIntegridadeDados() {
-  try {
-    console.log('🔍 Iniciando verificação de integridade dos dados...');
-
-    const resultados = {
-      eventos: { total: 0, validos: 0, invalidos: 0 },
-      usuarios: { total: 0, validos: 0, invalidos: 0 },
-      timestamp: new Date().toISOString()
-    };
-
-    // Verificar eventos
-    const eventosSnapshot = await db.collection('eventos').get();
-    resultados.eventos.total = eventosSnapshot.size;
-
-    for (const doc of eventosSnapshot.docs) {
-      const data = doc.data();
-      const isValido = data.nome && data.categoria && data.organizador_id;
-
-      if (isValido) {
-        resultados.eventos.validos++;
-      } else {
-        resultados.eventos.invalidos++;
-        console.warn(`⚠️ Evento inválido encontrado: ${doc.id}`, {
-          nome: data.nome,
-          categoria: data.categoria,
-          organizador_id: data.organizador_id
-        });
-      }
-    }
-
-    // Verificar usuários
-    const usuariosSnapshot = await db.collection('usuarios').get();
-    resultados.usuarios.total = usuariosSnapshot.size;
-
-    for (const doc of usuariosSnapshot.docs) {
-      const data = doc.data();
-      const isValido = data.nome && data.email;
-
-      if (isValido) {
-        resultados.usuarios.validos++;
-      } else {
-        resultados.usuarios.invalidos++;
-        console.warn(`⚠️ Usuário inválido encontrado: ${doc.id}`, {
-          nome: data.nome,
-          email: data.email
-        });
-      }
-    }
-
-    console.log('✅ Verificação de integridade concluída:', resultados);
-    return resultados;
-
-  } catch (error) {
-    console.error('❌ Erro na verificação de integridade:', error);
-    throw error;
-  }
-}
-
 module.exports = {
   verificarEmailExistente,
   registrarUsuario,
@@ -481,14 +306,11 @@ module.exports = {
   cadastrarEvento,
   obterEvento,
   atualizarEvento,
-  listarEventosPendentes,
-  atualizarStatusEvento,
   deletarEvento,
   listarInteresses,
   adicionarInteresse,
   removerInteresse,
   listarMensagens,
   enviarMensagem,
-  marcarMensagemComoRespondida,
-  verificarIntegridadeDados
+  marcarMensagemComoRespondida
 };

@@ -1,0 +1,19 @@
+{
+  "usuarios": [
+    {
+      "id": 1,
+      "nome": "Rodrigo",
+      "email": "rodrigo.silva.abreu554466@gmail.com",
+      "senha": "$2a$10$XggnpDJVDOn165A6NhI7JexHd98AJdRcLptalcWuzdY3vIZeRA//e",
+      "estado": "Não informado",
+      "cidade": "Não informado",
+      "preferencias": [],
+      "tipo": "adm",
+      "criado_em": "2026-04-28T19:34:13.640Z"
+    }
+  ],
+  "eventos": [],
+  "contatos": [],
+  "mensagens": [],
+  "interesses": []
+}
