@@ -397,7 +397,13 @@ async function carregarEventoEdicao() {
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            const message = errorData.erro ; errorData.message ; 'Nao foi possivel carregar o evento.';
+            if (response.status === 401) {
+                localStorage.removeItem('eventhub-token');
+                localStorage.removeItem('eventhub-usuario');
+                window.location.href = 'login.html';
+                return;
+            }
+            const message = errorData.erro || errorData.message || 'Nao foi possivel carregar o evento.';
             if (msg) {
                 msg.style.color = 'red';
                 msg.textContent = message;
@@ -566,6 +572,12 @@ async function enviarEdicao(event) {
                 window.location.href = 'meus-eventos.html';
             }, 1500);
         } else {
+            if (response.status === 401) {
+                localStorage.removeItem('eventhub-token');
+                localStorage.removeItem('eventhub-usuario');
+                window.location.href = 'login.html';
+                return;
+            }
             if (msg) {
                 msg.style.color = 'red';
                 msg.textContent = responseData.erro || responseData.message || 'Erro ao atualizar evento.';
@@ -800,6 +812,12 @@ async function inicializarFormulario() {
                         window.location.href = 'index.html';
                     }, 2000);
                 } else {
+                    if (res.status === 401) {
+                        localStorage.removeItem('eventhub-token');
+                        localStorage.removeItem('eventhub-usuario');
+                        window.location.href = 'login.html';
+                        return;
+                    }
                     if (msg) {
                         msg.style.color = 'red';
                         msg.textContent = dados.erro || dados.detalhe || dados.message || 'Falha no servidor';

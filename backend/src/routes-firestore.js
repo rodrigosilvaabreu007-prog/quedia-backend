@@ -3,6 +3,8 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const dbFirestore = require('./db-firestore');
 
+const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_fixa';
+
 // ============ AUTENTICAÇÃO ============
 
 // Middleware para verificar token JWT
@@ -14,29 +16,37 @@ function verificarToken(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    const decoded = jwt.verify(token, JWT_SECRET);
     req.usuario_id = decoded.id;
-    req.tipo = decoded.tipo;
+    req.tipo = decoded.tipo || decoded.cargo || decoded.role;
     next();
   } catch (err) {
-    res.status(401).json({ erro: 'Token inválido ou expirado' });
+    console.error('❌ verificarToken erro:', err.message);
+    return res.status(401).json({ erro: 'Token inválido ou expirado' });
   }
+}
+
+function verificarAdmin(req, res, next) {
+  if (req.tipo && String(req.tipo).toLowerCase() === 'adm') {
+    return next();
+  }
+  return res.status(403).json({ erro: 'Acesso negado. Você não é administrador.' });
 }
 
 // ============ USUÁRIOS ============
 
 // Verificar se email existe
-router.get('/verificar-email', (req, res) => {
+router.get('/verificar-email', async (req, res) => {
   try {
     const email = req.query.email;
     if (!email) {
       return res.status(400).json({ erro: 'Email é obrigatório' });
     }
-    dbFirestore.verificarEmailExistente(email).then(existe => {
-      res.json({ existe });
-    });
+    const existe = await dbFirestore.verificarEmailExistente(email);
+    return res.json({ existe });
   } catch (err) {
-    res.status(400).json({ erro: 'Erro ao verificar email', detalhes: err.message });
+    console.error('Erro na rota GET /verificar-email:', err.message);
+    return res.status(400).json({ erro: 'Erro ao verificar email', detalhes: err.message });
   }
 });
 
@@ -81,8 +91,12 @@ router.post('/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: usuario.id, tipo: usuario.tipo },
-      process.env.JWT_SECRET || 'secret',
+      {
+        id: usuario.id,
+        tipo: usuario.tipo || usuario.cargo || 'usuario',
+        cargo: usuario.cargo || usuario.tipo || 'usuario'
+      },
+      JWT_SECRET,
       { expiresIn: '2h' }
     );
     
@@ -106,21 +120,16 @@ router.post('/login', async (req, res) => {
 // ============ EVENTOS ============
 
 // Listar eventos
-router.get('/eventos', (req, res) => {
+router.get('/eventos', async (req, res) => {
   try {
     const organizador_id = req.query.organizador_id;
-    
-    if (organizador_id) {
-      dbFirestore.obterEventosPorOrganizador(organizador_id).then(eventos => {
-        res.json(eventos);
-      });
-    } else {
-      dbFirestore.listarEventos().then(eventos => {
-        res.json(eventos);
-      });
-    }
+    const eventos = organizador_id
+      ? await dbFirestore.obterEventosPorOrganizador(organizador_id)
+      : await dbFirestore.listarEventos();
+    return res.json(eventos);
   } catch (err) {
-    res.status(400).json({ erro: 'Erro ao listar eventos', detalhes: err.message });
+    console.error('Erro na rota GET /eventos:', err.message);
+    return res.status(500).json({ erro: 'Erro ao listar eventos', detalhes: err.message });
   }
 });
 
@@ -220,6 +229,54 @@ router.delete('/eventos/:id', verificarToken, async (req, res) => {
     res.json({ mensagem: 'Evento deletado com sucesso!' });
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao deletar evento', detalhes: err.message });
+  }
+});
+
+// ============ ADMIN ============
+
+router.get('/admin/eventos', verificarToken, verificarAdmin, async (req, res) => {
+  try {
+    const eventosPendentes = await dbFirestore.listarEventosPendentes();
+    return res.json(eventosPendentes);
+  } catch (err) {
+    console.error('Erro na rota GET /admin/eventos:', err.message);
+    return res.status(500).json({ erro: 'Erro ao buscar eventos pendentes.', detalhe: err.message });
+  }
+});
+
+router.post('/admin/eventos/:id/aprovar', verificarToken, verificarAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ erro: 'ID do evento é obrigatório' });
+    }
+
+    await dbFirestore.atualizarStatusEvento(id, 'aprovado', '');
+    return res.json({ mensagem: 'Evento aprovado com sucesso!' });
+  } catch (err) {
+    console.error('Erro na rota POST /admin/eventos/:id/aprovar:', err.message);
+    return res.status(500).json({ erro: 'Erro ao aprovar evento.', detalhe: err.message });
+  }
+});
+
+router.post('/admin/eventos/:id/rejeitar', verificarToken, verificarAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { motivo } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ erro: 'ID do evento é obrigatório' });
+    }
+
+    if (!motivo || !motivo.trim()) {
+      return res.status(400).json({ erro: 'Motivo da rejeição é obrigatório' });
+    }
+
+    await dbFirestore.atualizarStatusEvento(id, 'rejeitado', motivo.trim());
+    return res.json({ mensagem: 'Evento rejeitado com sucesso!' });
+  } catch (err) {
+    console.error('Erro na rota POST /admin/eventos/:id/rejeitar:', err.message);
+    return res.status(500).json({ erro: 'Erro ao rejeitar evento.', detalhe: err.message });
   }
 });
 
