@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const dbFirestore = require('./db-firestore');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_fixa';
@@ -59,10 +60,14 @@ router.post('/cadastro', async (req, res) => {
       return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
     }
 
+    // Hash da senha antes de salvar
+    const senhaHasheada = await bcrypt.hash(senha, 10);
+    console.log('🔐 Senha hasheada com sucesso');
+
     const id = await dbFirestore.registrarUsuario({
       nome,
       email,
-      senha,
+      senha: senhaHasheada,
       estado: estado || 'Não informado',
       cidade: cidade || 'Não informado',
       preferencias

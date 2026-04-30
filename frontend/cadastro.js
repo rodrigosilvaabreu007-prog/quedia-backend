@@ -35,7 +35,7 @@ function validarEmail() {
     fetch(`${window.API_URL}/verificar-email?email=${encodeURIComponent(email)}`)
       .then(res => res.json())
       .then(data => {
-        if (data.disponivel === false) {
+        if (data.existe === true) {
           erroDiv.textContent = 'Email já cadastrado';
           erroDiv.style.display = 'block';
         } else {
