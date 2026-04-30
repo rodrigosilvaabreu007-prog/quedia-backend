@@ -2,9 +2,20 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
 const dbFirestore = require('./db-firestore');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_fixa';
+
+// Configuração do Multer para upload de arquivos
+const storage = multer.memoryStorage(); // Armazenar arquivos em memória
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limite
+    files: 10 // Máximo 10 arquivos
+  }
+});
 
 // ============ AUTENTICAÇÃO ============
 
@@ -139,21 +150,79 @@ router.get('/eventos', async (req, res) => {
 });
 
 // Criar evento
-router.post('/eventos', verificarToken, async (req, res) => {
+router.post('/eventos', verificarToken, upload.fields([
+  { name: 'imagemCapa', maxCount: 1 },
+  { name: 'imagens', maxCount: 9 }
+]), async (req, res) => {
   try {
-    const { nome, descricao, estado, cidade, endereco, data, horario, horario_fim, gratuito, preco, categoria, subcategorias, imagem, organizador, datas } = req.body;
-    if (!nome || !descricao || !cidade || !categoria) {
-      return res.status(400).json({ erro: 'Campos obrigatórios faltando' });
+    // Extrair dados do FormData
+    const {
+      nome,
+      descricao,
+      estado,
+      cidade,
+      endereco,
+      data,
+      horario,
+      horario_fim,
+      gratuito,
+      preco,
+      categoria,
+      organizador,
+      latitude,
+      longitude
+    } = req.body;
+
+    // Processar subcategorias (podem vir como array ou string JSON)
+    let subcategorias = [];
+    if (req.body.subcategorias) {
+      if (Array.isArray(req.body.subcategorias)) {
+        subcategorias = req.body.subcategorias;
+      } else if (typeof req.body.subcategorias === 'string') {
+        try {
+          subcategorias = JSON.parse(req.body.subcategorias);
+        } catch (e) {
+          subcategorias = [req.body.subcategorias];
+        }
+      }
     }
 
+    // Processar datas (vem como string JSON)
     let datasRecebidas = [];
-    if (datas) {
+    if (req.body.datas) {
       try {
-        datasRecebidas = typeof datas === 'string' ? JSON.parse(datas) : datas;
+        datasRecebidas = JSON.parse(req.body.datas);
       } catch (err) {
+        console.warn('Erro ao parsear datas:', err.message);
         datasRecebidas = [];
       }
     }
+    if (!Array.isArray(datasRecebidas) || datasRecebidas.length === 0) {
+      datasRecebidas = [{ data: data || '', horario_inicio: horario || '', horario_fim: horario_fim || '' }];
+    }
+
+    // Validação detalhada dos campos obrigatórios
+    const camposFaltando = [];
+    if (!nome || nome.trim() === '') camposFaltando.push('nome');
+    if (!descricao || descricao.trim() === '') camposFaltando.push('descrição');
+    if (!organizador || organizador.trim() === '') camposFaltando.push('organizador');
+    if (!estado || estado.trim() === '') camposFaltando.push('estado');
+    if (!cidade || cidade.trim() === '') camposFaltando.push('cidade');
+    if (!endereco || endereco.trim() === '') camposFaltando.push('endereço');
+    if (!latitude || !longitude) camposFaltando.push('localização no mapa');
+    if (!categoria || categoria.trim() === '') camposFaltando.push('categoria principal');
+    if (!subcategorias || subcategorias.length === 0) camposFaltando.push('pelo menos uma subcategoria');
+    if (!req.files || !req.files.imagemCapa || req.files.imagemCapa.length === 0) camposFaltando.push('imagem de capa');
+
+    if (camposFaltando.length > 0) {
+      return res.status(400).json({
+        erro: 'Campos obrigatórios faltando',
+        campos_faltando: camposFaltando,
+        mensagem: `Os seguintes campos são obrigatórios: ${camposFaltando.join(', ')}`
+      });
+    }
+
+    // Remover duplicação - datasRecebidas já foi processada acima
     if (!Array.isArray(datasRecebidas) || datasRecebidas.length === 0) {
       datasRecebidas = [{ data: data || '', horario_inicio: horario || '', horario_fim: horario_fim || '' }];
     }
@@ -164,16 +233,19 @@ router.post('/eventos', verificarToken, async (req, res) => {
       estado: estado || 'Não informado',
       cidade,
       endereco: endereco || '',
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
       data: datasRecebidas[0].data || data,
       horario: datasRecebidas[0].horario_inicio || horario,
       horario_fim: datasRecebidas[0].horario_fim || horario_fim || '',
-      gratuito: gratuito === 'on' || gratuito === true,
+      gratuito: gratuito === 'on' || gratuito === true || gratuito === 'true',
       preco: Number(preco) || 0,
       organizador: organizador || 'Não informado',
       organizador_id: req.usuario_id,
       categoria,
       subcategorias,
-      imagem,
+      imagemCapa: req.files.imagemCapa ? req.files.imagemCapa[0] : null,
+      imagens: req.files.imagens || [],
       datas: datasRecebidas
     });
 
