@@ -32,6 +32,30 @@ const upload = multer({
   }
 });
 
+function uploadEventImages(req, res, next) {
+  upload.fields([
+    { name: 'imagemCapa', maxCount: 1 },
+    { name: 'imagens', maxCount: 9 }
+  ])(req, res, function(err) {
+    if (err) {
+      console.error('Erro de upload de imagens:', err.message);
+      if (err instanceof multer.MulterError) {
+        let mensagem = 'Erro ao processar imagens.';
+        if (err.code === 'LIMIT_FILE_COUNT') {
+          mensagem = 'Você pode enviar no máximo 9 imagens extras além da capa.';
+        } else if (err.code === 'LIMIT_FILE_SIZE') {
+          mensagem = 'Cada imagem deve ter no máximo 10 MB.';
+        } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+          mensagem = 'Um ou mais arquivos não são permitidos.';
+        }
+        return res.status(400).json({ erro: mensagem, detalhe: err.message });
+      }
+      return res.status(400).json({ erro: 'Erro ao processar imagens.', detalhe: err.message });
+    }
+    next();
+  });
+}
+
 // ============ AUTENTICAÇÃO ============
 
 // Middleware para verificar token JWT
@@ -203,10 +227,7 @@ router.get('/eventos', verificarTokenOpcional, async (req, res) => {
 });
 
 // Criar evento
-router.post('/eventos', verificarToken, upload.fields([
-  { name: 'imagemCapa', maxCount: 1 },
-  { name: 'imagens', maxCount: 9 }
-]), async (req, res) => {
+router.post('/eventos', verificarToken, uploadEventImages, async (req, res) => {
   try {
     // Extrair dados do FormData
     const {
