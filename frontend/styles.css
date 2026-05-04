@@ -1789,13 +1789,38 @@ header {
 }
 
 .evento-detalhes-container {
-    max-width: 1200px;
+    max-width: 980px;
     margin: 16px auto 32px auto;
-    padding: 24px;
+    padding: 20px;
     background: var(--bg-secondary, #1a1a1a);
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     position: relative;
+}
+
+.evento-header {
+    display: grid;
+    grid-template-columns: minmax(320px, 1.55fr) minmax(260px, 1fr);
+    gap: 28px;
+    margin-bottom: 24px;
+    position: relative;
+}
+
+@media (max-width: 1080px) {
+    .evento-header {
+        grid-template-columns: 1fr;
+    }
+}
+
+.evento-imagem-principal {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    background: #0d1118;
 }
 
 .evento-fotos {
