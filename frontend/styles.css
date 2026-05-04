@@ -1666,7 +1666,18 @@ header {
 }
 
 .modal-header-img {
-  width: 100%; height: 200px; object-fit: cover;
+  width: 100%;
+  max-height: min(540px, 55vh);
+  height: auto;
+  object-fit: cover;
+  aspect-ratio: 16 / 9;
+}
+
+@media (max-width: 900px) {
+  .modal-header-img {
+    max-height: 320px;
+    aspect-ratio: auto;
+  }
 }
 
 .modal-body { padding: 24px; }
