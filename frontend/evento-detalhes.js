@@ -208,7 +208,7 @@ function atualizarBotaoInteresseDetalhes(temInteresse, contador) {
     const contadorEl = document.getElementById('contador-interesse');
     if (!button || !contadorEl) return;
 
-    button.textContent = temInteresse ? '★ Interessado' : '☆ Interessado';
+    button.textContent = temInteresse ? '★' : '☆';
     button.classList.toggle('interessado', temInteresse);
     contadorEl.textContent = `👥 ${contador || 0}`;
     button.title = temInteresse ? 'Clique para remover interesse' : 'Clique para marcar interesse';
