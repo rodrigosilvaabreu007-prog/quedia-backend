@@ -203,21 +203,27 @@
         function rejeitarEvento(eventoId) {
             eventoParaRejeitar = eventoId;
             document.getElementById('motivo-rejeicao').value = '';
-            document.getElementById('modal-rejeicao-erro').textContent = '';
+            const erroEl = document.getElementById('modal-rejeicao-erro');
+            erroEl.textContent = '';
+            erroEl.style.display = 'none';
             document.getElementById('modal-rejeicao').style.display = 'flex';
         }
 
         function cancelarRejeicao() {
             eventoParaRejeitar = null;
             document.getElementById('motivo-rejeicao').value = '';
-            document.getElementById('modal-rejeicao-erro').textContent = '';
+            const erroEl = document.getElementById('modal-rejeicao-erro');
+            erroEl.textContent = '';
+            erroEl.style.display = 'none';
             document.getElementById('modal-rejeicao').style.display = 'none';
         }
 
         async function confirmarRejeicao() {
             const motivo = document.getElementById('motivo-rejeicao').value.trim();
             if (!motivo) {
-                document.getElementById('modal-rejeicao-erro').textContent = 'Informe o motivo da rejeição.';
+                const erroEl = document.getElementById('modal-rejeicao-erro');
+                erroEl.textContent = 'Informe o motivo da rejeição.';
+                erroEl.style.display = 'block';
                 return;
             }
 
@@ -241,7 +247,9 @@
 
                 const dados = await response.json().catch(() => ({}));
                 if (!response.ok) {
-                    document.getElementById('modal-rejeicao-erro').textContent = dados.erro || 'Erro ao rejeitar evento.';
+                    const erroEl = document.getElementById('modal-rejeicao-erro');
+                    erroEl.textContent = dados.erro || 'Erro ao rejeitar evento.';
+                    erroEl.style.display = 'block';
                     console.error('Erro ao rejeitar evento:', dados);
                     return;
                 }
@@ -251,7 +259,9 @@
                 carregarEventos();
             } catch (error) {
                 console.error('Erro:', error);
-                document.getElementById('modal-rejeicao-erro').textContent = 'Erro ao rejeitar evento. Tente novamente.';
+                const erroEl = document.getElementById('modal-rejeicao-erro');
+                erroEl.textContent = 'Erro ao rejeitar evento. Tente novamente.';
+                erroEl.style.display = 'block';
             }
         }
 
@@ -374,6 +384,7 @@
 
         .modal-content textarea {
             width: 100%;
+            box-sizing: border-box;
             min-height: 120px;
             margin: 12px 0;
             padding: 12px;
@@ -389,6 +400,7 @@
         }
 
         .modal-error {
+            display: none;
             color: #f8d7da;
             background: rgba(220, 53, 69, 0.12);
             padding: 10px 12px;
