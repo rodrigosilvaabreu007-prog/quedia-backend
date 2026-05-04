@@ -145,7 +145,14 @@ async function confirmarExclusao() {
             window.showNotification('Evento excluído com sucesso!', 'success');
             carregarMeusEventos();
         } else {
-            window.showNotification('Erro ao excluir evento.', 'error');
+            const erroResposta = await res.json().catch(() => null);
+            const mensagem = erroResposta?.erro || erroResposta?.mensagem || 'Erro ao excluir evento.';
+            window.showNotification(mensagem, 'error');
+            if (res.status === 401 || res.status === 403) {
+                localStorage.removeItem('eventhub-token');
+                localStorage.removeItem('eventhub-usuario');
+                setTimeout(() => window.location.href = 'login.html', 900);
+            }
         }
     } catch (error) {
         window.showNotification('Erro de conexão ao tentar excluir.', 'error');

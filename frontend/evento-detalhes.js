@@ -223,6 +223,19 @@ function getAuthHeadersDetalhes() {
     return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+function isAuthErrorDetalhes(response) {
+    return response && (response.status === 401 || response.status === 403);
+}
+
+function forcarLogoutPorTokenInvalidoDetalhes() {
+    localStorage.removeItem('eventhub-token');
+    localStorage.removeItem('eventhub-usuario');
+    if (typeof window.showNotification === 'function') {
+        window.showNotification('Sessão expirada ou token inválido. Faça login novamente.', 'error');
+    }
+    setTimeout(() => window.location.href = 'login.html', 900);
+}
+
 async function inicializarBotaoInteresse(eventoId) {
     const btn = document.getElementById('btn-interesse-evento');
     if (!btn) {
@@ -269,6 +282,10 @@ async function carregarStatusInteresseDetalhes(eventoId) {
         if (response.ok) {
             atualizarBotaoInteresseDetalhes(data.temInteresse, data.contador);
         } else {
+            if (isAuthErrorDetalhes(response)) {
+                forcarLogoutPorTokenInvalidoDetalhes();
+                return;
+            }
             console.warn('Erro na resposta da API:', data);
             atualizarBotaoInteresseDetalhes(false, 0);
         }
@@ -302,6 +319,10 @@ async function alternarInteresseDetalhes(eventoId) {
                 window.showNotification(data.mensagem || 'Interesse atualizado', 'success');
             }
         } else {
+            if (isAuthErrorDetalhes(response)) {
+                forcarLogoutPorTokenInvalidoDetalhes();
+                return;
+            }
             console.error('Erro na resposta POST:', data);
             if (typeof window.showNotification === 'function') {
                 window.showNotification(data?.erro || 'Falha ao atualizar interesse', 'error');

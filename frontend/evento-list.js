@@ -203,6 +203,10 @@ async function carregarStatusInteresseCard(card, eventoId) {
             const data = await response.json();
             atualizarBotaoInteresse(button, contadorEl, data.temInteresse || false, data.contador || 0);
         } else {
+            if (isAuthError(response)) {
+                forcarLogoutPorTokenInvalido();
+                return;
+            }
             console.warn('Erro ao carregar interesses:', response.status);
             atualizarBotaoInteresse(button, contadorEl, false, 0);
         }
@@ -248,6 +252,10 @@ async function alternarInteresseEvento(eventoId, card) {
                 window.showNotification(data.mensagem || 'Interesse atualizado', 'success');
             }
         } else {
+            if (isAuthError(response)) {
+                forcarLogoutPorTokenInvalido();
+                return;
+            }
             if (typeof window.showNotification === 'function') {
                 window.showNotification(data.erro || 'Falha ao atualizar interesse', 'error');
             }

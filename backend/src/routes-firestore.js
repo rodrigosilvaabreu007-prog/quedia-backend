@@ -53,6 +53,29 @@ function verificarToken(req, res, next) {
   }
 }
 
+function verificarTokenOpcional(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return next();
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.usuario_id = decoded.id;
+    req.tipo = decoded.tipo || decoded.cargo || decoded.role;
+  } catch (err) {
+    console.error('❌ verificarTokenOpcional erro:', err.message);
+    return res.status(401).json({ erro: 'Token inválido ou expirado' });
+  }
+
+  next();
+}
+
 function verificarAdmin(req, res, next) {
   if (req.tipo && String(req.tipo).toLowerCase() === 'adm') {
     return next();
@@ -305,8 +328,9 @@ router.put('/eventos/:id', verificarToken, async (req, res) => {
       return res.status(404).json({ erro: 'Evento não encontrado' });
     }
 
-    // Verificar se é o organizador
-    if (evento.organizador_id !== req.usuario_id) {
+    // Verificar se é o organizador ou um administrador
+    const isAdmin = req.tipo && String(req.tipo).toLowerCase() === 'adm';
+    if (evento.organizador_id !== req.usuario_id && !isAdmin) {
       return res.status(403).json({ erro: 'Não autorizado a editar este evento' });
     }
 
@@ -367,7 +391,7 @@ router.post('/admin/eventos/:id/aprovar', verificarToken, verificarAdmin, async 
   }
 });
 
-router.get('/interesses/:eventoId', async (req, res) => {
+router.get('/interesses/:eventoId', verificarTokenOpcional, async (req, res) => {
   try {
     const { eventoId } = req.params;
     if (!eventoId) {
