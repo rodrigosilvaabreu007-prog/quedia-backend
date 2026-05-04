@@ -133,8 +133,9 @@
                         }
                     </div>
                     <div class="evento-actions">
-                        <button onclick="mostrarConfirmacaoAprovacao('${evento.id}')" class="btn-success">Aprovar</button>
-                        <button onclick="rejeitarEvento('${evento.id}')" class="btn-danger">Rejeitar</button>
+                        <button onclick="verEvento('${evento.id || evento._id}');" class="btn-secondary">Ver Evento</button>
+                        <button onclick="mostrarConfirmacaoAprovacao('${evento.id || evento._id}')" class="btn-success">Aprovar</button>
+                        <button onclick="rejeitarEvento('${evento.id || evento._id}')" class="btn-danger">Rejeitar</button>
                     </div>
                 </div>
             `).join('');
@@ -216,6 +217,14 @@
             erroEl.textContent = '';
             erroEl.style.display = 'none';
             document.getElementById('modal-rejeicao').style.display = 'none';
+        }
+
+        function verEvento(eventoId) {
+            if (!eventoId) {
+                mostrarMensagem('ID do evento inválido.', 'error');
+                return;
+            }
+            window.location.href = `evento-detalhes.html?id=${encodeURIComponent(eventoId)}`;
         }
 
         async function confirmarRejeicao() {
