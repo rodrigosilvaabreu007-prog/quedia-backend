@@ -174,10 +174,13 @@ async function atualizarUsuario(id, dados) {
 
 async function listarEventos() {
   try {
-    const snapshot = await db.collection('eventos').orderBy('criado_em', 'desc').get();
+    const snapshot = await db.collection('eventos')
+      .where('status', '==', 'aprovado')
+      .orderBy('criado_em', 'desc')
+      .get();
     const eventos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    console.log(`📊 Eventos listados: ${eventos.length} encontrados`);
+    console.log(`📊 Eventos aprovados listados: ${eventos.length} encontrados`);
 
     // Verificar integridade básica
     const eventosInvalidos = eventos.filter(e => !e.nome || !e.categoria);
@@ -212,6 +215,8 @@ async function cadastrarEvento(dados) {
 
     const evento = {
       ...dados,
+      status: dados.status || 'pendente',
+      motivo_rejeicao: dados.motivo_rejeicao || '',
       criado_em: admin.firestore.FieldValue.serverTimestamp(),
       atualizado_em: admin.firestore.FieldValue.serverTimestamp()
     };

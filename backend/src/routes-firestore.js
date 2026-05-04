@@ -174,12 +174,27 @@ router.post('/login', async (req, res) => {
 // ============ EVENTOS ============
 
 // Listar eventos
-router.get('/eventos', async (req, res) => {
+router.get('/eventos', verificarTokenOpcional, async (req, res) => {
   try {
     const organizador_id = req.query.organizador_id;
-    const eventos = organizador_id
-      ? await dbFirestore.obterEventosPorOrganizador(organizador_id)
-      : await dbFirestore.listarEventos();
+    const tokenUsuarioId = req.usuario_id;
+    const tokenTipo = req.tipo && String(req.tipo).toLowerCase();
+    const isAdmin = tokenTipo === 'adm';
+
+    if (organizador_id) {
+      if (!tokenUsuarioId) {
+        return res.status(401).json({ erro: 'Token de autenticação necessário para listar eventos do organizador.' });
+      }
+
+      if (!isAdmin && String(organizador_id) !== String(tokenUsuarioId)) {
+        return res.status(403).json({ erro: 'Não autorizado a listar eventos de outro organizador.' });
+      }
+
+      const eventos = await dbFirestore.obterEventosPorOrganizador(organizador_id);
+      return res.json(eventos);
+    }
+
+    const eventos = await dbFirestore.listarEventos();
     return res.json(eventos);
   } catch (err) {
     console.error('Erro na rota GET /eventos:', err.message);
@@ -308,12 +323,20 @@ router.post('/eventos', verificarToken, upload.fields([
 });
 
 // Obter evento específico
-router.get('/eventos/:id', async (req, res) => {
+router.get('/eventos/:id', verificarTokenOpcional, async (req, res) => {
   try {
     const evento = await dbFirestore.obterEvento(req.params.id);
     if (!evento) {
       return res.status(404).json({ erro: 'Evento não encontrado' });
     }
+
+    const isAdmin = req.tipo && String(req.tipo).toLowerCase() === 'adm';
+    const isOrganizador = String(evento.organizador_id) === String(req.usuario_id);
+
+    if (!isAdmin && !isOrganizador && String(evento.status).toLowerCase() !== 'aprovado') {
+      return res.status(404).json({ erro: 'Evento não encontrado' });
+    }
+
     res.json(evento);
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao obter evento', detalhes: err.message });
