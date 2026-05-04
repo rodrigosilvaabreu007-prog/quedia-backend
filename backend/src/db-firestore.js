@@ -302,12 +302,7 @@ async function deletarEvento(id) {
       status: evento.status
     });
 
-    // ⚠️ IMPORTANTE: Só permitir deletar eventos rejeitados ou de teste
-    if (evento.status !== 'rejeitado' && !evento.nome?.includes('[TESTE]')) {
-      console.error(`🚨 [SEGURANÇA] Tentativa de deletar evento ativo bloqueada: ${id} - ${evento.nome}`);
-      throw new Error('Não é permitido deletar eventos ativos. Apenas eventos rejeitados podem ser deletados.');
-    }
-
+    // Permitir que o organizador ou administrador apague o evento, mesmo que esteja ativo.
     await db.collection('eventos').doc(id).delete();
 
     // Log da operação concluída
