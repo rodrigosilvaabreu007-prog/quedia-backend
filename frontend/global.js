@@ -124,7 +124,7 @@ function protegerRotasAdmin() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     console.log('📄 Página atual:', currentPage);
     const adminOnlyPages = ['admin-inicio.html', 'admin-perfil.html', 'admin-meus-eventos.html', 'admin-eventos.html', 'admin-contato.html'];
-    const userOnlyPagesForAdmin = ['perfil.html', 'meus-eventos.html', 'event-form.html', 'editar-evento.html', 'evento-detalhes.html', 'contato.html', 'sobre.html'];
+    const userOnlyPagesForAdmin = ['perfil.html', 'meus-eventos.html', 'event-form.html', 'editar-evento.html', 'contato.html', 'sobre.html'];
 
     const admin = isAdminUser();
     if (admin) {
