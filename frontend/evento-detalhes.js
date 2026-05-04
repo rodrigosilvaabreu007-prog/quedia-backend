@@ -85,13 +85,13 @@ async function carregarDetalhesEvento(eventoId) {
         const urlEvento = `${window.API_URL}/eventos/${eventoId}`;
         console.log('[PASSO 2] URL fetch:', urlEvento);
         
-        let response = await fetch(urlEvento);
+        let response = await fetch(urlEvento, { headers: getAuthHeadersDetalhes() });
         console.log('[PASSO 3] Response status:', response.status, response.statusText);
 
         if (!response.ok) {
             console.warn('[PASSO 4] GET por ID falhou, usando fallback');
             // Fallback para versão que só lista eventos
-            const lista = await fetch(`${window.API_URL}/eventos`);
+            const lista = await fetch(`${window.API_URL}/eventos`, { headers: getAuthHeadersDetalhes() });
             if (lista.ok) {
                 const todos = await lista.json();
                 evento = todos.find(e => e._id === eventoId || e.id === eventoId);
