@@ -176,9 +176,11 @@ async function listarEventos() {
   try {
     const snapshot = await db.collection('eventos')
       .where('status', '==', 'aprovado')
-      .orderBy('criado_em', 'desc')
       .get();
     const eventos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Ordenar manualmente por criado_em desc
+    eventos.sort((a, b) => new Date(b.criado_em) - new Date(a.criado_em));
 
     console.log(`📊 Eventos aprovados listados: ${eventos.length} encontrados`);
 
@@ -199,9 +201,14 @@ async function obterEventosPorOrganizador(organizadorId) {
   try {
     const snapshot = await db.collection('eventos')
       .where('organizador_id', '==', organizadorId)
-      .orderBy('criado_em', 'desc')
       .get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    const eventos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Ordenar manualmente por criado_em desc
+    eventos.sort((a, b) => new Date(b.criado_em) - new Date(a.criado_em));
+
+    return eventos;
   } catch (error) {
     console.error('Erro ao obter eventos por organizador:', error);
     throw error;
@@ -264,10 +271,14 @@ async function listarEventosPendentes() {
   try {
     const snapshot = await db.collection('eventos')
       .where('status', '==', 'pendente')
-      .orderBy('criado_em', 'desc')
       .get();
 
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const eventos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Ordenar manualmente por criado_em desc
+    eventos.sort((a, b) => new Date(b.criado_em) - new Date(a.criado_em));
+
+    return eventos;
   } catch (error) {
     console.error('Erro ao listar eventos pendentes:', error);
     throw error;

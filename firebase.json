@@ -10,5 +10,8 @@
   "functions": {
     "source": "functions",
     "runtime": "nodejs24"
+  },
+  "firestore": {
+    "indexes": "firestore.indexes.yaml"
   }
 }
