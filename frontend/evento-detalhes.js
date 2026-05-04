@@ -225,37 +225,55 @@ function getAuthHeadersDetalhes() {
 
 async function inicializarBotaoInteresse(eventoId) {
     const btn = document.getElementById('btn-interesse-evento');
-    if (!btn) return;
+    if (!btn) {
+        console.warn('Botão de interesse não encontrado na página');
+        return;
+    }
+
+    console.log('Inicializando botão de interesse para evento:', eventoId);
+    console.log('Usuário logado:', isUsuarioLogadoDetalhes());
 
     btn.onclick = async () => {
+        console.log('Botão de interesse clicado');
         if (!isUsuarioLogadoDetalhes()) {
+            console.log('Usuário não logado, redirecionando para login');
             window.location.href = 'login.html';
             return;
         }
         btn.disabled = true;
+        console.log('Chamando alternarInteresseDetalhes');
         await alternarInteresseDetalhes(eventoId);
         btn.disabled = false;
     };
 
+    console.log('Carregando status de interesse');
     await carregarStatusInteresseDetalhes(eventoId);
 }
 
 async function carregarStatusInteresseDetalhes(eventoId) {
     const btn = document.getElementById('btn-interesse-evento');
     const contadorEl = document.getElementById('contador-interesse');
-    if (!btn || !contadorEl) return;
+    if (!btn || !contadorEl) {
+        console.warn('Elementos do botão de interesse não encontrados');
+        return;
+    }
 
+    console.log('Carregando status de interesse para evento:', eventoId);
     try {
         const response = await fetch(`${window.API_URL}/interesses/${encodeURIComponent(eventoId)}`, {
             headers: getAuthHeadersDetalhes()
         });
+        console.log('Resposta da API de interesse:', response.status, response.statusText);
         const data = await response.json();
+        console.log('Dados recebidos:', data);
         if (response.ok) {
             atualizarBotaoInteresseDetalhes(data.temInteresse, data.contador);
         } else {
+            console.warn('Erro na resposta da API:', data);
             atualizarBotaoInteresseDetalhes(false, 0);
         }
     } catch (error) {
+        console.error('Erro ao carregar status de interesse:', error);
         atualizarBotaoInteresseDetalhes(false, 0);
     }
 }
@@ -264,6 +282,7 @@ async function alternarInteresseDetalhes(eventoId) {
     const btn = document.getElementById('btn-interesse-evento');
     if (!btn) return;
 
+    console.log('Alternando interesse para evento:', eventoId);
     try {
         const response = await fetch(`${window.API_URL}/interesses`, {
             method: 'POST',
@@ -273,18 +292,23 @@ async function alternarInteresseDetalhes(eventoId) {
             },
             body: JSON.stringify({ evento_id: eventoId })
         });
+        console.log('Resposta da API POST interesse:', response.status, response.statusText);
         const data = await response.json();
+        console.log('Dados da resposta POST:', data);
+
         if (response.ok && data) {
-            atualizarBotaoInteresseDetalhes(data.acao === 'adicionado', data.contador);
+            atualizarBotaoInteresseDetalhes(data.acao === 'adicionado', data.contador || 0);
             if (typeof window.showNotification === 'function') {
                 window.showNotification(data.mensagem || 'Interesse atualizado', 'success');
             }
         } else {
+            console.error('Erro na resposta POST:', data);
             if (typeof window.showNotification === 'function') {
-                window.showNotification(data.erro || 'Falha ao atualizar interesse', 'error');
+                window.showNotification(data?.erro || 'Falha ao atualizar interesse', 'error');
             }
         }
     } catch (error) {
+        console.error('Erro ao alternar interesse:', error);
         if (typeof window.showNotification === 'function') {
             window.showNotification('Erro ao comunicar com o servidor', 'error');
         }
