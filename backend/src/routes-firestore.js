@@ -27,15 +27,14 @@ const storage = new CloudinaryStorage({
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limite
-    files: 10 // Máximo 10 arquivos
+    fileSize: 10 * 1024 * 1024 // 10MB limite por arquivo
   }
 });
 
 function uploadEventImages(req, res, next) {
   upload.fields([
     { name: 'imagemCapa', maxCount: 1 },
-    { name: 'imagens', maxCount: 9 }
+    { name: 'imagens' }
   ])(req, res, function(err) {
     if (err) {
       console.error('Erro de upload de imagens:', err.message);

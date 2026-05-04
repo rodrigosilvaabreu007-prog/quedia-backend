@@ -782,16 +782,6 @@ async function inicializarFormulario() {
             formData.append('imagemCapa', capaInput.files[0]);
 
             const inputFotosEvento = document.getElementById('imagens-evento');
-            if (inputFotosEvento?.files?.length > 9) {
-                if (msg) {
-                    msg.style.color = 'red';
-                    msg.textContent = 'Você pode enviar no máximo 9 imagens extras além da imagem de capa.';
-                }
-                btn.disabled = false;
-                estahEnviandoFormulario = false;
-                return;
-            }
-
             if (inputFotosEvento?.files?.length > 0) {
                 Array.from(inputFotosEvento.files).forEach((file) => formData.append('imagens', file));
             }

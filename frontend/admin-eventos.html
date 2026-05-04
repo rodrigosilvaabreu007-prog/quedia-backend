@@ -157,7 +157,7 @@
 
         function mostrarConfirmacaoAprovacao(eventoId) {
             eventoParaAprovar = eventoId;
-            document.getElementById('modal-confirmacao').style.display = 'block';
+            document.getElementById('modal-confirmacao').style.display = 'flex';
         }
 
         async function confirmarAprovacao() {
@@ -204,7 +204,7 @@
             eventoParaRejeitar = eventoId;
             document.getElementById('motivo-rejeicao').value = '';
             document.getElementById('modal-rejeicao-erro').textContent = '';
-            document.getElementById('modal-rejeicao').style.display = 'block';
+            document.getElementById('modal-rejeicao').style.display = 'flex';
         }
 
         function cancelarRejeicao() {
@@ -350,20 +350,19 @@
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
             z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
         .modal-content {
             background: var(--bg-primary);
-            margin: 8% auto;
             padding: 20px;
             border-radius: 12px;
-            width: min(560px, 95%);
+            width: min(560px, 100%);
             max-width: 560px;
             box-shadow: 0 12px 32px rgba(0,0,0,0.45);
         }
