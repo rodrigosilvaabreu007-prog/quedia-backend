@@ -1147,15 +1147,20 @@ header {
 .event-img-container {
   position: relative;
   width: 100%;
-  height: 180px;
-  overflow: hidden;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
 }
 
 .event-img {
   width: 100%; 
-  height: 180px; 
-  object-fit: cover;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
   transition: transform 0.3s ease;
+  display: block;
 }
 
 .event-card:hover .event-img {
@@ -1406,8 +1411,9 @@ header {
   background: #1a1a1a;
   width: auto;
   max-width: min(92vw, 860px);
+  max-height: 80vh;
   border-radius: 20px;
-  padding: 0; /* Tiramos o padding para a imagem colar no topo se quiser */
+  padding: 0;
   border: 1px solid var(--cor-principal);
   position: relative;
   overflow: hidden;
@@ -1898,8 +1904,8 @@ header {
 
 .evento-header {
     display: flex;
-    gap: 30px;
-    margin-bottom: 24px;
+    gap: 20px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
     position: relative;
 }
@@ -1907,7 +1913,7 @@ header {
 .evento-imagem-principal {
     width: 100%;
     max-width: 680px;
-    height: 420px;
+    height: 280px;
     object-fit: cover;
     border-radius: 12px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
