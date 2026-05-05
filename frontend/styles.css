@@ -1416,9 +1416,9 @@ header {
 }
 
 #event-modal .modal-content {
-  width: min(84vw, 640px);
-  max-width: 84vw;
-  max-height: 96vh;
+  width: min(94vw, 720px);
+  max-width: 94vw;
+  max-height: 94vh;
   display: flex;
   flex-direction: column;
 }
@@ -1429,7 +1429,7 @@ header {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  max-height: calc(96vh - 220px);
+  max-height: calc(94vh - 240px);
 }
 
 #event-modal .modal-header-img {
@@ -1437,7 +1437,7 @@ header {
   width: 100%;
   height: auto;
   max-width: 100%;
-  max-height: 28vh;
+  max-height: 38vh;
   object-fit: cover;
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
