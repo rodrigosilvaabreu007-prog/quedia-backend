@@ -1421,7 +1421,8 @@ header {
   flex-direction: column;
 }
 
-#event-modal .modal-body {
+#event-modal .modal-body,
+#event-modal #modal-body {
   padding: 24px;
   flex: 1 1 auto;
   min-height: 0;
