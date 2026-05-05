@@ -1404,7 +1404,8 @@ header {
 
 .modal-content {
   background: #1a1a1a;
-  width: 98%; max-width: 980px;
+  width: auto;
+  max-width: min(92vw, 860px);
   border-radius: 20px;
   padding: 0; /* Tiramos o padding para a imagem colar no topo se quiser */
   border: 1px solid var(--cor-principal);
@@ -1414,7 +1415,7 @@ header {
 }
 
 .modal-body {
-  max-height: calc(100vh - 150px);
+  max-height: calc(90vh - 200px);
   overflow-y: auto;
   padding: 24px;
 }
@@ -1666,17 +1667,18 @@ header {
 }
 
 .modal-header-img {
-  width: 100%;
-  max-height: min(540px, 55vh);
+  display: block;
+  width: auto;
   height: auto;
-  object-fit: cover;
-  aspect-ratio: 16 / 9;
+  max-width: 92vw;
+  max-height: 55vh;
+  object-fit: contain;
 }
 
 @media (max-width: 900px) {
   .modal-header-img {
-    max-height: 320px;
-    aspect-ratio: auto;
+    max-width: 88vw;
+    max-height: 48vh;
   }
 }
 
