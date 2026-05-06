@@ -2519,12 +2519,13 @@ header {
 }
 
 #event-modal .modal-content {
-    width: auto !important;
+    width: fit-content !important;
     max-width: 90vw !important;
     border-radius: 20px !important;
     overflow: hidden !important;
-    display: inline-block !important;
-    text-align: left !important;
+    display: inline-flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
 }
 
 #event-modal .modal-header,
@@ -2544,20 +2545,16 @@ header {
 }
 
 #event-modal .modal-body,
-#event-modal #modal-body {
-    width: auto !important;
-    overflow-y: auto !important;
+#event-modal #modal-body,
+#event-modal .modal-padding,
+#event-modal .modal-footer {
+    width: 100% !important;
     padding: 0 !important;
+    box-sizing: border-box !important;
 }
 
 #event-modal .modal-padding {
     padding: 16px 18px 12px !important;
-    width: auto !important;
-    display: block !important;
-}
-
-#event-modal .modal-footer {
-    width: 100% !important;
 }
 
 #event-modal .btn-mais-info {
