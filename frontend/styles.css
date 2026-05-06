@@ -27,6 +27,12 @@ body {
   overflow-x: hidden;
 }
 
+html.modal-open,
+body.modal-open {
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
 button,
 button.btn,
 .btn,
@@ -1395,18 +1401,20 @@ header {
 /* --- MODAL DE PRÉVIA (A TELA QUE TAMPA TUDO) --- */
 .modal-overlay {
   position: fixed; top: 0; left: 0;
-  width: 100%; height: 100%;
+  width: 100vw; height: 100vh;
+  padding: 10px;
   background: rgba(0, 0, 0, 0.92);
   backdrop-filter: blur(8px);
   z-index: 99999;
   display: flex; justify-content: center; align-items: center;
+  overflow: hidden;
 }
 
 .modal-content {
   background: #1a1a1a;
   width: auto;
   max-width: min(94vw, 900px);
-  max-height: 84vh;
+  max-height: 100%;
   border-radius: 20px;
   padding: 0;
   border: 1px solid var(--cor-principal);
@@ -2521,6 +2529,7 @@ header {
 #event-modal .modal-content {
     width: auto !important;
     max-width: min(92vw, 520px) !important;
+    max-height: min(95vh, 720px) !important;
     border-radius: 20px !important;
     overflow: hidden !important;
     display: inline-flex !important;
@@ -2539,7 +2548,7 @@ header {
 #event-modal .preview-header-img,
 #event-modal .modal-header-img {
     width: 100% !important;
-    max-height: 48vh !important;
+    max-height: 40vh !important;
     object-fit: contain !important;
     border-radius: 0 !important;
 }
@@ -2555,6 +2564,8 @@ header {
 
 #event-modal .modal-padding {
     padding: 16px 18px 12px !important;
+    max-height: calc(95vh - 40vh - 90px) !important;
+    overflow-y: auto !important;
 }
 
 #event-modal .btn-mais-info {

@@ -410,7 +410,8 @@ window.abrirPrevia = function(evento, imgResolvida) {
     const footer = modal.querySelector('.modal-footer');
     if (footer) footer.style.display = 'flex';
     modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+    document.documentElement.classList.add('modal-open');
+    document.body.classList.add('modal-open');
 };
 
 window.irParaDetalhes = function() {
@@ -426,8 +427,9 @@ window.irParaDetalhes = function() {
 // 4. Fechar Modal
 window.fecharModal = () => {
     const modal = document.getElementById('event-modal');
-    if(modal) modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
+    if (modal) modal.style.display = 'none';
+    document.documentElement.classList.remove('modal-open');
+    document.body.classList.remove('modal-open');
 };
 
 // --- 🔍 FILTROS ---
