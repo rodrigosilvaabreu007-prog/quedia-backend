@@ -1416,12 +1416,14 @@ header {
 }
 
 #event-modal .modal-content {
-  width: auto;
-  max-width: min(72vw, 560px);
+  width: min(72vw, 520px);
+  max-width: 520px;
   max-height: 88vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border-radius: 20px;
+  padding: 0;
 }
 
 #event-modal .modal-header {
@@ -1435,10 +1437,42 @@ header {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 36vh;
+  max-height: 40vh;
   object-fit: contain;
-  border-radius: 20px 20px 0 0;
+  border-radius: 0;
   margin: 0;
+}
+
+#event-modal .modal-body,
+#event-modal #modal-body {
+  padding: 16px 18px 12px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+#event-modal .modal-footer {
+  padding: 0;
+  background: transparent;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+#event-modal .btn-mais-info {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 0 0 20px 20px;
+  font-size: 0.95rem;
+}
+
+#event-modal .modal-header-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: 40vh;
+  object-fit: contain;
+  border-radius: 0;
 }
 
 #event-modal .modal-body,
