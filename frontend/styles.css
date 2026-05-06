@@ -2511,22 +2511,27 @@ header {
 #event-modal .modal-body,
 #event-modal #modal-body,
 #event-modal .preview-header-img,
-#event-modal .modal-header-img {
+#event-modal .modal-header-img,
+#event-modal .modal-padding {
     padding: 0 !important;
     margin: 0 !important;
+    box-sizing: border-box !important;
 }
 
 #event-modal .modal-content {
-    width: auto !important;
-    max-width: min(90vw, 420px) !important;
+    width: fit-content !important;
+    max-width: 90vw !important;
     border-radius: 20px !important;
     overflow: hidden !important;
+    display: inline-flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
 }
 
 #event-modal .modal-header,
 #event-modal .preview-header-img,
 #event-modal .modal-header-img {
-    width: 100% !important;
+    width: auto !important;
     max-width: 100% !important;
     display: block !important;
 }
@@ -2543,6 +2548,12 @@ header {
     width: 100% !important;
     overflow-y: auto !important;
 }
+
+#event-modal .modal-padding {
+    padding: 16px 18px 12px !important;
+    width: 100% !important;
+}
+
 
 .eventos-calendario-lista {
     display: flex;
