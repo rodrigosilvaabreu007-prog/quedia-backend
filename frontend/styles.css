@@ -1417,12 +1417,11 @@ header {
 
 #event-modal .modal-content {
   width: auto;
-  max-width: min(90vw, 900px);
-  height: auto;
-  max-height: 95vh;
+  max-width: min(72vw, 780px);
+  max-height: 88vh;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow: hidden;
 }
 
 #event-modal .modal-header {
@@ -1435,8 +1434,9 @@ header {
   display: block;
   width: 100%;
   height: auto;
+  max-height: 32vh;
   object-fit: contain;
-  border-radius: 20px 20px 0 0;
+  border-radius: 0;
 }
 
 #event-modal .modal-body,
@@ -1444,13 +1444,15 @@ header {
   padding: 16px 18px 12px;
   flex: 1 1 auto;
   min-height: 0;
-  overflow: visible;
+  overflow: hidden;
+  max-height: 35vh;
 }
 
 #event-modal .modal-footer {
   padding: 0;
   background: transparent;
   border-top: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
 }
 
 #event-modal .btn-mais-info {
@@ -1465,9 +1467,9 @@ header {
   width: 100%;
   height: auto;
   max-width: 100%;
-  max-height: none;
+  max-height: 32vh;
   object-fit: contain;
-  border-radius: 20px 20px 0 0;
+  border-radius: 0;
 }
 
 .evento-calendario-item {
