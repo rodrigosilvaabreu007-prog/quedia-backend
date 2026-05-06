@@ -1418,10 +1418,10 @@ header {
 #event-modal .modal-content {
   width: auto;
   max-width: min(72vw, 780px);
-  max-height: min(84vh, 700px);
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
 }
 
 #event-modal .modal-header {
@@ -1434,18 +1434,30 @@ header {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 52vh;
+  max-height: 38vh;
   object-fit: contain;
   border-radius: 0;
 }
 
 #event-modal .modal-body,
 #event-modal #modal-body {
-  padding: 20px;
+  padding: 16px 18px 12px;
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
-  max-height: calc(84vh - 60px);
+  overflow: visible;
+}
+
+#event-modal .modal-footer {
+  padding: 0;
+  background: transparent;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+#event-modal .btn-mais-info {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 0;
+  font-size: 0.95rem;
 }
 
 #event-modal .modal-footer {
