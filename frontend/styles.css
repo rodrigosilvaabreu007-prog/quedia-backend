@@ -1416,8 +1416,8 @@ header {
 }
 
 #event-modal .modal-content {
-  width: min(72vw, 520px);
-  max-width: 520px;
+  width: auto;
+  max-width: min(90vw, 420px);
   max-height: 88vh;
   display: flex;
   flex-direction: column;
@@ -1435,7 +1435,8 @@ header {
 #event-modal .preview-header-img,
 #event-modal .modal-header-img {
   display: block;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   height: auto;
   max-height: 40vh;
   object-fit: contain;
@@ -1449,12 +1450,6 @@ header {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-}
-
-#event-modal .modal-header {
-  padding: 0;
-  margin: 0;
-  width: 100%;
 }
 
 #event-modal .modal-footer {
@@ -1471,47 +1466,18 @@ header {
   font-size: 0.95rem;
 }
 
-#event-modal .modal-header-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-width: 100%;
-  max-height: 40vh;
-  object-fit: contain;
-  border-radius: 0;
-}
-
-#event-modal .modal-body,
-#event-modal #modal-body {
+#event-modal .modal-padding {
   padding: 16px 18px 12px;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
 }
 
-#event-modal .modal-footer {
-  padding: 0;
-  background: transparent;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  flex-shrink: 0;
+#event-modal .modal-body {
+  width: auto;
 }
 
-#event-modal .btn-mais-info {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 0 0 20px 20px;
-  font-size: 0.95rem;
+#event-modal .modal-content {
+  align-items: stretch;
 }
 
-#event-modal .modal-header-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-width: 100%;
-  max-height: 32vh;
-  object-fit: contain;
-  border-radius: 0;
-}
 
 .evento-calendario-item {
   display: flex;
