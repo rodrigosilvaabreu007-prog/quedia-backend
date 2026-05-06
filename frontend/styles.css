@@ -1417,9 +1417,9 @@ header {
 
 #event-modal .modal-content {
   width: auto;
-  max-width: min(80vw, 850px);
-  max-height: min(80vh, 750px);
-  display: inline-flex;
+  max-width: min(72vw, 780px);
+  max-height: min(84vh, 700px);
+  display: flex;
   flex-direction: column;
   overflow: hidden;
 }
@@ -1429,22 +1429,35 @@ header {
   margin: 0;
 }
 
-#event-modal .preview-header-img {
+#event-modal .preview-header-img,
+#event-modal .modal-header-img {
   display: block;
-  width: auto;
-  max-width: 100%;
-  max-height: calc(80vh - 80px);
+  width: 100%;
+  height: auto;
+  max-height: 52vh;
   object-fit: contain;
   border-radius: 0;
 }
 
 #event-modal .modal-body,
 #event-modal #modal-body {
-  padding: 0;
+  padding: 20px;
   flex: 1 1 auto;
   min-height: 0;
-  overflow: hidden;
-  max-height: none;
+  overflow-y: auto;
+  max-height: calc(84vh - 60px);
+}
+
+#event-modal .modal-footer {
+  padding: 0;
+  background: transparent;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+#event-modal .btn-mais-info {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 0;
 }
 
 #event-modal .modal-header-img {
