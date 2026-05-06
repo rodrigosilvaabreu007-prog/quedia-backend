@@ -1,0 +1,289 @@
+[
+  {
+    "imagem": "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777923065/quedia_eventos/lt0o6juehupwzbhulg41.webp",
+    "datas": [
+      {
+        "data": "4444-04-05",
+        "horario_inicio": "04:04",
+        "horario_fim": ""
+      }
+    ],
+    "longitude": -71.569996,
+    "data": "4444-04-05",
+    "atualizado_em": "2026-05-04 19:31:38.721000+00:00",
+    "gratuito": true,
+    "criado_em": "2026-05-04 19:31:06.097000+00:00",
+    "motivo_rejeicao": "",
+    "endereco": "12",
+    "horario_fim": "",
+    "subcategorias": [
+      "Aula aberta"
+    ],
+    "horario": "04:04",
+    "organizador": "r",
+    "nome": "tes",
+    "latitude": -28.436629,
+    "cidade": "Serra do Navio",
+    "preco": 0,
+    "descricao": "r",
+    "imagens": [
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777923065/quedia_eventos/lt0o6juehupwzbhulg41.webp"
+    ],
+    "status": "aprovado",
+    "estado": "AP",
+    "categoria": "Cultura & Educação",
+    "organizador_id": "QMnzP70oUMrhUPJaVf4X",
+    "id": "5Ap2Gsn8M9SLsFAx9Kvh"
+  },
+  {
+    "imagem": "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919058/quedia_eventos/fqbhwlqqoi9cinafnxl2.jpg",
+    "datas": [
+      {
+        "data": "4444-04-04",
+        "horario_inicio": "04:04",
+        "horario_fim": ""
+      }
+    ],
+    "longitude": -67.78919,
+    "data": "4444-04-04",
+    "atualizado_em": "2026-05-04 19:08:35.241000+00:00",
+    "gratuito": true,
+    "criado_em": "2026-05-04 18:24:19.867000+00:00",
+    "motivo_rejeicao": "pq sim",
+    "endereco": "12",
+    "horario_fim": "",
+    "subcategorias": [
+      "Aula aberta"
+    ],
+    "horario": "04:04",
+    "organizador": "w",
+    "nome": "w",
+    "latitude": -25.853591,
+    "cidade": "Afonso Cláudio",
+    "preco": 0,
+    "descricao": "w",
+    "imagens": [
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919058/quedia_eventos/fqbhwlqqoi9cinafnxl2.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919058/quedia_eventos/nhnruy6zyywg3lx59inr.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919058/quedia_eventos/tnvgamdwf3yvxcq7mubl.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919058/quedia_eventos/umkze1m1huzyq1svmmfm.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919058/quedia_eventos/ptpbntxnbtwolqnt2ydr.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919059/quedia_eventos/ukudxxhdytysrnzvgmt1.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919059/quedia_eventos/xmsepl787uend8xj3eyc.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919059/quedia_eventos/caeivjytywhnx8odcjhm.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919059/quedia_eventos/khqoz4gq4igo38oxv9am.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919059/quedia_eventos/i6nfsjuk9gdzcmlktjyg.jpg"
+    ],
+    "status": "rejeitado",
+    "estado": "ES",
+    "categoria": "Cultura & Educação",
+    "organizador_id": "QMnzP70oUMrhUPJaVf4X",
+    "id": "7VKyYWfnFmAC1zkyZpFT"
+  },
+  {
+    "imagem": "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919864/quedia_eventos/w8kkthusfgeveex2togo.jpg",
+    "datas": [
+      {
+        "data": "4444-04-04",
+        "horario_inicio": "04:04",
+        "horario_fim": ""
+      }
+    ],
+    "longitude": -51.96256,
+    "data": "4444-04-04",
+    "atualizado_em": "2026-05-04 18:45:35.590000+00:00",
+    "gratuito": true,
+    "criado_em": "2026-05-04 18:37:49.758000+00:00",
+    "motivo_rejeicao": "wew",
+    "endereco": "12",
+    "horario_fim": "",
+    "subcategorias": [
+      "Aula aberta"
+    ],
+    "horario": "04:04",
+    "organizador": "c",
+    "nome": "rodrigo",
+    "latitude": -21.635295,
+    "cidade": "Água Clara",
+    "preco": 0,
+    "descricao": "c",
+    "imagens": [
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919864/quedia_eventos/w8kkthusfgeveex2togo.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919864/quedia_eventos/wj8jh5swnemry0awasyc.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919864/quedia_eventos/aaa4xa9ecjhpva7x4tvw.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919864/quedia_eventos/wughtfzoa0rgw69zaat7.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919864/quedia_eventos/yoinqze0kiqqoy8szvnd.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919864/quedia_eventos/de8ve5lfotvlkognw31f.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919865/quedia_eventos/h5iidvsn9tw5yvclnucn.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919865/quedia_eventos/ips3pmz6ms4iav6clvyf.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919865/quedia_eventos/odflahhqmf4llpxxwnk4.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919865/quedia_eventos/j27rx49zcqbzk2mucm5f.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919865/quedia_eventos/g6w6qq6whdazcpfk6mc7.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919865/quedia_eventos/rft50nmonszeaanh9nkz.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919865/quedia_eventos/idjuqp2ef1hac4plibgm.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919865/quedia_eventos/vkaf90uiaae2gddxevle.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919865/quedia_eventos/nbofbnlytgtkjwwu7rla.png",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919865/quedia_eventos/mthj6fkwxj54meaqgihm.png",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/vpkzymmv9a01pjhnxqbu.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/rmepzohbwmhnyeobtklv.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/vniawo9s9ib7nudan3l8.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/vtvqlfr3hq2hqrg9jjli.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/jyzbhczgsqlr8ln5iyxw.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/vlp46ez7t73htewjs9vu.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/ym2vsnzxxusepyjlkfa7.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/ifumhsvl81jqi6vitkh9.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/fttyzfzii4iak8pvb16r.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/lplzo5upiovzdr9hxohy.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/diusfrhiqmxbuglevrku.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/ibhi5vlckqtxymbp8tm0.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919867/quedia_eventos/nt69os75kc8sg2iogwl6.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/uqmvvcslsgdjwotdghn6.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/jszplvgfjii5hpx0pbi8.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/d06hqthfbmegre2zcly7.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919866/quedia_eventos/ffnk4yqftejbumczt7xb.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919867/quedia_eventos/a8cj12irdo42th0g7gvt.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919867/quedia_eventos/e4eauggkpxg1bjsr4upl.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919867/quedia_eventos/yu9w7tombjupeet8mtmw.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919867/quedia_eventos/o6pyyocjraws8jxqmchk.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919867/quedia_eventos/xfomxb0xkmefanqzqrow.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919867/quedia_eventos/f8btqwmpodiufa58nkpz.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919867/quedia_eventos/cg0f6okpwtqetgbuj3dt.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919867/quedia_eventos/azfhutlzpwe1xsoua9uw.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777919867/quedia_eventos/xrrsfah5txachsrticvd.jpg"
+    ],
+    "status": "rejeitado",
+    "estado": "MS",
+    "categoria": "Cultura & Educação",
+    "organizador_id": "QMnzP70oUMrhUPJaVf4X",
+    "id": "eMxKdgqRSRETJ6tZW7JN"
+  },
+  {
+    "imagem": "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777918078/quedia_eventos/u6xoydsiqn7cwfnwp6up.jpg",
+    "datas": [
+      {
+        "data": "4444-04-04",
+        "horario_inicio": "04:04",
+        "horario_fim": ""
+      }
+    ],
+    "longitude": -62.074018,
+    "data": "4444-04-04",
+    "atualizado_em": "2026-05-04 18:21:29.780000+00:00",
+    "gratuito": true,
+    "criado_em": "2026-05-04 18:07:59.088000+00:00",
+    "motivo_rejeicao": "",
+    "endereco": "12",
+    "horario_fim": "",
+    "subcategorias": [
+      "Aula aberta"
+    ],
+    "horario": "04:04",
+    "organizador": "s",
+    "nome": "teste",
+    "latitude": -20.683613,
+    "cidade": "Cachoeiro de Itapemirim",
+    "preco": 0,
+    "descricao": "s",
+    "imagens": [
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777918078/quedia_eventos/u6xoydsiqn7cwfnwp6up.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777918078/quedia_eventos/eslid1ydbh6dnymwelaw.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777918078/quedia_eventos/hiijjf8bkqljmiriykch.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777918078/quedia_eventos/bca1t0qvb3abhuvc44o3.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777918078/quedia_eventos/nu5ycrn9xi05psenndra.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777918078/quedia_eventos/kamgzwuskvcdb6aitt4e.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777918078/quedia_eventos/vdfkqa3rekq2mdlscwwh.jpg"
+    ],
+    "status": "aprovado",
+    "estado": "ES",
+    "categoria": "Cultura & Educação",
+    "organizador_id": "QMnzP70oUMrhUPJaVf4X",
+    "id": "jEbdrT9BMyar1umeGQgK"
+  },
+  {
+    "imagem": "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777918929/quedia_eventos/muvucjzoyq1oljktiwso.jpg",
+    "datas": [
+      {
+        "data": "4444-04-04",
+        "horario_inicio": "04:04",
+        "horario_fim": ""
+      }
+    ],
+    "longitude": -58.908692,
+    "data": "4444-04-04",
+    "atualizado_em": "2026-05-04 18:23:00.399000+00:00",
+    "gratuito": true,
+    "criado_em": "2026-05-04 18:22:10.061000+00:00",
+    "motivo_rejeicao": "wewew",
+    "endereco": "12",
+    "horario_fim": "",
+    "subcategorias": [
+      "Aula aberta"
+    ],
+    "horario": "04:04",
+    "organizador": "12",
+    "nome": "rodrigo",
+    "latitude": -9.751994,
+    "cidade": "Brasília",
+    "preco": 0,
+    "descricao": "12",
+    "imagens": [
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777918929/quedia_eventos/muvucjzoyq1oljktiwso.jpg"
+    ],
+    "status": "rejeitado",
+    "estado": "DF",
+    "categoria": "Cultura & Educação",
+    "organizador_id": "QMnzP70oUMrhUPJaVf4X",
+    "id": "kilIlL1oUbfd48E0D1RQ"
+  },
+  {
+    "imagem": "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921774/quedia_eventos/vkx6yg3mguxyiqm6cm6i.jpg",
+    "datas": [
+      {
+        "data": "4444-04-04",
+        "horario_inicio": "04:04",
+        "horario_fim": ""
+      }
+    ],
+    "longitude": -78.955757,
+    "data": "4444-04-04",
+    "atualizado_em": "2026-05-04 19:31:43.993000+00:00",
+    "gratuito": true,
+    "criado_em": "2026-05-04 19:09:36.780000+00:00",
+    "motivo_rejeicao": "",
+    "endereco": "4",
+    "horario_fim": "",
+    "subcategorias": [
+      "Cinema ao ar livre"
+    ],
+    "horario": "04:04",
+    "organizador": "qw",
+    "nome": "teste",
+    "latitude": 0.49353,
+    "cidade": "Abadia de Goiás",
+    "preco": 0,
+    "descricao": "qw",
+    "imagens": [
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921774/quedia_eventos/vkx6yg3mguxyiqm6cm6i.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921774/quedia_eventos/d9vzx84uu8dknuffgsyj.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921774/quedia_eventos/af3poynnjfrhlblvareb.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921774/quedia_eventos/xojdhunjhqxa4fvjin96.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921774/quedia_eventos/hhpen6ieikxwyhzk1sbb.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921774/quedia_eventos/cpx1diojpkld0eo62v6j.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921775/quedia_eventos/p2spskjlj6ond6fvqrmr.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921775/quedia_eventos/dtyzavjw2eieopouu8dl.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921775/quedia_eventos/guxj8xnbky6wfekunb8q.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921775/quedia_eventos/celgplhvtgf1c5mmn5ia.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921775/quedia_eventos/tloj1bujgkl3i69ntpb6.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921775/quedia_eventos/vcsztk6wxuwbnvvsx6jz.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921775/quedia_eventos/qhdxwcc7hdm1qafnl7v9.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921775/quedia_eventos/jkonl6jppvlrsfogpimx.jpg",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921775/quedia_eventos/egvrnul4blfmmbuu3cub.png",
+      "https://res.cloudinary.com/dphg1u2i7/image/upload/v1777921775/quedia_eventos/lqef8zn0idkzcnvtu1ao.png"
+    ],
+    "status": "aprovado",
+    "estado": "GO",
+    "categoria": "Cultura & Educação",
+    "organizador_id": "QMnzP70oUMrhUPJaVf4X",
+    "id": "u9f3ls2oIwlpMW7jKj1e"
+  }
+]
