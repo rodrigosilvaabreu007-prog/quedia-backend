@@ -1417,20 +1417,17 @@ header {
 
 #event-modal .modal-content {
   width: auto;
-  max-width: min(72vw, 780px);
+  max-width: min(72vw, 560px);
   max-height: 88vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-radius: 20px;
-  padding: 0;
-  margin: 0;
 }
 
 #event-modal .modal-header {
   padding: 0;
   margin: 0;
-  flex-shrink: 0;
+  width: 100%;
 }
 
 #event-modal .preview-header-img,
@@ -1438,11 +1435,10 @@ header {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 32vh;
+  max-height: 36vh;
   object-fit: contain;
-  border-radius: 0;
+  border-radius: 20px 20px 0 0;
   margin: 0;
-  padding: 0;
 }
 
 #event-modal .modal-body,
