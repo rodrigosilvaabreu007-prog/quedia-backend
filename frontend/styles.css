@@ -2517,8 +2517,8 @@ header {
 }
 
 #event-modal .modal-content {
-    width: min(72vw, 520px) !important;
-    max-width: 520px !important;
+    width: auto !important;
+    max-width: min(90vw, 420px) !important;
     border-radius: 20px !important;
     overflow: hidden !important;
 }
@@ -2540,6 +2540,7 @@ header {
 
 #event-modal .modal-body,
 #event-modal #modal-body {
+    width: 100% !important;
     overflow-y: auto !important;
 }
 
