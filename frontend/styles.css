@@ -1926,11 +1926,12 @@ header {
 
 .evento-imagem-principal {
     width: 100%;
-    max-width: 680px;
-    height: 280px;
-    object-fit: cover;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
     border-radius: 12px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    background: #0d1118;
 }
 
 .evento-info-principal {
