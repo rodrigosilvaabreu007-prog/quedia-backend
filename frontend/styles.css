@@ -2540,6 +2540,43 @@ header {
     overflow-x: hidden;
 }
 
+#event-modal .modal-content,
+#event-modal .modal-header,
+#event-modal .modal-body,
+#event-modal #modal-body,
+#event-modal .preview-header-img,
+#event-modal .modal-header-img {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+#event-modal .modal-content {
+    width: min(72vw, 520px) !important;
+    max-width: 520px !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+}
+
+#event-modal .modal-header,
+#event-modal .preview-header-img,
+#event-modal .modal-header-img {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+}
+
+#event-modal .preview-header-img,
+#event-modal .modal-header-img {
+    max-height: 40vh !important;
+    object-fit: contain !important;
+    border-radius: 0 !important;
+}
+
+#event-modal .modal-body,
+#event-modal #modal-body {
+    overflow-y: auto !important;
+}
+
 .eventos-calendario-lista {
     display: flex;
     flex-direction: column;
