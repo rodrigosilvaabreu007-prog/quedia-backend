@@ -2519,13 +2519,12 @@ header {
 }
 
 #event-modal .modal-content {
-    width: fit-content !important;
+    width: auto !important;
     max-width: 90vw !important;
     border-radius: 20px !important;
     overflow: hidden !important;
-    display: inline-flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
+    display: inline-block !important;
+    text-align: left !important;
 }
 
 #event-modal .modal-header,
@@ -2545,13 +2544,28 @@ header {
 
 #event-modal .modal-body,
 #event-modal #modal-body {
-    width: 100% !important;
+    width: auto !important;
     overflow-y: auto !important;
+    padding: 0 !important;
 }
 
 #event-modal .modal-padding {
     padding: 16px 18px 12px !important;
+    width: auto !important;
+    display: block !important;
+}
+
+#event-modal .modal-footer {
     width: 100% !important;
+}
+
+#event-modal .btn-mais-info {
+    width: 100% !important;
+    background: #00c2ff !important;
+    color: #000 !important;
+    border-radius: 0 0 20px 20px !important;
+    margin: 0 !important;
+    border: none !important;
 }
 
 
