@@ -1419,6 +1419,16 @@ header {
   max-height: 94vh;
   display: flex;
   flex-direction: column;
+  width: min(92vw, 900px);
+}
+
+#event-modal .preview-header-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 60vh;
+  object-fit: contain;
+  border-radius: 0;
 }
 
 #event-modal .modal-body,
