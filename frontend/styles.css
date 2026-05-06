@@ -1422,11 +1422,15 @@ header {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border-radius: 20px;
+  padding: 0;
+  margin: 0;
 }
 
 #event-modal .modal-header {
   padding: 0;
   margin: 0;
+  flex-shrink: 0;
 }
 
 #event-modal .preview-header-img,
@@ -1437,6 +1441,8 @@ header {
   max-height: 32vh;
   object-fit: contain;
   border-radius: 0;
+  margin: 0;
+  padding: 0;
 }
 
 #event-modal .modal-body,
