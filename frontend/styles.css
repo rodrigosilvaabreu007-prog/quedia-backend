@@ -2519,8 +2519,8 @@ header {
 }
 
 #event-modal .modal-content {
-    width: fit-content !important;
-    max-width: 90vw !important;
+    width: auto !important;
+    max-width: min(92vw, 520px) !important;
     border-radius: 20px !important;
     overflow: hidden !important;
     display: inline-flex !important;
@@ -2539,7 +2539,7 @@ header {
 #event-modal .preview-header-img,
 #event-modal .modal-header-img {
     width: 100% !important;
-    max-height: 40vh !important;
+    max-height: 48vh !important;
     object-fit: contain !important;
     border-radius: 0 !important;
 }
