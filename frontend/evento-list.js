@@ -394,9 +394,9 @@ window.abrirPrevia = function(evento, imgResolvida) {
 
     body.innerHTML = `
         <div class="modal-header">
-            <img src="${imgResolvida}" class="preview-header-img">
+            <img src="${imgResolvida}" class="modal-header-img" alt="Capa do Evento">
         </div>
-        <div class="modal-padding" style="padding:20px; color: white;">
+        <div class="modal-padding">
             <h2 style="color:#00bfff; margin-bottom:10px;">${evento.nome}</h2>
             <p><strong>📅 Data:</strong> ${formatarData(evento.data)}</p>
             <p><strong>⏰ Horário:</strong> ${evento.horario || '--:--'}</p>
