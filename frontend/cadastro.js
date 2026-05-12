@@ -1,77 +1,72 @@
-// ✅ URL DA API (definida no global.js)
+// ✅ NOVO SISTEMA DE CADASTRO COM VERIFICAÇÃO DE EMAIL
 
-// Função para mostrar/esconder senha
+// Estado global do cadastro
+let estadoCadastro = {
+  emailConfirmado: false,
+  emailValidado: '',
+  codigoEnviado: false,
+  tentativasValidacao: 0,
+  maxTentativas: 3
+};
+
+// ============ FUNÇÕES AUXILIARES ============
+
 function toggleSenha(inputId) {
   const input = document.getElementById(inputId);
   if (!input) return;
   input.type = input.type === 'password' ? 'text' : 'password';
 }
 
-// ✅ VALIDAÇÃO DE EMAIL COM DEBOUNCE (Evita excesso de requisições)
-let timeoutEmail;
-function validarEmail() {
-  clearTimeout(timeoutEmail);
-  const emailInput = document.getElementById('email');
-  if (!emailInput) return;
-  
-  const email = emailInput.value.trim();
-  const erroDiv = document.getElementById('email-erro');
-  
-  if (email.length === 0) {
-    erroDiv.style.display = 'none';
-    return;
+function mostrarMensagem(elementoId, texto, tipo = 'info') {
+  const elemento = document.getElementById(elementoId);
+  if (elemento) {
+    elemento.textContent = texto;
+    elemento.className = `status-message ${tipo}`;
+    elemento.style.display = 'block';
   }
-
-  // Regex básico de validação
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!regex.test(email)) {
-    erroDiv.textContent = 'Email inválido';
-    erroDiv.style.display = 'block';
-    return;
-  }
-
-  // Espera 500ms depois que o usuário para de digitar para consultar o banco
-  timeoutEmail = setTimeout(() => {
-    fetch(`${window.API_URL}/verificar-email?email=${encodeURIComponent(email)}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.disponivel === false) {
-          erroDiv.textContent = 'Email já cadastrado';
-          erroDiv.style.display = 'block';
-        } else {
-          erroDiv.style.display = 'none';
-        }
-      })
-      .catch(err => console.error('Erro ao verificar email:', err));
-  }, 500);
 }
 
-// Função para atualizar cidades dinamicamente
-function atualizarCidades() {
-  const estado = document.getElementById('estado').value;
-  const cidadeSelect = document.getElementById('cidade');
-  
-  if (!estado) {
-    cidadeSelect.innerHTML = '<option value="">Selecione primeiro um estado</option>';
-    cidadeSelect.disabled = true;
-    return;
+function ocultarMensagem(elementoId) {
+  const elemento = document.getElementById(elementoId);
+  if (elemento) {
+    elemento.style.display = 'none';
   }
-  
-  const cidades = typeof obterCidades === 'function' ? obterCidades(estado) : [];
-  cidadeSelect.innerHTML = '<option value="">Selecione uma cidade</option>';
-  
-  cidades.forEach(cidade => {
-    const option = document.createElement('option');
-    option.value = cidade;
-    option.textContent = cidade;
-    cidadeSelect.appendChild(option);
-  });
-  
-  cidadeSelect.disabled = false;
 }
 
-// Inicialização da página (Estados e Categorias)
+function irParaPasso(numero) {
+  // Ocultar todos os passos
+  document.getElementById('passo1').classList.remove('active');
+  document.getElementById('passo2').classList.remove('active');
+  
+  // Mostrar passo desejado
+  document.getElementById(`passo${numero}`).classList.add('active');
+  
+  // Atualizar indicador visual
+  document.getElementById('step1-circle').classList.remove('completed');
+  document.getElementById('step2-circle').classList.remove('active');
+  document.getElementById('step-line').classList.remove('completed');
+  
+  if (numero === 1) {
+    document.getElementById('step1-circle').classList.add('active');
+  } else {
+    document.getElementById('step1-circle').classList.add('completed');
+    document.getElementById('step2-circle').classList.add('active');
+    document.getElementById('step-line').classList.add('completed');
+  }
+}
+
+// ============ PASSO 1: VERIFICAÇÃO DE EMAIL ============
+
 document.addEventListener('DOMContentLoaded', () => {
+  const emailForm = document.getElementById('email-form');
+  
+  if (emailForm) {
+    emailForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await enviarCodigoEmail();
+    });
+  }
+
   // Popula Estados
   const estadoSelect = document.getElementById('estado');
   if (estadoSelect && typeof obterEstados === 'function') {
@@ -83,69 +78,288 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Inicializa seletor de categorias igual ao formulário de evento
+  // Inicializa seletor de categorias
   if (typeof inicializarSeletorCategorias === 'function') {
     inicializarSeletorCategorias('categorias-cadastro');
   }
 
+  // Botão para voltar ao passo 1
+  document.getElementById('voltar-email')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    estadoCadastro.emailConfirmado = false;
+    estadoCadastro.codigoEnviado = false;
+    document.getElementById('codigo-confirmado').style.display = 'none';
+    document.getElementById('validar-codigo-btn').textContent = '✓ Confirmar Código';
+    document.getElementById('validar-codigo-btn').disabled = false;
+    document.getElementById('codigo-input').value = '';
+    irParaPasso(1);
+    ocultarMensagem('passo2-status');
+  });
+
+  // Botão validar código
+  document.getElementById('validar-codigo-btn')?.addEventListener('click', async () => {
+    await validarCodigoEmail();
+  });
+
+  // Form cadastro
+  const form = document.getElementById('cadastro-form');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await completarCadastro();
+    });
+  }
 });
 
-// ✅ SUBMIT DO FORMULÁRIO DE CADASTRO
-const form = document.getElementById('cadastro-form');
-const mensagem = document.getElementById('mensagem-cadastro');
+async function enviarCodigoEmail() {
+  const emailInput = document.getElementById('email-input');
+  const email = emailInput.value.trim().toLowerCase();
+  const btnSubmit = document.querySelector('#email-form input[type="submit"]');
 
-if (form) {
-  form.addEventListener('submit', async e => {
-    e.preventDefault();
-    
-    // Feedback visual de carregando
-    const btnSubmit = form.querySelector('button[type="submit"]');
-    if (btnSubmit) btnSubmit.disabled = true;
+  // Validar email
+  const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!regexEmail.test(email)) {
+    mostrarMensagem('passo1-status', '❌ Email inválido. Digite um email válido.', 'error');
+    return;
+  }
 
-    const email = document.getElementById('email').value.trim();
-    const senha = document.getElementById('senha').value;
-    const confirmarSenha = document.getElementById('confirmar-senha').value;
-    const nomeInput = document.querySelector('input[name="nome"]');
+  // Desabilitar botão e mostrar loading
+  btnSubmit.disabled = true;
+  btnSubmit.value = '⏳ Enviando...';
+  ocultarMensagem('passo1-status');
 
-    if (senha !== confirmarSenha) {
-      mensagem.textContent = 'As senhas não coincidem.';
-      mensagem.style.color = '#ff4444';
-      if (btnSubmit) btnSubmit.disabled = false;
-      return;
-    }
-    
-    const dados = {
-      nome: nomeInput ? nomeInput.value.trim() : 'Usuário',
-      email: email,
-      senha: senha,
-      estado: document.getElementById('estado').value,
-      cidade: document.getElementById('cidade').value,
-      preferencias: Array.from(document.querySelectorAll('input[name^="subcat-"]:checked')).map(cb => cb.value)
-    };
+  try {
+    const resposta = await fetch(`${window.API_URL}/enviar-codigo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
 
-    try {
-      const resposta = await fetch(`${window.API_URL}/cadastro`, { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dados)
-      });
+    const dados = await resposta.json();
+
+    if (resposta.ok) {
+      estadoCadastro.emailValidado = email;
+      estadoCadastro.codigoEnviado = true;
       
-      const resultado = await resposta.json();
-
-      if (resposta.ok) {
-        mensagem.textContent = 'Cadastro realizado com sucesso! Redirecionando...';
-        mensagem.style.color = 'var(--cor-principal)';
-        setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+      // Se em modo demo, mostrar o código
+      if (dados.codigo_demo) {
+        mostrarMensagem('passo1-status', 
+          `✅ Código enviado! (Demo: ${dados.codigo_demo})`, 
+          'info');
       } else {
-        mensagem.textContent = resultado.erro || 'Erro ao cadastrar.';
-        mensagem.style.color = '#ff4444';
-        if (btnSubmit) btnSubmit.disabled = false;
+        mostrarMensagem('passo1-status', 
+          `✅ Código enviado para ${dados.email_mascarado}. Verifique seu email!`, 
+          'success');
       }
-    } catch (err) {
-      console.error('💥 Erro Crítico:', err);
-      mensagem.textContent = 'Erro ao conectar com o servidor.';
-      mensagem.style.color = '#ff4444';
-      if (btnSubmit) btnSubmit.disabled = false;
+
+      // Ir para passo 2 após 1 segundo
+      setTimeout(() => {
+        irParaPasso(2);
+        mostrarMensagem('passo2-status', '📧 Insira o código de confirmação recebido em seu email', 'info');
+      }, 1000);
+    } else {
+      mostrarMensagem('passo1-status', `❌ ${dados.erro || 'Erro ao enviar código'}`, 'error');
+      btnSubmit.disabled = false;
+      btnSubmit.value = 'Enviar Código';
     }
+  } catch (err) {
+    console.error('Erro ao enviar código:', err);
+    mostrarMensagem('passo1-status', 
+      '❌ Erro ao conectar com o servidor. Tente novamente.', 
+      'error');
+    btnSubmit.disabled = false;
+    btnSubmit.value = 'Enviar Código';
+  }
+}
+
+async function validarCodigoEmail() {
+  const codigoInput = document.getElementById('codigo-input');
+  const codigo = codigoInput.value.trim();
+  const btnValidar = document.getElementById('validar-codigo-btn');
+
+  if (!codigo || codigo.length !== 6 || isNaN(codigo)) {
+    mostrarMensagem('passo2-status', '❌ Digite um código válido (6 dígitos)', 'error');
+    return;
+  }
+
+  if (!estadoCadastro.emailValidado) {
+    mostrarMensagem('passo2-status', '❌ Email não foi configurado. Volte ao passo 1.', 'error');
+    return;
+  }
+
+  // Verificar tentativas
+  if (estadoCadastro.tentativasValidacao >= estadoCadastro.maxTentativas) {
+    mostrarMensagem('passo2-status', 
+      '❌ Muitas tentativas. Solicit um novo código.', 
+      'error');
+    return;
+  }
+
+  // Desabilitar botão e mostrar loading
+  btnValidar.disabled = true;
+  btnValidar.textContent = '⏳ Validando...';
+
+  try {
+    const resposta = await fetch(`${window.API_URL}/validar-codigo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: estadoCadastro.emailValidado,
+        codigo: codigo
+      })
+    });
+
+    const dados = await resposta.json();
+
+    if (resposta.ok) {
+      estadoCadastro.emailConfirmado = true;
+      mostrarMensagem('passo2-status', '✅ Email confirmado com sucesso!', 'success');
+      
+      // Mostrar mensagem de sucesso
+      document.getElementById('codigo-confirmado').style.display = 'block';
+      
+      // Desabilitar campos de código
+      codigoInput.disabled = true;
+      btnValidar.disabled = true;
+      btnValidar.textContent = '✓ Confirmado';
+    } else {
+      estadoCadastro.tentativasValidacao++;
+      const tentativasRestantes = estadoCadastro.maxTentativas - estadoCadastro.tentativasValidacao;
+      
+      mostrarMensagem('passo2-status', 
+        `❌ ${dados.erro || 'Código inválido'}. ${tentativasRestantes} tentativas restantes.`, 
+        'error');
+      
+      btnValidar.disabled = false;
+      btnValidar.textContent = '✓ Confirmar Código';
+    }
+  } catch (err) {
+    console.error('Erro ao validar código:', err);
+    mostrarMensagem('passo2-status', 
+      '❌ Erro ao validar código. Tente novamente.', 
+      'error');
+    btnValidar.disabled = false;
+    btnValidar.textContent = '✓ Confirmar Código';
+  }
+}
+
+// ============ PASSO 2: COMPLETAR CADASTRO ============
+
+async function completarCadastro() {
+  const form = document.getElementById('cadastro-form');
+  const btnSubmit = form.querySelector('button[type="submit"]');
+  const mensagem = document.getElementById('mensagem-cadastro');
+
+  // Feedback visual
+  btnSubmit.disabled = true;
+  btnSubmit.textContent = '⏳ Cadastrando...';
+  ocultarMensagem('passo2-status');
+
+  // Verificar se email foi confirmado
+  if (!estadoCadastro.emailConfirmado) {
+    mostrarMensagem('passo2-status', 
+      '❌ Você deve confirmar seu email primeiro.', 
+      'error');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Cadastrar';
+    return;
+  }
+
+  const nome = document.querySelector('input[name="nome"]').value.trim();
+  const senha = document.getElementById('senha').value;
+  const confirmarSenha = document.getElementById('confirmar-senha').value;
+  const estado = document.getElementById('estado').value;
+  const cidade = document.getElementById('cidade').value;
+  const preferencias = Array.from(
+    document.querySelectorAll('input[name^="subcat-"]:checked')
+  ).map(cb => cb.value);
+
+  // Validações
+  if (!nome) {
+    mostrarMensagem('passo2-status', '❌ Nome é obrigatório.', 'error');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Cadastrar';
+    return;
+  }
+
+  if (senha !== confirmarSenha) {
+    mostrarMensagem('passo2-status', '❌ As senhas não coincidem.', 'error');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Cadastrar';
+    return;
+  }
+
+  if (senha.length < 6) {
+    mostrarMensagem('passo2-status', '❌ Senha deve ter no mínimo 6 caracteres.', 'error');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Cadastrar';
+    return;
+  }
+
+  const dados = {
+    nome: nome,
+    email: estadoCadastro.emailValidado,
+    senha: senha,
+    estado: estado || 'Não informado',
+    cidade: cidade || 'Não informado',
+    preferencias: preferencias,
+    emailConfirmado: true // ✅ NOVO: Indicar que email foi confirmado
+  };
+
+  try {
+    const resposta = await fetch(`${window.API_URL}/cadastro`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
+    });
+
+    const resultado = await resposta.json();
+
+    if (resposta.ok) {
+      mostrarMensagem('passo2-status', 
+        '✅ Cadastro realizado com sucesso! Redirecionando...', 
+        'success');
+      
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 2000);
+    } else {
+      mostrarMensagem('passo2-status', 
+        resultado.erro || '❌ Erro ao cadastrar.', 
+        'error');
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = 'Cadastrar';
+    }
+  } catch (err) {
+    console.error('Erro crítico:', err);
+    mostrarMensagem('passo2-status', 
+      '❌ Erro ao conectar com o servidor.', 
+      'error');
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = 'Cadastrar';
+  }
+}
+
+// Função para atualizar cidades dinamicamente
+function atualizarCidades() {
+  const estado = document.getElementById('estado').value;
+  const cidadeSelect = document.getElementById('cidade');
+
+  if (!estado) {
+    cidadeSelect.innerHTML = '<option value="">Selecione primeiro um estado</option>';
+    cidadeSelect.disabled = true;
+    return;
+  }
+
+  const cidades = typeof obterCidades === 'function' ? obterCidades(estado) : [];
+  cidadeSelect.innerHTML = '<option value="">Selecione uma cidade</option>';
+
+  cidades.forEach(cidade => {
+    const option = document.createElement('option');
+    option.value = cidade;
+    option.textContent = cidade;
+    cidadeSelect.appendChild(option);
   });
+
+  cidadeSelect.disabled = false;
 }

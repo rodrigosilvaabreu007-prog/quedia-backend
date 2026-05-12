@@ -6,6 +6,87 @@
   <title>Cadastro - Quedia.com.br</title>
   <link rel="stylesheet" href="styles.css?v=5">
   <link rel="stylesheet" href="theme.css?v=5">
+  <style>
+    .cadastro-step {
+      display: none;
+    }
+    .cadastro-step.active {
+      display: block;
+    }
+    .step-indicator {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+      align-items: center;
+    }
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      background: #e0e0e0;
+      color: #666;
+      position: relative;
+    }
+    .step-circle.active {
+      background: var(--cor-principal);
+      color: white;
+    }
+    .step-circle.completed {
+      background: #4CAF50;
+      color: white;
+    }
+    .step-line {
+      flex: 1;
+      height: 2px;
+      background: #e0e0e0;
+    }
+    .step-line.completed {
+      background: #4CAF50;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .input-com-botao {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .input-com-botao input {
+      flex: 1;
+    }
+    .input-com-botao button {
+      padding: 10px 20px;
+      white-space: nowrap;
+    }
+    .status-message {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: none;
+    }
+    .status-message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+    .status-message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+    .status-message.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+      display: block;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -37,41 +118,105 @@
       <h1 class="logo">Cadastro</h1>
     </header>
     <main>
-      <form id="cadastro-form" class="card-form">
-        <label>Nome<input type="text" name="nome" required></label>
-        
-        <label>Email<input type="email" name="email" id="email" required onblur="validarEmail()">
-          <small id="email-erro" style="color: #ff6b6b; display: none;"></small>
-        </label>
-        
-        <label>Senha
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <input type="password" name="senha" id="senha" required>
-            <button type="button" onclick="toggleSenha('senha')" class="toggle-senha-button">👁</button>
-          </div>
-        </label>
-        
-        <label>Confirmar Senha
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <input type="password" name="confirmar_senha" id="confirmar-senha" required>
-            <button type="button" onclick="toggleSenha('confirmar-senha')" class="toggle-senha-button">👁</button>
-          </div>
-        </label>
-        
-        <label>Estado<select name="estado" id="estado" required onchange="atualizarCidades()">
-          <option value="">Selecione um estado</option>
-        </select></label>
-        
-        <label>Cidade<select name="cidade" id="cidade" required>
-          <option value="">Selecione primeiro um estado</option>
-        </select></label>
+      <!-- Indicador de Passos -->
+      <div class="step-indicator">
+        <div class="step-circle active" id="step1-circle">1</div>
+        <div class="step-line" id="step-line"></div>
+        <div class="step-circle" id="step2-circle">2</div>
+      </div>
 
-        <label>Preferências de categorias</label>
-        <div id="categorias-cadastro" class="categorias-grid"></div>
-        <p id="warning-categorias-cadastro" class="warning-text"></p>
+      <!-- PASSO 1: Verificação de Email -->
+      <div id="passo1" class="cadastro-step active">
+        <h2 style="text-align: center; margin-bottom: 30px;">Confirme seu Email</h2>
+        
+        <div id="passo1-status" class="status-message"></div>
 
-        <button type="submit" class="btn-form-submit">Cadastrar</button>
-      </form>
+        <form id="email-form" style="max-width: 400px; margin: 0 auto;">
+          <div class="form-group">
+            <label>Email
+              <input type="email" id="email-input" name="email" placeholder="seu@email.com" required>
+              <small id="email-erro" style="color: #ff6b6b; display: none;"></small>
+            </label>
+          </div>
+
+          <div class="form-group input-com-botao">
+            <input type="submit" value="Enviar Código" class="btn-form-submit" style="flex: 1;">
+          </div>
+
+          <p style="text-align: center; color: #666; font-size: 14px;">
+            ✉️ Você receberá um código de 6 dígitos em seu email
+          </p>
+        </form>
+      </div>
+
+      <!-- PASSO 2: Validação de Código + Dados Cadastro -->
+      <div id="passo2" class="cadastro-step">
+        <h2 style="text-align: center; margin-bottom: 30px;">Complete seu Cadastro</h2>
+        
+        <div id="passo2-status" class="status-message"></div>
+
+        <form id="cadastro-form" class="card-form">
+          <!-- Seção: Validar Código -->
+          <fieldset style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+            <legend style="padding: 0 10px;">Passo 1: Confirme seu Email</legend>
+            
+            <div class="form-group">
+              <label>Código de Confirmação (6 dígitos)
+                <input type="text" id="codigo-input" name="codigo" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
+                <small id="codigo-erro" style="color: #ff6b6b; display: none;"></small>
+              </label>
+            </div>
+
+            <button type="button" id="validar-codigo-btn" class="btn btn-secondary" style="width: 100%;">
+              ✓ Confirmar Código
+            </button>
+
+            <div id="codigo-confirmado" style="display: none; margin-top: 15px; padding: 10px; background: #d4edda; border-radius: 8px; color: #155724; text-align: center;">
+              ✅ Email confirmado com sucesso!
+            </div>
+          </fieldset>
+
+          <!-- Seção: Dados Cadastro -->
+          <fieldset style="border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
+            <legend style="padding: 0 10px;">Passo 2: Seus Dados</legend>
+            
+            <label>Nome<input type="text" name="nome" required></label>
+            
+            <label>Senha
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="password" name="senha" id="senha" required>
+                <button type="button" onclick="toggleSenha('senha')" class="toggle-senha-button">👁</button>
+              </div>
+            </label>
+            
+            <label>Confirmar Senha
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="password" name="confirmar_senha" id="confirmar-senha" required>
+                <button type="button" onclick="toggleSenha('confirmar-senha')" class="toggle-senha-button">👁</button>
+              </div>
+            </label>
+            
+            <label>Estado<select name="estado" id="estado" required onchange="atualizarCidades()">
+              <option value="">Selecione um estado</option>
+            </select></label>
+            
+            <label>Cidade<select name="cidade" id="cidade" required>
+              <option value="">Selecione primeiro um estado</option>
+            </select></label>
+
+            <label>Preferências de categorias</label>
+            <div id="categorias-cadastro" class="categorias-grid"></div>
+            <p id="warning-categorias-cadastro" class="warning-text"></p>
+
+            <button type="submit" class="btn-form-submit" id="btn-cadastrar">Cadastrar</button>
+          </fieldset>
+        </form>
+
+        <p style="text-align: center; margin-top: 20px;">
+          <a href="#" id="voltar-email" style="color: var(--cor-principal); text-decoration: underline;">← Voltar para verificação de email</a>
+        </p>
+      </div>
+
       <div id="mensagem-cadastro"></div>
       <p style="text-align: center; margin-top: 24px;">Já possui uma conta? <a href="login.html" style="color: var(--text-primary, #fff);">Faça login</a></p>
     </main>

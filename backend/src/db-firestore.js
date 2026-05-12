@@ -432,6 +432,86 @@ async function marcarMensagemComoRespondida(id) {
   }
 }
 
+// ============ CONFIRMAÇÃO DE EMAIL ============
+
+/**
+ * Gera um código de confirmação e o armazena no Firestore
+ * Código expira em 15 minutos
+ */
+async function gerarEArmazenarCodigoConfirmacao(email) {
+  try {
+    const emailNormalizado = String(email || '').trim().toLowerCase();
+    
+    // Gerar código aleatório de 6 dígitos
+    const codigo = String(Math.floor(100000 + Math.random() * 900000));
+    
+    // Timestamp para expiração (15 minutos)
+    const dataExpiracaoMs = Date.now() + (15 * 60 * 1000);
+    const dataExpiracao = new Date(dataExpiracaoMs);
+    
+    // Armazenar no Firestore
+    const docRef = await db.collection('confirmacao_emails').add({
+      email: emailNormalizado,
+      codigo: codigo,
+      criado_em: admin.firestore.FieldValue.serverTimestamp(),
+      expira_em: dataExpiracao,
+      usado: false
+    });
+    
+    console.log(`✅ Código de confirmação gerado para: ${emailNormalizado}`);
+    return { codigo, id: docRef.id, expiracaoMs: dataExpiracaoMs };
+  } catch (error) {
+    console.error('❌ Erro ao gerar código de confirmação:', error);
+    throw error;
+  }
+}
+
+/**
+ * Valida um código de confirmação de email
+ */
+async function validarCodigoConfirmacao(email, codigo) {
+  try {
+    const emailNormalizado = String(email || '').trim().toLowerCase();
+    const codigoStr = String(codigo || '').trim();
+    
+    // Buscar código no Firestore
+    const snapshot = await db.collection('confirmacao_emails')
+      .where('email', '==', emailNormalizado)
+      .where('codigo', '==', codigoStr)
+      .where('usado', '==', false)
+      .limit(1)
+      .get();
+    
+    if (snapshot.empty) {
+      console.log(`❌ Código inválido ou expirado para: ${emailNormalizado}`);
+      return false;
+    }
+    
+    const doc = snapshot.docs[0];
+    const dados = doc.data();
+    
+    // Verificar se o código expirou
+    if (new Date() > new Date(dados.expira_em)) {
+      console.log(`❌ Código expirado para: ${emailNormalizado}`);
+      // Marcar como usado (expirado)
+      await db.collection('confirmacao_emails').doc(doc.id).update({ usado: true });
+      return false;
+    }
+    
+    // Marcar código como usado
+    await db.collection('confirmacao_emails').doc(doc.id).update({ 
+      usado: true,
+      validado_em: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+    console.log(`✅ Código validado com sucesso para: ${emailNormalizado}`);
+    return true;
+  } catch (error) {
+    console.error('❌ Erro ao validar código:', error);
+    throw error;
+  }
+}
+
 // ============ VERIFICAÇÃO DE INTEGRIDADE ============
 
 /**
@@ -502,6 +582,8 @@ module.exports = {
   autenticarUsuario,
   obterUsuario,
   atualizarUsuario,
+  gerarEArmazenarCodigoConfirmacao,
+  validarCodigoConfirmacao,
   listarEventos,
   obterEventosPorOrganizador,
   cadastrarEvento,

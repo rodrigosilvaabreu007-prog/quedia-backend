@@ -5,11 +5,89 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const nodemailer = require('nodemailer');
 const dbFirestore = require('./db-firestore');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_fixa';
 
-// Configuração do Cloudinary
+// ============ CONFIGURAÇÃO DE EMAIL ============
+let transporter = null;
+
+// Tentar configurar nodemailer com variáveis de ambiente
+function configurarEmail() {
+  try {
+    // Verificar se temos credenciais do Gmail
+    const emailUser = process.env.EMAIL_USER || 'seu_email@gmail.com';
+    const emailPassword = process.env.EMAIL_PASSWORD || 'sua_senha_app';
+    
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: emailUser,
+        pass: emailPassword
+      }
+    });
+    
+    console.log('✅ Email configurado com sucesso');
+    return true;
+  } catch (err) {
+    console.warn('⚠️ Email não configurado. Usando modo simulado:', err.message);
+    return false;
+  }
+}
+
+configurarEmail();
+
+// Função para enviar código por email
+async function enviarCodigoEmail(email, codigo) {
+  try {
+    if (!transporter) {
+      console.warn('⚠️ Email não configurado. Código em modo demo:', codigo);
+      // Em modo demo, apenas log o código
+      return { sucesso: true, modo: 'demo', codigo };
+    }
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER || 'noreply@quedia.com.br',
+      to: email,
+      subject: '🔐 Código de Confirmação - Quedia.com.br',
+      html: `
+        <div style="font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px;">
+          <div style="background: white; border-radius: 8px; padding: 30px; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333; margin-bottom: 20px;">Bem-vindo ao Quedia!</h2>
+            <p style="color: #666; font-size: 16px; margin-bottom: 20px;">
+              Para completar seu cadastro, use o código de confirmação abaixo:
+            </p>
+            <div style="background: #f0f0f0; border: 2px solid #007bff; border-radius: 8px; padding: 20px; text-align: center; margin: 30px 0;">
+              <p style="font-size: 32px; font-weight: bold; color: #007bff; margin: 0; letter-spacing: 5px;">
+                ${codigo}
+              </p>
+            </div>
+            <p style="color: #999; font-size: 14px;">
+              ⏱️ Este código expira em 15 minutos
+            </p>
+            <p style="color: #666; font-size: 14px; margin-top: 20px;">
+              Se você não solicitou este código, ignore este email.
+            </p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © 2026 Quedia.com.br - Agenda de Eventos
+            </p>
+          </div>
+        </div>
+      `
+    };
+    
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Email enviado para: ${email}`, info.response);
+    return { sucesso: true, messageId: info.messageId };
+  } catch (err) {
+    console.error('❌ Erro ao enviar email:', err);
+    throw err;
+  }
+}
+
+// ============ CONFIGURAÇÃO DO CLOUDINARY ============
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dphg1u2i7',
   api_key: process.env.CLOUDINARY_API_KEY || '727437553221359',
@@ -123,13 +201,97 @@ router.get('/verificar-email', async (req, res) => {
   }
 });
 
+// ✅ NOVO: Solicitar código de confirmação por email
+router.post('/enviar-codigo', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ erro: 'Email é obrigatório' });
+    }
+
+    // Validar formato básico do email
+    const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!regexEmail.test(email)) {
+      return res.status(400).json({ erro: 'Email inválido' });
+    }
+
+    // Verificar se email já existe
+    const emailExiste = await dbFirestore.verificarEmailExistente(email);
+    if (emailExiste) {
+      return res.status(400).json({ erro: 'Este email já está cadastrado' });
+    }
+
+    // Gerar e armazenar código
+    const { codigo } = await dbFirestore.gerarEArmazenarCodigoConfirmacao(email);
+
+    // Tentar enviar por email
+    try {
+      await enviarCodigoEmail(email, codigo);
+      console.log(`📧 Código enviado para: ${email}`);
+    } catch (err) {
+      console.warn(`⚠️ Erro ao enviar email, mas código gerado: ${codigo}`, err.message);
+      // Em caso de erro de email, ainda retornar sucesso com o código (para testes)
+      return res.status(200).json({ 
+        mensagem: 'Código gerado. Modo demo: verifique o console ou teste com o código acima.',
+        codigo_demo: codigo // Remover isso em produção!
+      });
+    }
+
+    res.status(200).json({ 
+      mensagem: 'Código enviado para seu email. Válido por 15 minutos.',
+      email_mascarado: email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+    });
+
+  } catch (err) {
+    console.error('❌ Erro ao enviar código:', err.message);
+    res.status(500).json({ erro: 'Erro ao enviar código', detalhes: err.message });
+  }
+});
+
+// ✅ NOVO: Validar código de confirmação
+router.post('/validar-codigo', async (req, res) => {
+  try {
+    const { email, codigo } = req.body;
+    
+    if (!email || !codigo) {
+      return res.status(400).json({ erro: 'Email e código são obrigatórios' });
+    }
+
+    // Validar código
+    const codigoValido = await dbFirestore.validarCodigoConfirmacao(email, codigo);
+    
+    if (!codigoValido) {
+      return res.status(400).json({ erro: 'Código inválido ou expirado' });
+    }
+
+    res.status(200).json({ 
+      mensagem: 'Email confirmado com sucesso!',
+      confirmado: true
+    });
+
+  } catch (err) {
+    console.error('❌ Erro ao validar código:', err.message);
+    res.status(500).json({ erro: 'Erro ao validar código', detalhes: err.message });
+  }
+});
+
 // Cadastro
 router.post('/cadastro', async (req, res) => {
   try {
     console.log('📝 Cadastro recebido:', { email: req.body.email, nome: req.body.nome });
-    const { nome, email, senha, estado, cidade, preferencias } = req.body;
+    const { nome, email, senha, estado, cidade, preferencias, emailConfirmado } = req.body;
+    
     if (!nome || !email || !senha) {
       return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
+    }
+
+    // ✅ NOVO: Verificar se email foi confirmado
+    if (!emailConfirmado) {
+      return res.status(400).json({ 
+        erro: 'Email não confirmado. Por favor, confirme seu email com o código enviado.',
+        codigoNaoConfirmado: true
+      });
     }
 
     // Hasher a senha ANTES de registrar
@@ -141,7 +303,8 @@ router.post('/cadastro', async (req, res) => {
       senha: senhaCriptografada,
       estado: estado || 'Não informado',
       cidade: cidade || 'Não informado',
-      preferencias
+      preferencias,
+      email_confirmado_em: new Date().toISOString()
     });
 
     console.log('✓ Usuário cadastrado com sucesso! ID:', id);
