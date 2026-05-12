@@ -379,7 +379,7 @@ async function carregarEventoEdicao() {
     const msg = document.getElementById('mensagem-evento');
 
     if (msg) {
-        msg.style.color = '#00bfff';
+        msg.style.color = 'var(--cor-principal, #00bfff)';
         msg.textContent = 'Carregando evento para edicao...';
     }
 
@@ -548,7 +548,7 @@ async function enviarEdicao(event) {
     estahEnviandoFormulario = true;
     btn.disabled = true;
     if (msg) {
-        msg.style.color = '#00bfff';
+        msg.style.color = 'var(--cor-principal, #00bfff)';
         msg.textContent = 'Enviando alteracoes...';
     }
 
@@ -790,7 +790,7 @@ async function inicializarFormulario() {
                 estahEnviandoFormulario = true;
                 btn.disabled = true;
                 if (msg) {
-                    msg.style.color = '#00bfff';
+                    msg.style.color = 'var(--cor-principal, #00bfff)';
                     msg.textContent = 'Publicando evento no servidor...';
                 }
 

@@ -11,7 +11,7 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 5px 20px rgba(0, 191, 255, 0.5);
+  box-shadow: 0 5px 20px rgba(var(--cor-principal-rgb), 0.5);
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
@@ -20,7 +20,7 @@
 
 .theme-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
+  box-shadow: 0 6px 20px rgba(var(--cor-principal-rgb), 0.4);
 }
 
 .theme-btn:active {
@@ -33,18 +33,24 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 24px 0;
+  padding: 40px 16px 24px;
   overflow-y: auto;
   z-index: 99999;
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
+}
+
+html.theme-modal-open,
+body.theme-modal-open {
+  overflow: hidden !important;
+  height: 100%;
 }
 
 body.theme-modal-open header,
@@ -73,42 +79,53 @@ body.theme-modal-open .logo-provisoria {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   padding: 0;
   min-width: 520px;
+  width: min(520px, 96vw);
   max-width: 96vw;
-  max-height: calc(100vh - 48px);
-  overflow-y: auto;
+  max-height: calc(100vh - 96px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   transform: scale(0.9) translateY(20px);
   transition: all 0.3s ease;
   border: 1px solid var(--cor-principal, #00bfff);
   margin-bottom: 0;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.22) rgba(255, 255, 255, 0.08);
 }
 
-.theme-modal-content::-webkit-scrollbar {
-  width: 12px;
+.theme-modal-body {
+  overflow-y: auto;
+  padding: 24px 0 32px;
+  max-height: calc(100vh - 180px);
 }
 
-.theme-modal-content::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+.theme-modal-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.theme-modal-body::-webkit-scrollbar-track {
+  background: rgba(24, 26, 32, 0.14);
   border-radius: 999px;
 }
 
-.theme-modal-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
+.theme-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
   border-radius: 999px;
-  border: 3px solid rgba(0, 0, 0, 0);
+  min-height: 40px;
+  border: 2px solid rgba(24, 26, 32, 0.14);
   background-clip: padding-box;
 }
 
-.theme-modal-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
+.theme-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.32);
 }
 
 .theme-modal[style*="display: flex"] .theme-modal-content {
   transform: scale(1) translateY(0);
+  margin-top: 16px;
 }
 
 .theme-header {
+  width: 100%;
+  box-sizing: border-box;
   background: linear-gradient(135deg, var(--cor-principal, #00bfff), var(--cor-principal-hover, #0092d1));
   padding: 24px 32px;
   border-radius: 20px 20px 0 0;
@@ -146,7 +163,7 @@ body.theme-modal-open .logo-provisoria {
   margin: 0 0 20px 0;
   font-size: 1.3rem;
   font-weight: 600;
-  color: var(--text-primary, #00bfff);
+  color: var(--text-primary, #fff);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -228,7 +245,7 @@ body.theme-modal-open .logo-provisoria {
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 191, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(var(--cor-principal-rgb), 0.3);
 }
 
 .btn-secondary {
@@ -256,7 +273,7 @@ body.theme-modal-open .logo-provisoria {
   width: 100%;
   padding: 14px 18px;
   background: rgba(12, 18, 30, .8);
-  border: 1px solid rgba(0, 191, 255, .5);
+  border: 1px solid rgba(var(--cor-principal-rgb), .5);
   border-radius: 12px;
   color: #fff;
   font-size: 1rem;
@@ -265,16 +282,16 @@ body.theme-modal-open .logo-provisoria {
 
 #search-input:focus {
   outline: none;
-  border-color: #00e6ff;
-  box-shadow: 0 0 15px rgba(0, 191, 255, .35);
+  border-color: var(--cor-principal-hover, #0092d1);
+  box-shadow: 0 0 15px rgba(var(--cor-principal-rgb), .35);
 }
 
 #toggle-filtros,
 #view-eventos,
 #view-calendario {
   border-radius: 10px;
-  border: 2px solid rgba(0, 191, 255, .6);
-  background: rgba(0, 191, 255, .15);
+  border: 2px solid rgba(var(--cor-principal-rgb), .6);
+  background: rgba(var(--cor-principal-rgb), .15);
   color: #ffffff;
   font-weight: 700;
   text-transform: uppercase;
@@ -284,8 +301,8 @@ body.theme-modal-open .logo-provisoria {
 #toggle-filtros:hover,
 #view-eventos:hover,
 #view-calendario:hover {
-  background: rgba(0, 191, 255, .35);
-  border-color: #00e6ff;
+  background: rgba(var(--cor-principal-rgb), .35);
+  border-color: var(--cor-principal-hover, #0092d1);
 }
 
 #filtros-container {
@@ -294,8 +311,8 @@ body.theme-modal-open .logo-provisoria {
   gap: 14px;
   margin-bottom: 30px;
   padding: 20px;
-  background: rgba(20, 30, 45, 0.9);
-  border: 1px solid rgba(0, 191, 255, 0.35);
+  background: var(--bg-secondary);
+  border: 1px solid rgba(var(--cor-principal-rgb), 0.35);
   border-radius: 14px;
   align-items: flex-end;
 }
@@ -315,19 +332,19 @@ body.theme-modal-open .logo-provisoria {
   padding: 10px 12px;
   border: 1px solid rgba(153, 230, 255, 0.45);
   border-radius: 8px;
-  background: rgba(25, 35, 50, 0.9);
+  background: var(--bg-secondary);
   color: #fff;
 }
 
 .filtro-select:focus {
   outline: none;
-  box-shadow: 0 0 10px rgba(0, 191, 255, .25);
+  box-shadow: 0 0 10px rgba(var(--cor-principal-rgb), .25);
 }
 
 .btn-limpar {
   padding: 10px 16px;
-  background: #0a1f30;
-  border: 1px solid rgba(0, 191, 255, .5);
+  background: var(--bg-secondary);
+  border: 1px solid rgba(var(--cor-principal-rgb), .5);
   border-radius: 8px;
   color: #fff;
   cursor: pointer;
@@ -335,7 +352,7 @@ body.theme-modal-open .logo-provisoria {
 }
 
 .btn-limpar:hover {
-  background: rgba(0, 191, 255, .2);
+  background: rgba(var(--cor-principal-rgb), .2);
 }
 
 .evento-calendario-item {
@@ -343,8 +360,8 @@ body.theme-modal-open .logo-provisoria {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 16px;
-  background: rgba(20, 25, 40, 0.85);
-  border: 1px solid rgba(0, 191, 255, 0.35);
+  background: var(--bg-tertiary);
+  border: 1px solid rgba(var(--cor-principal-rgb), 0.35);
   border-radius: 12px;
   padding: 10px;
   margin-bottom: 12px;
@@ -367,7 +384,7 @@ body.theme-modal-open .logo-provisoria {
 .evento-calendario-info h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: #00e6ff;
+  color: var(--cor-principal-hover, #0092d1);
 }
 
 .evento-calendario-info p {
@@ -414,11 +431,11 @@ body.theme-modal-open .logo-provisoria {
 }
 
 .notification-success {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
+  background: linear-gradient(135deg, var(--success), var(--success));
 }
 
 .notification-info {
-  background: linear-gradient(135deg, #2196F3, #1976D2);
+  background: linear-gradient(135deg, var(--cor-principal, #00bfff), var(--cor-principal-hover, #0092d1));
 }
 
 @keyframes slideIn {

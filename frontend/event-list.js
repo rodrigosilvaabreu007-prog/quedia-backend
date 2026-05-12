@@ -3,7 +3,7 @@ async function carregarEventos() {
   const container = document.getElementById('event-cards');
   if (!container) return;
   
-  container.innerHTML = '<p style="color: #00bfff;">⏳ Carregando eventos...</p>';
+  container.innerHTML = '<p style="color: var(--cor-principal, #00bfff);">⏳ Carregando eventos...</p>';
 
   try {
     const resposta = await fetch(`${window.API_URL}/eventos`);

@@ -102,7 +102,7 @@ async function carregarPerfil() {
     if (preferenciasArray && preferenciasArray.length > 0) {
       preferenciasHTML += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 12px 0;">';
       preferenciasArray.forEach(pref => {
-        preferenciasHTML += `<div style="background: rgba(0, 191, 255, 0.1); padding: 8px 12px; border-radius: 4px; border-left: 3px solid var(--cor-principal, #00bfff);">${pref}</div>`;
+        preferenciasHTML += `<div style="background: rgba(var(--cor-principal-rgb), 0.1); padding: 8px 12px; border-radius: 4px; border-left: 3px solid var(--cor-principal, #00bfff);">${pref}</div>`;
       });
       preferenciasHTML += '</div>';
     } else {
@@ -111,7 +111,7 @@ async function carregarPerfil() {
     
     container.innerHTML = `
       <div style="background: var(--bg-secondary, #1a2332); border: 2px solid var(--cor-principal, #00bfff); border-radius: 12px; padding: 32px; margin-bottom: 24px; position: relative;">
-        <button onclick="fecharPerfil()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-primary, #00bfff);">✕</button>
+        <button onclick="fecharPerfil()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-primary, #fff);">✕</button>
         
         <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 32px;">
           <div style="position: relative; width: 100px; height: 100px; flex-shrink: 0;">
@@ -121,12 +121,12 @@ async function carregarPerfil() {
             <input type="file" id="foto-perfil-input" accept="image/*" style="display: none;" onchange="trocarFotoPerfil(event)">
           </div>
           <div>
-            <h2 style="margin: 0 0 8px 0; color: var(--text-primary, #00bfff);">${usuarioAtual.nome}</h2>
+            <h2 style="margin: 0 0 8px 0; color: var(--text-primary, #fff);">${usuarioAtual.nome}</h2>
             <p style="margin: 0; color: #aaa; font-size: 14px;">${usuarioAtual.email || 'Email não configurado'}</p>
           </div>
         </div>
         
-        <h2 style="margin: 0 0 24px 0; color: var(--text-primary, #00bfff);">Informações do Perfil</h2>
+        <h2 style="margin: 0 0 24px 0; color: var(--text-primary, #fff);">Informações do Perfil</h2>
         
         <div style="display: grid; gap: 16px;">
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">

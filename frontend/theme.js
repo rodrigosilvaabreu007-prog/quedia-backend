@@ -14,13 +14,34 @@ function shadeColor(hex, percent) {
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
 
+function hexToRgb(hex) {
+  if (!hex) return '0, 191, 255';
+  let color = hex.trim();
+  if (color.startsWith('#')) color = color.slice(1);
+  if (color.length === 3) color = color.split('').map(ch => ch + ch).join('');
+  const num = parseInt(color, 16);
+  if (Number.isNaN(num)) return '0, 191, 255';
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `${r}, ${g}, ${b}`;
+}
+
 function aplicarTema(tema) {
   if (tema) {
     const corPrincipal = tema.corPrincipal || '#00bfff';
+    const corPrincipalRgb = hexToRgb(corPrincipal);
     document.body.style.setProperty('--cor-principal', corPrincipal);
     document.body.style.setProperty('--cor-principal-hover', shadeColor(corPrincipal, -18));
     document.body.style.setProperty('--cor-principal-active', shadeColor(corPrincipal, -36));
-    document.body.style.setProperty('--cor-principal-pressed', '#5a6d86');
+    document.body.style.setProperty('--cor-principal-pressed', shadeColor(corPrincipal, -48));
+    document.body.style.setProperty('--cor-principal-rgb', corPrincipalRgb);
+    document.body.style.setProperty('--cor-principal-soft', `rgba(${corPrincipalRgb}, 0.12)`);
+    document.body.style.setProperty('--cor-principal-faint', `rgba(${corPrincipalRgb}, 0.05)`);
+    document.body.style.setProperty('--cor-principal-border', `rgba(${corPrincipalRgb}, 0.35)`);
+    document.body.style.setProperty('--cor-principal-border-strong', `rgba(${corPrincipalRgb}, 0.6)`);
+    document.body.style.setProperty('--cor-principal-glow', `rgba(${corPrincipalRgb}, 0.45)`);
+    document.body.style.setProperty('--cor-principal-hover-glow', `rgba(${corPrincipalRgb}, 0.55)`);
     document.body.style.setProperty('--bg-primary', tema.corFundo || '#181a20');
     document.body.style.setProperty('--text-primary', tema.corTexto || '#ffffff');
     document.body.style.setProperty('--bg-secondary', tema.bgSecundario || '#1a2332');
@@ -119,60 +140,72 @@ function initializeThemeModal() {
         <p>Customize as cores da sua experiência</p>
       </div>
 
-      <div class="theme-grid">
-        <div class="theme-section">
-          <h3>🎯 Cores Principais</h3>
-          <div class="color-group">
-            <label class="color-label">
-              <span>Cor Principal</span>
-              <input type="color" id="theme-main" value="#00bfff">
-              <div class="color-preview" id="preview-main"></div>
-            </label>
-            <small>Afeta botões, bordas e elementos visuais</small>
+      <div class="theme-modal-body">
+        <div class="theme-grid">
+          <div class="theme-section">
+            <h3>🎯 Cores Principais</h3>
+            <div class="color-group">
+              <label class="color-label">
+                <span>Cor Principal</span>
+                <input type="color" id="theme-main" value="#00bfff">
+                <div class="color-preview" id="preview-main"></div>
+              </label>
+              <small>Afeta botões, bordas e elementos visuais</small>
+            </div>
+          </div>
+
+          <div class="theme-section">
+            <h3>🏠 Plano de Fundo</h3>
+            <div class="color-group">
+              <label class="color-label">
+                <span>Cor do Fundo</span>
+                <input type="color" id="theme-bg" value="#181a20">
+                <div class="color-preview" id="preview-bg"></div>
+              </label>
+              <small>Cor de fundo da página</small>
+            </div>
+          </div>
+
+          <div class="theme-section">
+            <h3>📝 Texto</h3>
+            <div class="color-group">
+              <label class="color-label">
+                <span>Cor do Texto</span>
+                <input type="color" id="theme-text" value="#ffffff">
+                <div class="color-preview" id="preview-text"></div>
+              </label>
+              <small>Cor de todos os textos</small>
+            </div>
           </div>
         </div>
 
-        <div class="theme-section">
-          <h3>🏠 Plano de Fundo</h3>
-          <div class="color-group">
-            <label class="color-label">
-              <span>Cor do Fundo</span>
-              <input type="color" id="theme-bg" value="#181a20">
-              <div class="color-preview" id="preview-bg"></div>
-            </label>
-            <small>Cor de fundo da página</small>
-          </div>
+        <div class="theme-actions">
+          <button id="reset-theme" class="btn-secondary">🔄 Resetar</button>
+          <button id="save-theme" class="btn-primary">💾 Salvar</button>
+          <button id="close-theme" class="btn-secondary">❌ Fechar</button>
         </div>
-
-        <div class="theme-section">
-          <h3>📝 Texto</h3>
-          <div class="color-group">
-            <label class="color-label">
-              <span>Cor do Texto</span>
-              <input type="color" id="theme-text" value="#ffffff">
-              <div class="color-preview" id="preview-text"></div>
-            </label>
-            <small>Cor de todos os textos</small>
-          </div>
-        </div>
-      </div>
-
-      <div class="theme-actions">
-        <button id="reset-theme" class="btn-secondary">🔄 Resetar</button>
-        <button id="save-theme" class="btn-primary">💾 Salvar</button>
-        <button id="close-theme" class="btn-secondary">❌ Fechar</button>
       </div>
     </div>
   `;
   document.body.appendChild(themeModal);
   themeModal.style.display = 'none';
 
-  themeBtn.onclick = () => {
+  function openThemeModal() {
     themeModal.style.display = 'flex';
+    document.documentElement.classList.add('theme-modal-open');
+    document.body.classList.add('theme-modal-open');
     updatePreviews();
-  };
+  }
 
-  document.getElementById('close-theme').onclick = () => themeModal.style.display = 'none';
+  function closeThemeModal() {
+    themeModal.style.display = 'none';
+    document.documentElement.classList.remove('theme-modal-open');
+    document.body.classList.remove('theme-modal-open');
+  }
+
+  themeBtn.onclick = openThemeModal;
+
+  document.getElementById('close-theme').onclick = closeThemeModal;
 
   document.getElementById('save-theme').onclick = async () => {
     const corPrincipal = document.getElementById('theme-main').value;
@@ -216,7 +249,7 @@ function initializeThemeModal() {
       }
     }
 
-    themeModal.style.display = 'none';
+    closeThemeModal();
     window.showNotification('Tema salvo com sucesso!', 'success');
   };
 
