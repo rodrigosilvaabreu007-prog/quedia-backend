@@ -144,7 +144,9 @@ function criarCardEvento(evento, mostrarFavorito = true) {
         interestButton.addEventListener('click', async (e) => {
             e.stopPropagation();
             if (!isUsuarioLogado()) {
-                window.location.href = 'login.html';
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification('Você precisa fazer login para poder demonstrar interesse no evento.', 'success');
+                }
                 return;
             }
             await alternarInteresseEvento(eventoId, div);
@@ -177,10 +179,8 @@ function atualizarBotaoInteresse(button, contadorEl, temInteresse, contador) {
     contadorEl.textContent = `👥 ${pluralizarInteressados(contador || 0)}`;
     if (!isUsuarioLogado()) {
         button.title = 'Faça login para marcar interesse';
-        button.disabled = true;
     } else {
         button.title = temInteresse ? 'Clique para remover interesse' : 'Clique para marcar interesse';
-        button.disabled = false;
     }
 }
 

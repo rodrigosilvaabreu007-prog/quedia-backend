@@ -249,8 +249,10 @@ async function inicializarBotaoInteresse(eventoId) {
     btn.onclick = async () => {
         console.log('Botão de interesse clicado');
         if (!isUsuarioLogadoDetalhes()) {
-            console.log('Usuário não logado, redirecionando para login');
-            window.location.href = 'login.html';
+            console.log('Usuário não logado, mostrando aviso');
+            if (typeof window.showNotification === 'function') {
+                window.showNotification('Você precisa fazer login para poder demonstrar interesse no evento.', 'success');
+            }
             return;
         }
         btn.disabled = true;
