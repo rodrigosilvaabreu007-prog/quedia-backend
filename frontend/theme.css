@@ -37,8 +37,10 @@
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 80px;
+  overflow-y: auto;
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
@@ -58,11 +60,11 @@
   padding: 0;
   min-width: 500px;
   max-width: 90vw;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-height: auto;
   transform: scale(0.9) translateY(20px);
   transition: all 0.3s ease;
   border: 1px solid var(--cor-principal, #00bfff);
+  margin-bottom: 40px;
 }
 
 .theme-modal[style*="display: flex"] .theme-modal-content {
