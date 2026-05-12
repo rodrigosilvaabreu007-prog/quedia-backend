@@ -481,8 +481,12 @@ function abrirModalImagem(src) {
 
     modal.style.display = 'flex';
     img.src = src;
-    img.style.transform = 'scale(1)';
+    img.style.transform = 'scale(1) translate(0px, 0px)';
     img.dataset.zoom = '1';
+    img.dataset.translateX = '0';
+    img.dataset.translateY = '0';
+    img.classList.remove('grabbable', 'dragging');
+    img.style.cursor = 'zoom-in';
 }
 
 function fecharModalImagem(event) {
@@ -494,13 +498,85 @@ function fecharModalImagem(event) {
 
 const imagemZoom = document.getElementById('imagem-modal-force');
 if (imagemZoom) {
+    let isDraggingImage = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let lastTranslateX = 0;
+    let lastTranslateY = 0;
+
+    imagemZoom.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+
     imagemZoom.addEventListener('wheel', (e) => {
         e.preventDefault();
         let zoom = parseFloat(imagemZoom.dataset.zoom || '1');
+        const translateX = parseFloat(imagemZoom.dataset.translateX || '0');
+        const translateY = parseFloat(imagemZoom.dataset.translateY || '0');
+
         zoom += e.deltaY * -0.005;
         zoom = Math.min(Math.max(1, zoom), 3);
-        imagemZoom.style.transform = `scale(${zoom})`;
+        imagemZoom.style.transform = `scale(${zoom}) translate(${translateX}px, ${translateY}px)`;
         imagemZoom.dataset.zoom = zoom.toString();
+
+        if (zoom > 1) {
+            imagemZoom.classList.add('grabbable');
+            imagemZoom.style.cursor = 'grab';
+        } else {
+            imagemZoom.classList.remove('grabbable', 'dragging');
+            imagemZoom.style.cursor = 'zoom-in';
+            imagemZoom.dataset.translateX = '0';
+            imagemZoom.dataset.translateY = '0';
+        }
+    });
+
+    imagemZoom.addEventListener('pointerdown', (e) => {
+        const zoom = parseFloat(imagemZoom.dataset.zoom || '1');
+        if (zoom <= 1) return;
+
+        e.preventDefault();
+        isDraggingImage = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        lastTranslateX = parseFloat(imagemZoom.dataset.translateX || '0');
+        lastTranslateY = parseFloat(imagemZoom.dataset.translateY || '0');
+        imagemZoom.classList.add('dragging');
+        imagemZoom.setPointerCapture(e.pointerId);
+    });
+
+    imagemZoom.addEventListener('pointermove', (e) => {
+        if (!isDraggingImage) return;
+
+        e.preventDefault();
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        const translateX = lastTranslateX + dx;
+        const translateY = lastTranslateY + dy;
+        const zoom = parseFloat(imagemZoom.dataset.zoom || '1');
+
+        imagemZoom.dataset.translateX = translateX.toString();
+        imagemZoom.dataset.translateY = translateY.toString();
+        imagemZoom.style.transform = `scale(${zoom}) translate(${translateX}px, ${translateY}px)`;
+    });
+
+    const stopDragging = (e) => {
+        if (!isDraggingImage) return;
+        isDraggingImage = false;
+        imagemZoom.classList.remove('dragging');
+        if (e && e.pointerId) imagemZoom.releasePointerCapture(e.pointerId);
+    };
+
+    imagemZoom.addEventListener('pointerup', stopDragging);
+    imagemZoom.addEventListener('pointercancel', stopDragging);
+
+    imagemZoom.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        imagemZoom.dataset.zoom = '1';
+        imagemZoom.dataset.translateX = '0';
+        imagemZoom.dataset.translateY = '0';
+        imagemZoom.style.transform = 'scale(1) translate(0px, 0px)';
+        imagemZoom.classList.remove('grabbable', 'dragging');
+        imagemZoom.style.cursor = 'zoom-in';
     });
 }
 

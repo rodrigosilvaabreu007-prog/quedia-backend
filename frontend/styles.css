@@ -1967,6 +1967,14 @@ header {
   cursor: zoom-in;
 }
 
+.imagem-modal.grabbable {
+  cursor: grab;
+}
+
+.imagem-modal.dragging {
+  cursor: grabbing;
+}
+
 .close-modal-btn {
   position: absolute;
   top: 16px;
