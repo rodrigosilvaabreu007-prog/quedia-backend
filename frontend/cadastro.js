@@ -134,7 +134,7 @@ if (form) {
 
       if (resposta.ok) {
         mensagem.textContent = 'Cadastro realizado com sucesso! Redirecionando...';
-        mensagem.style.color = 'var(--cor-principal, #00bfff)';
+        mensagem.style.color = 'var(--cor-principal)';
         setTimeout(() => { window.location.href = 'login.html'; }, 2000);
       } else {
         mensagem.textContent = resultado.erro || 'Erro ao cadastrar.';

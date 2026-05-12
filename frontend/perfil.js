@@ -37,11 +37,11 @@ async function carregarPerfil() {
 
     container.innerHTML = `
       <div style="text-align: center; padding: 40px 20px;">
-        <h2 style="color: var(--cor-principal, #00bfff); margin-bottom: 20px;">Você não está logado</h2>
+        <h2 style="color: var(--cor-principal); margin-bottom: 20px;">Você não está logado</h2>
         <p style="color: #aaa; margin-bottom: 30px;">Faça login ou crie uma conta para acessar seu perfil</p>
         <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-          <button id="btn-abrir-login" style="padding: 12px 24px; background: var(--cor-principal, #00bfff); color: #000; border-radius: 4px; font-weight: bold; cursor: pointer; border: none;">Login</button>
-          <button id="btn-abrir-cadastro" style="padding: 12px 24px; background: transparent; color: var(--cor-principal, #00bfff); border: 2px solid var(--cor-principal, #00bfff); border-radius: 4px; font-weight: bold; cursor: pointer;">Cadastro</button>
+          <button id="btn-abrir-login" style="padding: 12px 24px; background: var(--cor-principal); color: #000; border-radius: 4px; font-weight: bold; cursor: pointer; border: none;">Login</button>
+          <button id="btn-abrir-cadastro" style="padding: 12px 24px; background: transparent; color: var(--cor-principal); border: 2px solid var(--cor-principal); border-radius: 4px; font-weight: bold; cursor: pointer;">Cadastro</button>
         </div>
         <p style="color: #ffcc00; margin-top: 18px; font-size: 0.9rem;">Se não abrir, limpe o cache do browser ou use o botão abaixo.</p>
         <button id="btn-limpar-sessao" style="padding: 10px 16px; background: #444; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Limpar sessão</button>
@@ -102,7 +102,7 @@ async function carregarPerfil() {
     if (preferenciasArray && preferenciasArray.length > 0) {
       preferenciasHTML += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin: 12px 0;">';
       preferenciasArray.forEach(pref => {
-        preferenciasHTML += `<div style="background: rgba(var(--cor-principal-rgb), 0.1); padding: 8px 12px; border-radius: 4px; border-left: 3px solid var(--cor-principal, #00bfff);">${pref}</div>`;
+        preferenciasHTML += `<div style="background: rgba(var(--cor-principal-rgb), 0.1); padding: 8px 12px; border-radius: 4px; border-left: 3px solid var(--cor-principal);">${pref}</div>`;
       });
       preferenciasHTML += '</div>';
     } else {
@@ -110,12 +110,12 @@ async function carregarPerfil() {
     }
     
     container.innerHTML = `
-      <div style="background: var(--bg-secondary, #1a2332); border: 2px solid var(--cor-principal, #00bfff); border-radius: 12px; padding: 32px; margin-bottom: 24px; position: relative;">
+      <div style="background: var(--bg-secondary); border: 2px solid var(--cor-principal); border-radius: 12px; padding: 32px; margin-bottom: 24px; position: relative;">
         <button onclick="fecharPerfil()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-primary, #fff);">✕</button>
         
         <div style="display: flex; align-items: center; gap: 24px; margin-bottom: 32px;">
           <div style="position: relative; width: 100px; height: 100px; flex-shrink: 0;">
-            <div id="foto-container" style="width: 100%; height: 100%; border-radius: 50%; border: 3px solid var(--cor-principal, #00bfff); overflow: hidden; cursor: pointer;" onclick="document.getElementById('foto-perfil-input').click();" title="Clique para alterar foto de perfil">
+            <div id="foto-container" style="width: 100%; height: 100%; border-radius: 50%; border: 3px solid var(--cor-principal); overflow: hidden; cursor: pointer;" onclick="document.getElementById('foto-perfil-input').click();" title="Clique para alterar foto de perfil">
               <img id="foto-perfil-display" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='8' r='4' fill='%2300bfff'/%3E%3Cpath d='M12 14c-4 0-6 2-6 2v6h12v-6s-2-2-6-2z' fill='%2300bfff'/%3E%3C/svg%3E" style="width: 100%; height: 100%; object-fit: cover;">
             </div>
             <input type="file" id="foto-perfil-input" accept="image/*" style="display: none;" onchange="trocarFotoPerfil(event)">
@@ -132,12 +132,12 @@ async function carregarPerfil() {
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
             <div>
               <p style="margin: 0 0 8px 0; font-size: 12px; color: #888;">ESTADO</p>
-              <p style="margin: 0; font-size: 16px; color: var(--text-color, #fff);">${usuarioAtual.estado || 'Não informado'}</p>
+              <p style="margin: 0; font-size: 16px; color: var(--text-color);">${usuarioAtual.estado || 'Não informado'}</p>
             </div>
             
             <div>
               <p style="margin: 0 0 8px 0; font-size: 12px; color: #888;">CIDADE</p>
-              <p style="margin: 0; font-size: 16px; color: var(--text-color, #fff);">${usuarioAtual.cidade || 'Não informado'}</p>
+              <p style="margin: 0; font-size: 16px; color: var(--text-color);">${usuarioAtual.cidade || 'Não informado'}</p>
             </div>
           </div>
           
@@ -147,7 +147,7 @@ async function carregarPerfil() {
         </div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 32px;">
-          <button onclick="abrirModalEditar()" style="padding: 12px 24px; background: var(--cor-principal, #00bfff); border: none; border-radius: 4px; color: #000; font-weight: 600; cursor: pointer; font-size: 16px;">Editar Perfil</button>
+          <button onclick="abrirModalEditar()" style="padding: 12px 24px; background: var(--cor-principal); border: none; border-radius: 4px; color: #000; font-weight: 600; cursor: pointer; font-size: 16px;">Editar Perfil</button>
           <button onclick="abrirModalDeletar()" style="padding: 12px 24px; background: #ff4444; border: none; border-radius: 4px; color: #fff; font-weight: 600; cursor: pointer; font-size: 16px;">Deletar Conta</button>
           <button onclick="logout(event)" style="padding: 12px 24px; background: #666; border: none; border-radius: 4px; color: #fff; font-weight: 600; cursor: pointer; font-size: 16px;">Sair da Conta</button>
         </div>
@@ -167,10 +167,10 @@ async function carregarPerfil() {
     const container = document.getElementById('conteudo-perfil');
     if (container) {
       container.innerHTML = `
-        <div style="background: var(--bg-secondary, #1a2332); border: 2px solid #ff4444; border-radius: 12px; padding: 32px; margin-bottom: 24px;">
+        <div style="background: var(--bg-secondary); border: 2px solid #ff4444; border-radius: 12px; padding: 32px; margin-bottom: 24px;">
           <h2 style="color: #ff4444; margin-top: 0;">Erro ao Carregar Perfil</h2>
           <p style="color: #aaa; margin-bottom: 20px;">Desculpe, ocorreu um erro ao carregar suas informações. Por favor, tente novamente.</p>
-          <button onclick="location.reload()" style="padding: 12px 24px; background: var(--cor-principal, #00bfff); border: none; border-radius: 4px; color: #000; font-weight: 600; cursor: pointer;">Tentar Novamente</button>
+          <button onclick="location.reload()" style="padding: 12px 24px; background: var(--cor-principal); border: none; border-radius: 4px; color: #000; font-weight: 600; cursor: pointer;">Tentar Novamente</button>
           <button onclick="window.location.href='index.html';" style="padding: 12px 24px; background: #666; border: none; border-radius: 4px; color: #fff; font-weight: 600; cursor: pointer; margin-left: 12px;">Voltar ao Início</button>
         </div>
       `;

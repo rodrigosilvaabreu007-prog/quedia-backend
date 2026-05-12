@@ -16,11 +16,11 @@
 
 /* --- 1. VARIÁVEIS E RESET --- */
 :root {
-  --cor-principal: #00bfff;
-  --cor-principal-hover: #0092d1;
-  --cor-principal-active: #0078b5;
-  --cor-principal-pressed: #5a6d86;
-  --cor-principal-rgb: 0, 191, 255;
+  --cor-principal: #c35151;
+  --cor-principal-hover: #9e4040;
+  --cor-principal-active: #7a2f2f;
+  --cor-principal-pressed: #5f2626;
+  --cor-principal-rgb: 195, 81, 81;
   --cor-principal-soft: rgba(var(--cor-principal-rgb), 0.12);
   --cor-principal-faint: rgba(var(--cor-principal-rgb), 0.05);
   --cor-principal-border: rgba(var(--cor-principal-rgb), 0.35);
@@ -36,7 +36,7 @@
   --text-color: var(--text-primary);
   --glass: rgba(255, 255, 255, 0.05);
   --border: rgba(255, 255, 255, 0.12);
-  --accent: #00ffdd;
+  --accent: #ff7f7f;
   --success: #28a745;
   --error: #ff4444;
   --warning: #ffcc00;
@@ -246,11 +246,11 @@ button.btn-icon:hover {
 
   0%,
   100% {
-    text-shadow: 0 0 10px var(--cor-principal, #00bfff), 0 0 20px var(--cor-principal, #00bfff), 0 0 30px var(--cor-principal, #00bfff), 0 0 40px var(--cor-principal, #00bfff);
+    text-shadow: 0 0 10px var(--cor-principal), 0 0 20px var(--cor-principal), 0 0 30px var(--cor-principal), 0 0 40px var(--cor-principal);
   }
 
   50% {
-    text-shadow: 0 0 20px var(--cor-principal, #00bfff), 0 0 30px var(--cor-principal, #00bfff), 0 0 40px var(--cor-principal, #00bfff), 0 0 50px var(--cor-principal-hover, #0092d1);
+    text-shadow: 0 0 20px var(--cor-principal), 0 0 30px var(--cor-principal), 0 0 40px var(--cor-principal), 0 0 50px var(--cor-principal-hover);
   }
 }
 
@@ -320,7 +320,7 @@ header {
   min-width: 50px;
   text-align: center;
   letter-spacing: -3px;
-  background: linear-gradient(135deg, var(--cor-principal, #00bfff), var(--cor-principal-hover, #0092d1), var(--cor-principal-hover, #0092d1));
+  background: linear-gradient(135deg, var(--cor-principal), var(--cor-principal-hover), var(--cor-principal-hover));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -339,7 +339,7 @@ header {
   white-space: nowrap;
   position: relative;
   overflow: hidden;
-  border: 2px solid var(--cor-principal, #00bfff);
+  border: 2px solid var(--cor-principal);
   background: rgba(0, 0, 0, 0.25);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -363,13 +363,13 @@ header {
   left: 0;
   width: 0%;
   height: 2px;
-  background: linear-gradient(90deg, var(--cor-principal, #00bfff), var(--cor-principal-hover, #0092d1), var(--cor-principal-hover, #0092d1));
+  background: linear-gradient(90deg, var(--cor-principal), var(--cor-principal-hover), var(--cor-principal-hover));
   transition: width 0.3s ease;
 }
 
 .menu a:hover {
-  border-color: var(--cor-principal, #00bfff);
-  color: var(--cor-principal, #00bfff);
+  border-color: var(--cor-principal);
+  color: var(--cor-principal);
   text-shadow: 0 0 10px rgba(var(--cor-principal-rgb), 0.8), 0 0 20px rgba(var(--cor-principal-rgb), 0.5), 0 0 30px rgba(255, 0, 255, 0.3);
   box-shadow: 0 0 20px rgba(var(--cor-principal-rgb), 0.6), inset 0 0 10px rgba(var(--cor-principal-rgb), 0.2);
   animation: glow-hover 0.6s ease-in-out;
@@ -418,7 +418,7 @@ header {
   font-size: 32px;
   font-weight: 900;
   letter-spacing: -3px;
-  background: linear-gradient(135deg, var(--cor-principal, #00bfff), var(--cor-principal-hover, #0092d1), var(--cor-principal-hover, #0092d1));
+  background: linear-gradient(135deg, var(--cor-principal), var(--cor-principal-hover), var(--cor-principal-hover));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -446,7 +446,7 @@ header {
   white-space: nowrap;
   position: relative;
   overflow: hidden;
-  border: 2px solid var(--cor-principal, #00bfff);
+  border: 2px solid var(--cor-principal);
   background: rgba(0, 0, 0, 0.25);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -470,13 +470,13 @@ header {
   left: 0;
   width: 0%;
   height: 2px;
-  background: linear-gradient(90deg, var(--cor-principal, #00bfff), var(--cor-principal-hover, #0092d1), var(--cor-principal-hover, #0092d1));
+  background: linear-gradient(90deg, var(--cor-principal), var(--cor-principal-hover), var(--cor-principal-hover));
   transition: width 0.3s ease;
 }
 
 .nav-links a:hover {
-  border-color: var(--cor-principal, #00bfff);
-  color: var(--cor-principal, #00bfff);
+  border-color: var(--cor-principal);
+  color: var(--cor-principal);
   text-shadow: 0 0 10px rgba(var(--cor-principal-rgb), 0.8), 0 0 20px rgba(var(--cor-principal-rgb), 0.5), 0 0 30px rgba(255, 0, 255, 0.3);
   box-shadow: 0 0 20px rgba(var(--cor-principal-rgb), 0.6), inset 0 0 10px rgba(var(--cor-principal-rgb), 0.2);
   animation: glow-hover 0.6s ease-in-out;
@@ -500,7 +500,7 @@ header {
 .hamburger-menu span {
   width: 25px;
   height: 3px;
-  background: linear-gradient(90deg, var(--cor-principal, #00bfff), var(--cor-principal-hover, #0092d1));
+  background: linear-gradient(90deg, var(--cor-principal), var(--cor-principal-hover));
   border-radius: 2px;
   transition: all 0.3s ease;
   box-shadow: 0 0 10px rgba(var(--cor-principal-rgb), 0.6);
@@ -550,7 +550,7 @@ header {
   top: 20px;
   right: 20px;
   z-index: 3000;
-  background: linear-gradient(90deg, var(--cor-principal, #00bfff), var(--accent, #00ffdd));
+  background: linear-gradient(90deg, var(--cor-principal), var(--accent));
   border: none;
   border-radius: 999px;
   color: #000;
@@ -609,7 +609,7 @@ header {
 .hamburger span {
   width: 25px;
   height: 3px;
-  background: linear-gradient(90deg, var(--cor-principal, #00bfff), var(--cor-principal-hover, #0092d1));
+  background: linear-gradient(90deg, var(--cor-principal), var(--cor-principal-hover));
   border-radius: 2px;
   transition: all 0.3s ease;
   box-shadow: 0 0 10px rgba(var(--cor-principal-rgb), 0.6);
@@ -661,7 +661,7 @@ header {
 
 .mobile-menu a:hover {
   border-color: rgba(var(--cor-principal-rgb), 1);
-  color: var(--cor-principal-hover, #0092d1);
+  color: var(--cor-principal-hover);
   text-shadow: 0 0 10px rgba(var(--cor-principal-rgb), 0.8), 0 0 20px rgba(var(--cor-principal-rgb), 0.5);
   box-shadow: 0 0 15px rgba(var(--cor-principal-rgb), 0.4);
 }
@@ -1054,7 +1054,7 @@ header {
   width: 92px;
   height: 92px;
   object-fit: cover;
-  border: 2px solid var(--cor-principal, #00bfff);
+  border: 2px solid var(--cor-principal);
   border-radius: 10px;
 }
 
@@ -1471,7 +1471,7 @@ header {
 
 .event-price {
   font-weight: bold;
-  color: var(--cor-principal, #00bfff);
+  color: var(--cor-principal);
   font-size: 1rem;
 }
 
@@ -1690,7 +1690,7 @@ header {
 }
 
 .evento-categoria {
-  color: var(--cor-principal, #00bfff);
+  color: var(--cor-principal);
   font-size: 14px;
   margin: 0 0 5px 0;
 }
@@ -1734,7 +1734,7 @@ header {
 }
 
 .evento-preco {
-  color: var(--cor-principal, #00bfff);
+  color: var(--cor-principal);
   font-weight: bold;
 }
 
@@ -1861,7 +1861,7 @@ header {
 }
 
 .pagina-header .logo {
-  color: var(--cor-principal, #00bfff);
+  color: var(--cor-principal);
   font-size: 1.6rem;
   font-weight: 700;
   text-decoration: none;
@@ -1883,7 +1883,7 @@ header {
 .titulo-fora-caixa h1 {
   margin: 0;
   font-size: 2.8rem;
-  color: var(--cor-principal, #00bfff);
+  color: var(--cor-principal);
 }
 
 .titulo-fora-caixa .subtitulo-organizador {
@@ -2084,7 +2084,7 @@ header {
 
 .evento-descricao h2,
 .evento-localizacao h2 {
-  color: var(--cor-principal, #00bfff);
+  color: var(--cor-principal);
   margin: 0 0 12px 0;
 }
 
@@ -2402,7 +2402,7 @@ header {
 .evento-descricao h2,
 .evento-localizacao h2,
 .evento-organizador h2 {
-  color: var(--cor-principal, #00bfff);
+  color: var(--cor-principal);
   margin-bottom: 15px;
   font-size: 1.8rem;
 }
@@ -2444,7 +2444,7 @@ header {
 
 #datas-container h3 {
   margin: 0 0 12px 0;
-  color: var(--cor-principal, #00bfff);
+  color: var(--cor-principal);
 }
 
 .schedule-row {
@@ -2508,7 +2508,7 @@ header {
 
 .btn-adicionar-data {
   background: rgba(var(--cor-principal-rgb), 0.15);
-  color: var(--cor-principal, #00bfff);
+  color: var(--cor-principal);
   border: 1px solid rgba(var(--cor-principal-rgb), 0.3);
   border-radius: 8px;
   padding: 10px 16px;
@@ -2648,7 +2648,7 @@ header {
 }
 
 #event-modal .modal-padding h2 {
-  color: var(--cor-principal, #00bfff);
+  color: var(--cor-principal);
   margin-bottom: 10px;
   margin-top: 0;
 }

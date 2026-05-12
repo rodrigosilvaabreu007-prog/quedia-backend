@@ -3,7 +3,7 @@
   top: 14px;
   right: 14px;
   z-index: 9999;
-  background: var(--cor-principal, #00bfff);
+  background: var(--cor-principal);
   color: var(--text-primary, #fff);
   border: none;
   border-radius: 12px;
@@ -73,7 +73,7 @@ body.theme-modal-open .logo-provisoria {
 }
 
 .theme-modal-content {
-  background: var(--bg-primary, #181a20);
+  background: var(--bg-primary);
   color: var(--text-primary, #fff);
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
@@ -87,7 +87,7 @@ body.theme-modal-open .logo-provisoria {
   flex-direction: column;
   transform: scale(0.9) translateY(20px);
   transition: all 0.3s ease;
-  border: 1px solid var(--cor-principal, #00bfff);
+  border: 1px solid var(--cor-principal);
   margin-bottom: 0;
 }
 
@@ -126,7 +126,7 @@ body.theme-modal-open .logo-provisoria {
 .theme-header {
   width: 100%;
   box-sizing: border-box;
-  background: linear-gradient(135deg, var(--cor-principal, #00bfff), var(--cor-principal-hover, #0092d1));
+  background: linear-gradient(135deg, var(--cor-principal), var(--cor-principal-hover));
   padding: 24px 32px;
   border-radius: 20px 20px 0 0;
   text-align: center;
@@ -188,7 +188,7 @@ body.theme-modal-open .logo-provisoria {
 
 .color-label:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: var(--cor-principal, #00bfff);
+  border-color: var(--cor-principal);
 }
 
 .color-label span {
@@ -229,7 +229,7 @@ body.theme-modal-open .logo-provisoria {
 }
 
 .btn-primary {
-  background: var(--cor-principal, #00bfff);
+  background: var(--cor-principal);
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -282,7 +282,7 @@ body.theme-modal-open .logo-provisoria {
 
 #search-input:focus {
   outline: none;
-  border-color: var(--cor-principal-hover, #0092d1);
+  border-color: var(--cor-principal-hover);
   box-shadow: 0 0 15px rgba(var(--cor-principal-rgb), .35);
 }
 
@@ -302,7 +302,7 @@ body.theme-modal-open .logo-provisoria {
 #view-eventos:hover,
 #view-calendario:hover {
   background: rgba(var(--cor-principal-rgb), .35);
-  border-color: var(--cor-principal-hover, #0092d1);
+  border-color: var(--cor-principal-hover);
 }
 
 #filtros-container {
@@ -384,7 +384,7 @@ body.theme-modal-open .logo-provisoria {
 .evento-calendario-info h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: var(--cor-principal-hover, #0092d1);
+  color: var(--cor-principal-hover);
 }
 
 .evento-calendario-info p {
@@ -411,7 +411,7 @@ body.theme-modal-open .logo-provisoria {
 .favorito-btn.demonstrou-interesse,
 .btn-interesse.demonstrou-interesse,
 .btn-calendario-fav.demonstrou-interesse {
-  background: var(--cor-principal, #00bfff);
+  background: var(--cor-principal);
   color: #000;
   border-color: #ffd700;
 }
@@ -435,7 +435,7 @@ body.theme-modal-open .logo-provisoria {
 }
 
 .notification-info {
-  background: linear-gradient(135deg, var(--cor-principal, #00bfff), var(--cor-principal-hover, #0092d1));
+  background: linear-gradient(135deg, var(--cor-principal), var(--cor-principal-hover));
 }
 
 @keyframes slideIn {

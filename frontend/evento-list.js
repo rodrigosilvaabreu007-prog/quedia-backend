@@ -397,7 +397,7 @@ window.abrirPrevia = function(evento, imgResolvida) {
             <img src="${imgResolvida}" class="modal-header-img" alt="Capa do Evento">
         </div>
         <div class="modal-padding">
-            <h2 style="color:var(--cor-principal, #00bfff); margin-bottom:10px;">${evento.nome}</h2>
+            <h2 style="color:var(--cor-principal); margin-bottom:10px;">${evento.nome}</h2>
             <p><strong>📅 Data:</strong> ${formatarData(evento.data)}</p>
             <p><strong>⏰ Horário:</strong> ${evento.horario || '--:--'}</p>
             <p><strong>📍 Local:</strong> ${localizacao} - ${evento.cidade || ''}/${evento.estado || ''}</p>
@@ -1013,7 +1013,7 @@ window.mostrarEventosDia = function(data) {
     
     body.innerHTML = `
         <div class="modal-padding" style="padding:20px; color: white;">
-            <h2 style="color:var(--cor-principal, #00bfff); margin-bottom:20px;">Eventos em ${formatarData(data)}</h2>
+            <h2 style="color:var(--cor-principal); margin-bottom:20px;">Eventos em ${formatarData(data)}</h2>
             <div class="eventos-calendario-lista">
                 ${eventosHtml}
             </div>

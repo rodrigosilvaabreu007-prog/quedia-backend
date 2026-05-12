@@ -294,23 +294,23 @@ const usuarioId = usuario.id || usuario._id || '';
     }
     
     const preferenciasHTML = preferenciasArray.length > 0 
-        ? preferenciasArray.map(pref => `<span style="background: rgba(0,191,255,0.1); padding: 4px 8px; border-radius: 4px; margin: 2px; display: inline-block;">${pref}</span>`).join('')
+        ? preferenciasArray.map(pref => `<span style="background: rgba(var(--cor-principal-rgb), 0.12); padding: 4px 8px; border-radius: 4px; margin: 2px; display: inline-block; color: var(--text-color);">${pref}</span>`).join('')
         : '<span style="color: #888;">Nenhuma preferência configurada</span>';
     
     modal.innerHTML = `
-        <div style="background: #1a2332; border: 2px solid var(--cor-principal, #00bfff); border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative;">
-            <button onclick="fecharModalPerfil()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--cor-principal, #00bfff);">✕</button>
+        <div style="background: #1a2332; border: 2px solid var(--cor-principal); border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative;">
+            <button onclick="fecharModalPerfil()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--cor-principal);">✕</button>
             
             <div style="text-align: center; margin-bottom: 24px;">
-                <div style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--cor-principal, #00bfff); margin: 0 auto 16px; background: var(--cor-principal, #00bfff); display: flex; align-items: center; justify-content: center; font-size: 36px;">
+                <div style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--cor-principal); margin: 0 auto 16px; background: var(--cor-principal); display: flex; align-items: center; justify-content: center; font-size: 36px;">
                     ${usuarioAtual.nome.charAt(0).toUpperCase()}
                 </div>
-                <h2 style="margin: 0 0 8px 0; color: var(--cor-principal, #00bfff);">${usuarioAtual.nome}</h2>
+                <h2 style="margin: 0 0 8px 0; color: var(--cor-principal);">${usuarioAtual.nome}</h2>
                 <p style="margin: 0; color: #aaa;">${usuarioAtual.email}</p>
             </div>
             
             <div style="margin-bottom: 24px;">
-                <h3 style="margin: 0 0 16px 0; color: var(--cor-principal, #00bfff);">Informações do Perfil</h3>
+                <h3 style="margin: 0 0 16px 0; color: var(--cor-principal);">Informações do Perfil</h3>
                 <div style="display: grid; gap: 12px;">
                     <div style="display: flex; justify-content: space-between;">
                         <span style="color: #888;">Estado:</span>
@@ -328,7 +328,7 @@ const usuarioId = usuario.id || usuario._id || '';
             </div>
             
             <div style="margin-bottom: 24px;">
-                <h3 style="margin: 0 0 16px 0; color: var(--cor-principal, #00bfff);">Preferências de Eventos</h3>
+                <h3 style="margin: 0 0 16px 0; color: var(--cor-principal);">Preferências de Eventos</h3>
                 <div style="line-height: 1.6;">
                     ${preferenciasHTML}
                 </div>
@@ -336,7 +336,7 @@ const usuarioId = usuario.id || usuario._id || '';
             
             <div style="display: flex; gap: 12px; justify-content: center;">
                 <button onclick="fazerLogout()" style="padding: 10px 20px; background: #ff4444; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Logout</button>
-                <button onclick="fecharModalPerfil()" style="padding: 10px 20px; background: var(--cor-principal, #00bfff); color: #000; border: none; border-radius: 4px; cursor: pointer;">Fechar</button>
+                <button onclick="fecharModalPerfil()" style="padding: 10px 20px; background: var(--cor-principal); color: #000; border: none; border-radius: 4px; cursor: pointer;">Fechar</button>
             </div>
         </div>
     `;

@@ -2,12 +2,12 @@
 
 // Funções de aplicar/restaurar tema
 function shadeColor(hex, percent) {
-  if (!hex) return '#5a6d86';
+  if (!hex) return '#c35151';
   let color = hex.trim();
   if (color.startsWith('#')) color = color.slice(1);
   if (color.length === 3) color = color.split('').map(ch => ch + ch).join('');
   const num = parseInt(color, 16);
-  if (Number.isNaN(num)) return '#5a6d86';
+  if (Number.isNaN(num)) return '#c35151';
   const r = Math.min(255, Math.max(0, Math.round(((num >> 16) & 255) * (100 + percent) / 100)));
   const g = Math.min(255, Math.max(0, Math.round(((num >> 8) & 255) * (100 + percent) / 100)));
   const b = Math.min(255, Math.max(0, Math.round((num & 255) * (100 + percent) / 100)));
@@ -15,12 +15,12 @@ function shadeColor(hex, percent) {
 }
 
 function hexToRgb(hex) {
-  if (!hex) return '0, 191, 255';
+  if (!hex) return '195, 81, 81';
   let color = hex.trim();
   if (color.startsWith('#')) color = color.slice(1);
   if (color.length === 3) color = color.split('').map(ch => ch + ch).join('');
   const num = parseInt(color, 16);
-  if (Number.isNaN(num)) return '0, 191, 255';
+  if (Number.isNaN(num)) return '195, 81, 81';
   const r = (num >> 16) & 255;
   const g = (num >> 8) & 255;
   const b = num & 255;
@@ -29,31 +29,31 @@ function hexToRgb(hex) {
 
 function aplicarTema(tema) {
   if (tema) {
-    const corPrincipal = tema.corPrincipal || '#00bfff';
+    const corPrincipal = tema.corPrincipal || '#c35151';
     const corPrincipalRgb = hexToRgb(corPrincipal);
-    document.body.style.setProperty('--cor-principal', corPrincipal);
-    document.body.style.setProperty('--cor-principal-hover', shadeColor(corPrincipal, -18));
-    document.body.style.setProperty('--cor-principal-active', shadeColor(corPrincipal, -36));
-    document.body.style.setProperty('--cor-principal-pressed', shadeColor(corPrincipal, -48));
-    document.body.style.setProperty('--cor-principal-rgb', corPrincipalRgb);
-    document.body.style.setProperty('--cor-principal-soft', `rgba(${corPrincipalRgb}, 0.12)`);
-    document.body.style.setProperty('--cor-principal-faint', `rgba(${corPrincipalRgb}, 0.05)`);
-    document.body.style.setProperty('--cor-principal-border', `rgba(${corPrincipalRgb}, 0.35)`);
-    document.body.style.setProperty('--cor-principal-border-strong', `rgba(${corPrincipalRgb}, 0.6)`);
-    document.body.style.setProperty('--cor-principal-glow', `rgba(${corPrincipalRgb}, 0.45)`);
-    document.body.style.setProperty('--cor-principal-hover-glow', `rgba(${corPrincipalRgb}, 0.55)`);
-    document.body.style.setProperty('--bg-primary', tema.corFundo || '#181a20');
-    document.body.style.setProperty('--text-primary', tema.corTexto || '#ffffff');
-    document.body.style.setProperty('--bg-secondary', tema.bgSecundario || '#1a2332');
-    document.body.style.setProperty('--bg-tertiary', tema.bgTerciario || '#0f1419');
-    document.body.style.setProperty('--text-secondary', tema.textoSecundario || '#c7d2ff');
-    document.body.style.setProperty('--text-muted', tema.textoMutado || '#aaa');
-    document.body.style.setProperty('--glass', tema.glass || 'rgba(255,255,255,0.05)');
-    document.body.style.setProperty('--border', tema.borda || 'rgba(255,255,255,0.12)');
-    document.body.style.setProperty('--accent', tema.accent || '#00ffdd');
-    document.body.style.setProperty('--success', tema.success || '#28a745');
-    document.body.style.setProperty('--error', tema.error || '#ff4444');
-    document.body.style.setProperty('--warning', tema.warning || '#ffcc00');
+    document.documentElement.style.setProperty('--cor-principal', corPrincipal);
+    document.documentElement.style.setProperty('--cor-principal-hover', shadeColor(corPrincipal, -18));
+    document.documentElement.style.setProperty('--cor-principal-active', shadeColor(corPrincipal, -36));
+    document.documentElement.style.setProperty('--cor-principal-pressed', shadeColor(corPrincipal, -48));
+    document.documentElement.style.setProperty('--cor-principal-rgb', corPrincipalRgb);
+    document.documentElement.style.setProperty('--cor-principal-soft', `rgba(${corPrincipalRgb}, 0.12)`);
+    document.documentElement.style.setProperty('--cor-principal-faint', `rgba(${corPrincipalRgb}, 0.05)`);
+    document.documentElement.style.setProperty('--cor-principal-border', `rgba(${corPrincipalRgb}, 0.35)`);
+    document.documentElement.style.setProperty('--cor-principal-border-strong', `rgba(${corPrincipalRgb}, 0.6)`);
+    document.documentElement.style.setProperty('--cor-principal-glow', `rgba(${corPrincipalRgb}, 0.45)`);
+    document.documentElement.style.setProperty('--cor-principal-hover-glow', `rgba(${corPrincipalRgb}, 0.55)`);
+    document.documentElement.style.setProperty('--bg-primary', tema.corFundo || '#181a20');
+    document.documentElement.style.setProperty('--text-primary', tema.corTexto || '#ffffff');
+    document.documentElement.style.setProperty('--bg-secondary', tema.bgSecundario || '#1a2332');
+    document.documentElement.style.setProperty('--bg-tertiary', tema.bgTerciario || '#0f1419');
+    document.documentElement.style.setProperty('--text-secondary', tema.textoSecundario || '#c7d2ff');
+    document.documentElement.style.setProperty('--text-muted', tema.textoMutado || '#aaa');
+    document.documentElement.style.setProperty('--glass', tema.glass || 'rgba(255,255,255,0.05)');
+    document.documentElement.style.setProperty('--border', tema.borda || 'rgba(255,255,255,0.12)');
+    document.documentElement.style.setProperty('--accent', tema.accent || '#00ffdd');
+    document.documentElement.style.setProperty('--success', tema.success || '#28a745');
+    document.documentElement.style.setProperty('--error', tema.error || '#ff4444');
+    document.documentElement.style.setProperty('--warning', tema.warning || '#ffcc00');
     
     // Definir valores nos inputs se existirem
     const mainInput = document.getElementById('theme-main');
@@ -147,7 +147,7 @@ function initializeThemeModal() {
             <div class="color-group">
               <label class="color-label">
                 <span>Cor Principal</span>
-                <input type="color" id="theme-main" value="#00bfff">
+                <input type="color" id="theme-main" value="#c35151">
                 <div class="color-preview" id="preview-main"></div>
               </label>
               <small>Afeta botões, bordas e elementos visuais</small>
@@ -255,7 +255,7 @@ function initializeThemeModal() {
 
   document.getElementById('reset-theme').onclick = () => {
     // Resetar para valores padrão
-    document.getElementById('theme-main').value = '#00bfff';
+    document.getElementById('theme-main').value = '#c35151';
     document.getElementById('theme-bg').value = '#181a20';
     document.getElementById('theme-text').value = '#ffffff';
     updatePreviews();

@@ -35,8 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (token && usuario) {
         const statusMsg = document.getElementById('mensagem-login');
         if (statusMsg) {
-            statusMsg.innerHTML = 'Você já está logado. <a href="perfil.html" style="color:var(--cor-principal, #00bfff); text-decoration:underline;">Ver perfil</a> ou <a href="#" id="logout-link" style="color:var(--cor-principal, #00bfff); text-decoration:underline;">sair</a>.';
-            statusMsg.style.color = 'var(--cor-principal, #00bfff)';
+            statusMsg.innerHTML = 'Você já está logado. <a href="perfil.html" style="color:var(--cor-principal); text-decoration:underline;">Ver perfil</a> ou <a href="#" id="logout-link" style="color:var(--cor-principal); text-decoration:underline;">sair</a>.';
+            statusMsg.style.color = 'var(--cor-principal)';
         }
 
         document.getElementById('logout-link')?.addEventListener('click', (e) => {
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 // Feedback visual
                 mensagem.textContent = '⏳ Verificando dados...';
-                mensagem.style.color = 'var(--cor-principal, #00bfff)';
+                mensagem.style.color = 'var(--cor-principal)';
 
                 const resposta = await fetch(`${window.API_URL}/login`, {
                     method: 'POST',
