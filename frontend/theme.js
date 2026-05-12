@@ -2,12 +2,12 @@
 
 // Funções de aplicar/restaurar tema
 function shadeColor(hex, percent) {
-  if (!hex) return '#c35151';
+  if (!hex) return '#00bfff';
   let color = hex.trim();
   if (color.startsWith('#')) color = color.slice(1);
   if (color.length === 3) color = color.split('').map(ch => ch + ch).join('');
   const num = parseInt(color, 16);
-  if (Number.isNaN(num)) return '#c35151';
+  if (Number.isNaN(num)) return '#00bfff';
   const r = Math.min(255, Math.max(0, Math.round(((num >> 16) & 255) * (100 + percent) / 100)));
   const g = Math.min(255, Math.max(0, Math.round(((num >> 8) & 255) * (100 + percent) / 100)));
   const b = Math.min(255, Math.max(0, Math.round((num & 255) * (100 + percent) / 100)));
@@ -15,12 +15,12 @@ function shadeColor(hex, percent) {
 }
 
 function hexToRgb(hex) {
-  if (!hex) return '195, 81, 81';
+  if (!hex) return '0, 191, 255';
   let color = hex.trim();
   if (color.startsWith('#')) color = color.slice(1);
   if (color.length === 3) color = color.split('').map(ch => ch + ch).join('');
   const num = parseInt(color, 16);
-  if (Number.isNaN(num)) return '195, 81, 81';
+  if (Number.isNaN(num)) return '0, 191, 255';
   const r = (num >> 16) & 255;
   const g = (num >> 8) & 255;
   const b = num & 255;
@@ -29,7 +29,7 @@ function hexToRgb(hex) {
 
 function aplicarTema(tema) {
   if (tema) {
-    const corPrincipal = tema.corPrincipal || '#c35151';
+    const corPrincipal = tema.corPrincipal || '#00bfff';
     const corPrincipalRgb = hexToRgb(corPrincipal);
     document.documentElement.style.setProperty('--cor-principal', corPrincipal);
     document.documentElement.style.setProperty('--cor-principal-hover', shadeColor(corPrincipal, -18));
@@ -147,7 +147,7 @@ function initializeThemeModal() {
             <div class="color-group">
               <label class="color-label">
                 <span>Cor Principal</span>
-                <input type="color" id="theme-main" value="#c35151">
+                <input type="color" id="theme-main" value="#00bfff">
                 <div class="color-preview" id="preview-main"></div>
               </label>
               <small>Afeta botões, bordas e elementos visuais</small>
@@ -255,7 +255,7 @@ function initializeThemeModal() {
 
   document.getElementById('reset-theme').onclick = () => {
     // Resetar para valores padrão
-    document.getElementById('theme-main').value = '#c35151';
+    document.getElementById('theme-main').value = '#00bfff';
     document.getElementById('theme-bg').value = '#181a20';
     document.getElementById('theme-text').value = '#ffffff';
     updatePreviews();

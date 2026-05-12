@@ -16,11 +16,11 @@
 
 /* --- 1. VARIÁVEIS E RESET --- */
 :root {
-  --cor-principal: #c35151;
-  --cor-principal-hover: #9e4040;
-  --cor-principal-active: #7a2f2f;
-  --cor-principal-pressed: #5f2626;
-  --cor-principal-rgb: 195, 81, 81;
+  --cor-principal: #00bfff;
+  --cor-principal-hover: #0092d1;
+  --cor-principal-active: #0076a3;
+  --cor-principal-pressed: #005f7c;
+  --cor-principal-rgb: 0, 191, 255;
   --cor-principal-soft: rgba(var(--cor-principal-rgb), 0.12);
   --cor-principal-faint: rgba(var(--cor-principal-rgb), 0.05);
   --cor-principal-border: rgba(var(--cor-principal-rgb), 0.35);
