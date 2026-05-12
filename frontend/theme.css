@@ -37,15 +37,28 @@
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding-top: 100px;
-  padding-bottom: 40px;
+  padding: 12px 0;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 99999;
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
+}
+
+body.theme-modal-open header,
+body.theme-modal-open .pagina-header,
+body.theme-modal-open .header,
+body.theme-modal-open .menu,
+body.theme-modal-open .hamburger,
+body.theme-modal-open .mobile-menu,
+body.theme-modal-open .navbar,
+body.theme-modal-open .nav-container,
+body.theme-modal-open .nav-links,
+body.theme-modal-open .hero-section,
+body.theme-modal-open .logo-provisoria {
+  display: none !important;
 }
 
 .theme-modal[style*="display: flex"] {
@@ -59,14 +72,14 @@
   border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   padding: 0;
-  min-width: 500px;
-  max-width: 90vw;
-  max-height: calc(100vh - 200px);
+  min-width: 520px;
+  max-width: 96vw;
+  max-height: calc(100vh - 24px);
   overflow-y: auto;
   transform: scale(0.9) translateY(20px);
   transition: all 0.3s ease;
   border: 1px solid var(--cor-principal, #00bfff);
-  margin-bottom: 40px;
+  margin-bottom: 0;
 }
 
 .theme-modal[style*="display: flex"] .theme-modal-content {
