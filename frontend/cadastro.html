@@ -7,37 +7,15 @@
   <link rel="stylesheet" href="styles.css?v=5">
   <link rel="stylesheet" href="theme.css?v=5">
   <style>
-    body {
-      background: linear-gradient(180deg, #060915 0%, #0d1221 46%, #121830 100%);
-      color: #f5f7ff;
-      min-height: 100vh;
-      font-family: 'Inter', sans-serif;
-    }
-    .container {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 32px 20px 60px;
-    }
-    header {
-      position: relative;
-      padding-bottom: 18px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      margin-bottom: 24px;
-    }
-    h1.logo {
+    .hero-section {
       text-align: center;
-      margin: 0 0 12px;
-      font-size: clamp(2rem, 4vw, 3.2rem);
-      letter-spacing: 0.04em;
-      color: #ffffff;
+      margin: 28px 0 22px;
     }
-    main {
-      background: rgba(10, 16, 34, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 28px;
-      box-shadow: 0 40px 120px rgba(0, 0, 0, 0.28);
-      padding: 36px;
-      backdrop-filter: blur(18px);
+    .hero-section .logo {
+      margin: 0;
+      font-size: clamp(2.5rem, 5vw, 3.8rem);
+      letter-spacing: 0.04em;
+      color: #fff;
     }
     .cadastro-step {
       display: none;
@@ -52,8 +30,8 @@
       align-items: center;
     }
     .step-circle {
-      width: 50px;
-      height: 50px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -68,10 +46,6 @@
       color: #fff;
       box-shadow: 0 0 0 3px rgba(var(--cor-principal-rgb), 0.18);
     }
-    .step-circle.completed {
-      background: #2bc485;
-      color: #fff;
-    }
     .step-line {
       flex: 1;
       height: 4px;
@@ -82,31 +56,15 @@
       background: #2bc485;
     }
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
     .form-group label {
       display: flex;
       flex-direction: column;
       gap: 10px;
       font-size: 0.95rem;
-      color: rgba(255, 255, 255, 0.82);
+      color: var(--text-primary);
       font-weight: 600;
-    }
-    .form-group label input,
-    .form-group label select {
-      width: 100%;
-      padding: 14px 16px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.04);
-      color: #ffffff;
-      outline: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-    .form-group label input:focus,
-    .form-group label select:focus {
-      border-color: rgba(var(--cor-principal-rgb), 0.55);
-      box-shadow: 0 0 0 4px rgba(var(--cor-principal-rgb), 0.12);
     }
     .input-com-botao {
       display: flex;
@@ -144,98 +102,44 @@
       border: 1px solid rgba(89, 178, 245, 0.28);
       display: block;
     }
-    .card-form {
-      display: grid;
-      gap: 24px;
-    }
     #email-form {
       max-width: 420px;
       margin: 0 auto;
     }
-    fieldset {
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 20px;
-      padding: 24px;
-      background: rgba(255, 255, 255, 0.03);
-    }
-    legend {
-      padding: 0 12px;
-      font-weight: 700;
-      color: #fff;
-      font-size: 1rem;
-    }
-    .btn-form-submit,
-    .btn-primary,
-    .btn-secondary {
-      width: 100%;
-      font-size: 1rem;
-      border-radius: 16px;
-      padding: 14px 18px;
-      border: none;
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    .btn-form-submit,
-    .btn-primary {
-      background: var(--cor-principal);
-      color: #fff;
-      box-shadow: 0 18px 40px rgba(var(--cor-principal-rgb), 0.18);
-    }
-    .btn-form-submit:hover,
-    .btn-primary:hover {
-      transform: translateY(-2px);
-    }
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.08);
-      color: #f8fbff;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-    }
-    .toggle-senha-button {
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.05);
-      color: #fff;
-      border-radius: 14px;
-      padding: 12px 14px;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-    .toggle-senha-button:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-    .field-description {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 0.92rem;
-      margin-top: 8px;
-    }
-    .categorias-grid {
+    .card-form {
+      max-width: 780px;
+      margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      margin-top: 12px;
+      gap: 24px;
     }
-    .warning-text {
-      color: #a7c4ff;
-      font-size: 0.9rem;
+    .cadastro-step h2 {
+      text-align: center;
+      margin-bottom: 28px;
+      font-size: 1.55rem;
+      color: var(--text-primary);
+    }
+    .small-info {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
       margin-top: 10px;
     }
     #mensagem-cadastro {
       margin-top: 16px;
       text-align: center;
-      color: #fafcff;
+      color: var(--text-primary);
     }
     @media (max-width: 768px) {
-      .container {
-        padding: 24px 16px 40px;
+      .hero-section {
+        margin: 20px 0 18px;
       }
-      main {
-        padding: 24px;
+      .step-indicator {
+        flex-wrap: wrap;
+        justify-content: center;
       }
-      fieldset {
-        padding: 20px;
+      .step-circle {
+        width: 44px;
+        height: 44px;
       }
     }
   </style>
@@ -267,8 +171,10 @@
       <a href="login.html">Login</a>
       <a href="cadastro.html">Cadastro</a>
     </nav>
-    <h1 class="logo">Cadastro</h1>
     <main>
+      <div class="hero-section">
+        <h1 class="logo">Cadastro</h1>
+      </div>
       <!-- Indicador de Passos -->
       <div class="step-indicator">
         <div class="step-circle active" id="step1-circle">1</div>
@@ -278,7 +184,7 @@
 
       <!-- PASSO 1: Verificação de Email -->
       <div id="passo1" class="cadastro-step active">
-        <h2 style="text-align: center; margin-bottom: 30px;">Confirme seu Email</h2>
+        <h2>Confirme seu Email</h2>
         
         <div id="passo1-status" class="status-message"></div>
 
@@ -294,7 +200,7 @@
             <input type="submit" value="Enviar Código" class="btn-form-submit">
           </div>
 
-          <p style="text-align: center; color: #666; font-size: 14px;">
+          <p class="small-info">
             ✉️ Você receberá um código de 6 dígitos em seu email
           </p>
         </form>
@@ -302,7 +208,7 @@
 
       <!-- PASSO 2: Validação de Código + Dados Cadastro -->
       <div id="passo2" class="cadastro-step">
-        <h2 style="text-align: center; margin-bottom: 30px;">Complete seu Cadastro</h2>
+        <h2>Complete seu Cadastro</h2>
         
         <div id="passo2-status" class="status-message"></div>
 
@@ -318,11 +224,11 @@
               </label>
             </div>
 
-            <button type="button" id="validar-codigo-btn" class="btn-primary">
+              <button type="button" id="validar-codigo-btn" class="btn-form-submit">
               ✓ Confirmar Código
             </button>
 
-            <div id="codigo-confirmado" style="display: none; margin-top: 15px; padding: 10px; background: #d4edda; border-radius: 8px; color: #155724; text-align: center;">
+            <div id="codigo-confirmado" class="status-message success" style="display: none;">
               ✅ Email confirmado com sucesso!
             </div>
           </fieldset>
