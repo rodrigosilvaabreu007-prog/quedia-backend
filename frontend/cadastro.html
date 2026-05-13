@@ -166,6 +166,9 @@
     .password-field input {
       flex: 1;
       min-height: 48px;
+      background: rgba(5, 10, 20, 0.8) !important;
+      color: #fff !important;
+      border: 1px solid rgba(var(--cor-principal-rgb), 0.45) !important;
     }
     .toggle-senha-button {
       min-height: 48px;
@@ -274,10 +277,24 @@
 
         <!-- PASSO 2: Validação de Código + Dados Cadastro -->
         <div id="passo2" class="cadastro-step">
-          <h2>Complete seu Cadastro</h2>
           <div id="passo2-status" class="status-message"></div>
 
           <form id="cadastro-form">
+            <div class="form-section">
+              <h3>Código de Confirmação</h3>
+
+              <div class="form-group">
+                <label>Código de Confirmação (6 dígitos)
+                  <input type="text" id="codigo-input" name="codigo" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
+                  <small id="codigo-erro" style="color: #ff6b6b; display: none;"></small>
+                </label>
+              </div>
+
+              <button type="button" id="validar-codigo-btn" class="btn-form-submit">✓ Confirmar Código</button>
+            </div>
+
+            <p class="small-info">📧 Insira o código de confirmação recebido em seu email</p>
+
             <div class="form-section">
               <h3>Seus Dados</h3>
 
@@ -323,24 +340,6 @@
                 <label>Preferências de categorias</label>
                 <div id="categorias-cadastro" class="categorias-grid"></div>
                 <p id="warning-categorias-cadastro" class="warning-text"></p>
-              </div>
-            </div>
-
-            <div class="form-section">
-              <h3>Código de Confirmação</h3>
-              <p class="small-info">Insira o código de confirmação recebido em seu email</p>
-
-              <div class="form-group">
-                <label>Código de Confirmação (6 dígitos)
-                  <input type="text" id="codigo-input" name="codigo" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
-                  <small id="codigo-erro" style="color: #ff6b6b; display: none;"></small>
-                </label>
-              </div>
-
-              <button type="button" id="validar-codigo-btn" class="btn-form-submit">✓ Confirmar Código</button>
-
-              <div id="codigo-confirmado" class="status-message success" style="display: none;">
-                ✅ Email confirmado com sucesso!
               </div>
             </div>
 
