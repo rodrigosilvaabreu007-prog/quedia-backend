@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function enviarCodigoEmail() {
   const emailInput = document.getElementById('email-input');
   const email = emailInput.value.trim().toLowerCase();
-  const btnSubmit = document.querySelector('#email-form input[type="submit"]');
+  const btnSubmit = document.querySelector('#email-form button[type="submit"], #email-form input[type="submit"]');
 
   // Validar email
   const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -124,8 +124,10 @@ async function enviarCodigoEmail() {
   }
 
   // Desabilitar botão e mostrar loading
-  btnSubmit.disabled = true;
-  btnSubmit.value = '⏳ Enviando...';
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = '⏳ Enviando...';
+  }
   ocultarMensagem('passo1-status');
 
   try {
@@ -159,16 +161,20 @@ async function enviarCodigoEmail() {
       }, 1000);
     } else {
       mostrarMensagem('passo1-status', `❌ ${dados.erro || 'Erro ao enviar código'}`, 'error');
-      btnSubmit.disabled = false;
-      btnSubmit.value = 'Enviar Código';
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Enviar Código';
+      }
     }
   } catch (err) {
     console.error('Erro ao enviar código:', err);
     mostrarMensagem('passo1-status', 
       '❌ Erro ao conectar com o servidor. Tente novamente.', 
       'error');
-    btnSubmit.disabled = false;
-    btnSubmit.value = 'Enviar Código';
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = 'Enviar Código';
+    }
   }
 }
 
