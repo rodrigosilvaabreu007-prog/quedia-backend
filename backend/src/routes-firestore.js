@@ -14,26 +14,46 @@ const ALLOW_EMAIL_DEMO = process.env.ALLOW_EMAIL_DEMO === 'true' || process.env.
 
 // ============ CONFIGURAÇÃO DE EMAIL ============
 let transporter = null;
+const SMTP_USER = process.env.SMTP_USER || process.env.SMTP_EMAIL || process.env.EMAIL_USER || '';
+const SMTP_PASS = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASSWORD || '';
+const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
+const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
+const SMTP_SECURE = process.env.SMTP_SECURE === 'true' || SMTP_PORT === 465;
+const EMAIL_FROM = process.env.EMAIL_FROM || SMTP_USER || 'noreply@quedia.com.br';
 
 // Tentar configurar nodemailer com variáveis de ambiente
 function configurarEmail() {
   try {
-    // Verificar se temos credenciais do Gmail
-    const emailUser = process.env.EMAIL_USER || 'seu_email@gmail.com';
-    const emailPassword = process.env.EMAIL_PASSWORD || 'sua_senha_app';
-    
+    if (!SMTP_USER || !SMTP_PASS) {
+      throw new Error('SMTP credentials não configuradas. Defina SMTP_USER/SMTP_EMAIL/EMAIL_USER e SMTP_PASS/SMTP_PASSWORD/GMAIL_APP_PASSWORD/EMAIL_PASSWORD.');
+    }
+
     transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: SMTP_SECURE,
       auth: {
-        user: emailUser,
-        pass: emailPassword
+        user: SMTP_USER,
+        pass: SMTP_PASS
+      },
+      tls: {
+        rejectUnauthorized: false
       }
     });
-    
-    console.log('✅ Email configurado com sucesso');
+
+    transporter.verify((err, success) => {
+      if (err) {
+        console.error('❌ Erro na verificação SMTP:', err.message);
+        transporter = null;
+      } else {
+        console.log('✅ Email configurado com sucesso via SMTP:', SMTP_HOST, SMTP_PORT, 'secure=', SMTP_SECURE);
+      }
+    });
+
     return true;
   } catch (err) {
     console.warn('⚠️ Email não configurado. Usando modo simulado:', err.message);
+    transporter = null;
     return false;
   }
 }
@@ -44,7 +64,7 @@ configurarEmail();
 async function enviarCodigoEmail(email, codigo) {
   try {
     if (!transporter) {
-      const mensagem = 'Serviço de email não está configurado. Configure EMAIL_USER e EMAIL_PASSWORD.';
+      const mensagem = 'Serviço de email não está configurado. Configure as variáveis SMTP_USER/EMAIL_USER e SMTP_PASS/EMAIL_PASSWORD.';
       console.warn('⚠️', mensagem);
       if (ALLOW_EMAIL_DEMO) {
         console.warn('⚠️ Modo demo ativado. Código em console:', codigo);
@@ -54,7 +74,7 @@ async function enviarCodigoEmail(email, codigo) {
     }
     
     const mailOptions = {
-      from: process.env.EMAIL_USER || 'noreply@quedia.com.br',
+      from: EMAIL_FROM,
       to: email,
       subject: '🔐 Código de Confirmação - Quedia.com.br',
       html: `
@@ -89,6 +109,11 @@ async function enviarCodigoEmail(email, codigo) {
     return { sucesso: true, messageId: info.messageId };
   } catch (err) {
     console.error('❌ Erro ao enviar email:', err);
+
+    if (err.responseCode === 535 || /535-5\.7\.8|BadCredentials|Authentication failed/i.test(err.message)) {
+      throw new Error('Credenciais SMTP inválidas. Verifique EMAIL_USER/SMTP_USER e EMAIL_PASSWORD/GMAIL_APP_PASSWORD, e certifique-se de usar App Password do Gmail.');
+    }
+
     throw err;
   }
 }
@@ -273,7 +298,7 @@ router.post('/enviar-codigo', async (req, res) => {
 
   } catch (err) {
     console.error('❌ Erro ao enviar código:', err.message);
-    if (err.message.includes('Serviço de email não está configurado')) {
+    if (err.message.includes('Serviço de email não está configurado') || err.message.includes('Credenciais SMTP inválidas')) {
       return res.status(500).json({ erro: err.message });
     }
     return res.status(400).json({ erro: err.message || 'Erro ao enviar código' });

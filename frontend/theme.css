@@ -240,6 +240,7 @@ body.theme-modal-open .logo-provisoria {
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
 }
 
@@ -260,24 +261,8 @@ body.theme-modal-open .logo-provisoria {
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-/* Barra de busca + filtros */
-#search-input {
-  width: 100%;
-  padding: 14px 18px;
-  background: rgba(12, 18, 30, .8);
-  border: 1px solid rgba(var(--cor-principal-rgb), .5);
-  border-radius: 12px;
-  color: #fff;
-  font-size: 1rem;
-  transition: border-color .2s ease, box-shadow .2s ease;
 }
 
 #search-input:focus {
