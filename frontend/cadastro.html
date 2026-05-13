@@ -104,9 +104,9 @@
       box-shadow: 0 0 12px rgba(var(--cor-principal-rgb), 0.45);
     }
     .cadastro-card .form-section {
-      border: 1px solid rgba(var(--cor-principal-rgb), 0.35);
+      border: none;
       padding: 18px 20px;
-      background: rgba(4, 8, 18, 0.72);
+      background: transparent;
       border-radius: 14px;
       margin-bottom: 18px;
     }
@@ -128,9 +128,9 @@
     }
 
     .status-message.success {
-      background: rgba(42, 187, 132, 0.14);
-      color: #b8f1d8;
-      border: 1px solid rgba(42, 187, 132, 0.3);
+      background: rgba(42, 187, 132, 0.35);
+      color: #fff;
+      border: 1.5px solid #2bc485;
       display: block;
     }
     .status-message.error {
@@ -153,10 +153,12 @@
     }
     .password-field input {
       flex: 1;
-      min-height: 48px;
+      min-height: 44px;
       background: rgba(5, 10, 20, 0.8);
       color: #fff;
       border: 1px solid rgba(var(--cor-principal-rgb), 0.45);
+      border-radius: 10px;
+      padding: 10px 12px;
     }
     .small-info {
       text-align: center;
@@ -332,15 +334,11 @@
 
             <div class="form-section">
               <h3>Código de confirmação</h3>
-
               <div class="form-group">
-                <label>Código de confirmação
-                  <input type="text" id="codigo-input" name="codigo" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
-                  <small id="codigo-erro" style="color: #ff6b6b; display: none;"></small>
-                </label>
+                <input type="text" id="codigo-input" name="codigo" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
+                <small id="codigo-erro" style="color: #ff6b6b; display: none;"></small>
               </div>
-
-              <button type="button" id="validar-codigo-btn" class="btn-form-submit">✓ Confirmar Código</button>
+              <button type="button" id="validar-codigo-btn" class="btn-form-submit">Confirmar código</button>
             </div>
 
             <button type="submit" class="btn-form-submit" id="btn-cadastrar">Cadastrar</button>

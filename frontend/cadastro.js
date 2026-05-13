@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnValidar = document.getElementById('validar-codigo-btn');
     const codigoInput = document.getElementById('codigo-input');
     if (btnValidar) {
-      btnValidar.textContent = '✓ Confirmar Código';
+      btnValidar.textContent = 'Confirmar código';
       btnValidar.disabled = false;
       btnValidar.style.display = 'block';
     }
@@ -226,7 +226,7 @@ async function validarCodigoEmail() {
 
     if (resposta.ok) {
       estadoCadastro.emailConfirmado = true;
-      mostrarMensagem('passo2-status', 'confirmado', 'success');
+      mostrarMensagem('passo2-status', 'Confirmado', 'success');
       
       // Desabilitar campos de código e ocultar botão de validação
       codigoInput.disabled = true;
@@ -240,7 +240,7 @@ async function validarCodigoEmail() {
         'error');
       
       btnValidar.disabled = false;
-      btnValidar.textContent = '✓ Confirmar Código';
+      btnValidar.textContent = 'Confirmar código';
     }
   } catch (err) {
     console.error('Erro ao validar código:', err);
@@ -248,7 +248,7 @@ async function validarCodigoEmail() {
       '❌ Erro ao validar código. Tente novamente.', 
       'error');
     btnValidar.disabled = false;
-    btnValidar.textContent = '✓ Confirmar Código';
+    btnValidar.textContent = 'Confirmar código';
   }
 }
 
