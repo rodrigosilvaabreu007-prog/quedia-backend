@@ -88,13 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     estadoCadastro.emailConfirmado = false;
     estadoCadastro.codigoEnviado = false;
-    const btnValidar = document.getElementById('validar-codigo-btn');
+    estadoCadastro.tentativasValidacao = 0;
     const codigoInput = document.getElementById('codigo-input');
-    if (btnValidar) {
-      btnValidar.textContent = 'Confirmar código';
-      btnValidar.disabled = false;
-      btnValidar.style.display = 'block';
-    }
     if (codigoInput) {
       codigoInput.value = '';
       codigoInput.disabled = false;
@@ -103,10 +98,18 @@ document.addEventListener('DOMContentLoaded', () => {
     ocultarMensagem('passo2-status');
   });
 
-  // Botão validar código
-  document.getElementById('validar-codigo-btn')?.addEventListener('click', async () => {
-    await validarCodigoEmail();
-  });
+  // Validação automática do código quando digita 6 dígitos
+  const codigoInputField = document.getElementById('codigo-input');
+  if (codigoInputField) {
+    codigoInputField.addEventListener('input', async (e) => {
+      const codigo = e.target.value.trim();
+      
+      // Se atingiu 6 dígitos, valida automaticamente
+      if (codigo.length === 6 && /^\d{6}$/.test(codigo)) {
+        await validarCodigoEmailAutomatico();
+      }
+    });
+  }
 
   // Form cadastro
   const form = document.getElementById('cadastro-form');
@@ -185,13 +188,11 @@ async function enviarCodigoEmail() {
   }
 }
 
-async function validarCodigoEmail() {
+async function validarCodigoEmailAutomatico() {
   const codigoInput = document.getElementById('codigo-input');
   const codigo = codigoInput.value.trim();
-  const btnValidar = document.getElementById('validar-codigo-btn');
 
   if (!codigo || codigo.length !== 6 || isNaN(codigo)) {
-    mostrarMensagem('passo2-status', '❌ Digite um código válido (6 dígitos)', 'error');
     return;
   }
 
@@ -203,14 +204,11 @@ async function validarCodigoEmail() {
   // Verificar tentativas
   if (estadoCadastro.tentativasValidacao >= estadoCadastro.maxTentativas) {
     mostrarMensagem('passo2-status', 
-      '❌ Muitas tentativas. Solicit um novo código.', 
+      '❌ Muitas tentativas. Solicite um novo código.', 
       'error');
+    codigoInput.disabled = true;
     return;
   }
-
-  // Desabilitar botão e mostrar loading
-  btnValidar.disabled = true;
-  btnValidar.textContent = '⏳ Validando...';
 
   try {
     const resposta = await fetch(`${window.API_URL}/validar-codigo`, {
@@ -226,29 +224,33 @@ async function validarCodigoEmail() {
 
     if (resposta.ok) {
       estadoCadastro.emailConfirmado = true;
-      mostrarMensagem('passo2-status', 'Confirmado', 'success');
+      mostrarMensagem('passo2-status', '✅ Código correto!', 'success');
       
-      // Desabilitar campos de código e ocultar botão de validação
+      // Desabilitar o campo de código
       codigoInput.disabled = true;
-      btnValidar.style.display = 'none';
     } else {
       estadoCadastro.tentativasValidacao++;
       const tentativasRestantes = estadoCadastro.maxTentativas - estadoCadastro.tentativasValidacao;
       
-      mostrarMensagem('passo2-status', 
-        `❌ ${dados.erro || 'Código inválido'}. ${tentativasRestantes} tentativas restantes.`, 
-        'error');
+      // Limpar o campo para o usuário digitar novamente
+      codigoInput.value = '';
       
-      btnValidar.disabled = false;
-      btnValidar.textContent = 'Confirmar código';
+      if (tentativasRestantes > 0) {
+        mostrarMensagem('passo2-status', 
+          `❌ Código incorreto. ${tentativasRestantes} tentativa${tentativasRestantes !== 1 ? 's' : ''} restante${tentativasRestantes !== 1 ? 's' : ''}.`, 
+          'error');
+      } else {
+        mostrarMensagem('passo2-status', 
+          '❌ Muitas tentativas. Solicite um novo código.', 
+          'error');
+        codigoInput.disabled = true;
+      }
     }
   } catch (err) {
     console.error('Erro ao validar código:', err);
     mostrarMensagem('passo2-status', 
       '❌ Erro ao validar código. Tente novamente.', 
       'error');
-    btnValidar.disabled = false;
-    btnValidar.textContent = 'Confirmar código';
   }
 }
 
