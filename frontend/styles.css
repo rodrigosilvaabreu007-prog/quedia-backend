@@ -2690,15 +2690,16 @@ header {
   flex-shrink: 0;
   background: transparent;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
 }
 
-/* Imagem do evento - scale responsive */
+/* Imagem do evento - mostra inteira sem corte */
 #event-modal .modal-header-img {
   width: 100%;
+  max-width: 100%;
   height: auto;
-  max-height: calc(95vh - 260px);
+  max-height: calc(95vh - 220px);
   object-fit: contain;
   display: block;
   border-radius: 0;
