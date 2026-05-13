@@ -19,7 +19,7 @@
     }
     .hero-section {
       text-align: center;
-      margin-bottom: 28px;
+      margin-bottom: 18px;
     }
     .hero-section .logo,
     .page-title {
@@ -40,8 +40,11 @@
     .step-indicator {
       display: flex;
       gap: 18px;
-      margin-bottom: 32px;
+      margin: 0 auto 28px;
       align-items: center;
+      max-width: 760px;
+      padding: 20px 16px;
+      background: transparent;
     }
     .step-circle {
       width: 48px;
@@ -84,11 +87,12 @@
     .cadastro-card label select,
     .cadastro-card textarea {
       width: 100%;
+      min-height: 56px;
       margin-top: 8px;
       background: rgba(5, 10, 20, 0.8);
       border: 1px solid rgba(var(--cor-principal-rgb), 0.45);
       border-radius: 10px;
-      padding: 10px 12px;
+      padding: 14px 14px;
       color: #fff;
       font-size: 1rem;
       transition: all 0.2s ease;
@@ -205,21 +209,20 @@
       <a href="cadastro.html">Cadastro</a>
     </nav>
     <main>
+      <div class="hero-section">
+        <h1 class="page-title">Cadastro</h1>
+        <p class="small-info">Crie sua conta e comece a publicar eventos agora mesmo.</p>
+      </div>
+
+      <div class="step-indicator">
+        <div class="step-circle active" id="step1-circle">1</div>
+        <div class="step-line" id="step-line"></div>
+        <div class="step-circle" id="step2-circle">2</div>
+      </div>
+
       <div class="cadastro-card">
-        <div class="hero-section">
-          <h1 class="page-title">Cadastro</h1>
-          <p class="small-info">Crie sua conta e comece a publicar eventos agora mesmo.</p>
-        </div>
-
-        <div class="step-indicator">
-          <div class="step-circle active" id="step1-circle">1</div>
-          <div class="step-line" id="step-line"></div>
-          <div class="step-circle" id="step2-circle">2</div>
-        </div>
-
         <!-- PASSO 1: Verificação de Email -->
         <div id="passo1" class="cadastro-step active">
-          <h2>Confirme seu Email</h2>
           <div id="passo1-status" class="status-message"></div>
 
           <form id="email-form">
