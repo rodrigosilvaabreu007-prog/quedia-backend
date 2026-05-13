@@ -170,6 +170,22 @@ async function atualizarUsuario(id, dados) {
   }
 }
 
+async function deletarUsuario(id) {
+  try {
+    const usuarioRef = db.collection('usuarios').doc(id);
+    const usuarioDoc = await usuarioRef.get();
+    if (!usuarioDoc.exists) {
+      throw new Error('Usuário não encontrado');
+    }
+    await usuarioRef.delete();
+    console.log(`✅ Usuário deletado com sucesso: ${id}`);
+    return true;
+  } catch (error) {
+    console.error('Erro ao deletar usuário:', error);
+    throw error;
+  }
+}
+
 // ============ EVENTOS ============
 
 async function listarEventos() {
@@ -611,6 +627,7 @@ module.exports = {
   autenticarUsuario,
   obterUsuario,
   atualizarUsuario,
+  deletarUsuario,
   gerarEArmazenarCodigoConfirmacao,
   validarCodigoConfirmacao,
   verificarEmailConfirmado,

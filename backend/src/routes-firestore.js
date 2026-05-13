@@ -601,6 +601,31 @@ router.delete('/eventos/:id', verificarToken, async (req, res) => {
   }
 });
 
+// Deletar usuário
+router.delete('/usuario/:id', verificarToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usuarioId = req.usuario_id;
+    const isAdmin = req.tipo && String(req.tipo).toLowerCase() === 'adm';
+
+    if (!id) {
+      return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+    }
+
+    if (!isAdmin && String(id) !== String(usuarioId)) {
+      return res.status(403).json({ erro: 'Não autorizado a deletar este usuário' });
+    }
+
+    await dbFirestore.deletarUsuario(id);
+    res.json({ mensagem: 'Usuário deletado com sucesso!' });
+  } catch (err) {
+    if (err.message && err.message.includes('Usuário não encontrado')) {
+      return res.status(404).json({ erro: 'Usuário não encontrado' });
+    }
+    res.status(400).json({ erro: 'Erro ao deletar usuário', detalhes: err.message });
+  }
+});
+
 // ============ ADMIN ============
 
 router.get('/admin/eventos', verificarToken, verificarAdmin, async (req, res) => {
