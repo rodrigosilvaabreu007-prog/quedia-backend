@@ -8,14 +8,13 @@
   <link rel="stylesheet" href="theme.css?v=5">
   <style>
     .cadastro-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 26px;
-      padding: 32px;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 16px;
+      padding: 30px;
       max-width: 760px;
       margin: 0 auto 40px;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
-      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.20);
     }
     .hero-section {
       text-align: center;
@@ -87,12 +86,11 @@
     .cadastro-card label select,
     .cadastro-card textarea {
       width: 100%;
-      min-height: 56px;
-      margin-top: 8px;
+      margin-top: 6px;
       background: rgba(5, 10, 20, 0.8);
       border: 1px solid rgba(var(--cor-principal-rgb), 0.45);
       border-radius: 10px;
-      padding: 14px 14px;
+      padding: 10px 12px;
       color: #fff;
       font-size: 1rem;
       transition: all 0.2s ease;
@@ -220,7 +218,7 @@
         <div class="step-circle" id="step2-circle">2</div>
       </div>
 
-      <div class="cadastro-card">
+      <div class="card-form cadastro-card">
         <!-- PASSO 1: Verificação de Email -->
         <div id="passo1" class="cadastro-step active">
           <div id="passo1-status" class="status-message"></div>
