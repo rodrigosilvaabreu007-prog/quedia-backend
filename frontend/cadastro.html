@@ -81,9 +81,24 @@
       font-weight: 600;
     }
     .cadastro-card label input,
-    .cadastro-card label select {
+    .cadastro-card label select,
+    .cadastro-card textarea {
       width: 100%;
       margin-top: 8px;
+      background: rgba(5, 10, 20, 0.8);
+      border: 1px solid rgba(var(--cor-principal-rgb), 0.45);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+    .cadastro-card label input:focus,
+    .cadastro-card label select:focus,
+    .cadastro-card textarea:focus {
+      outline: none;
+      border-color: var(--cor-principal);
+      box-shadow: 0 0 12px rgba(var(--cor-principal-rgb), 0.45);
     }
     .status-message {
       padding: 16px 18px;
@@ -93,6 +108,7 @@
       font-size: 0.96rem;
       line-height: 1.5;
     }
+
     .status-message.success {
       background: rgba(42, 187, 132, 0.14);
       color: #b8f1d8;
@@ -216,7 +232,7 @@
 
             <button type="submit" class="btn-form-submit">Enviar Código</button>
 
-            <p class="small-info">✉️ Você receberá um código de 6 dígitos em seu email</p>
+            <p class="small-info">Você receberá um código de 6 dígitos em seu email</p>
           </form>
         </div>
 
