@@ -538,26 +538,44 @@ async function verificarEmailConfirmado(email) {
       return false;
     }
 
+    // Buscar qualquer código validado recentemente (últimas 24 horas)
     const snapshot = await db.collection('confirmacao_emails')
       .where('email', '==', emailNormalizado)
       .where('usado', '==', true)
-      .orderBy('validado_em', 'desc')
-      .limit(1)
       .get();
 
     if (snapshot.empty) {
+      console.log(`❌ Nenhuma confirmação encontrada para: ${emailNormalizado}`);
       return false;
     }
 
-    const dados = snapshot.docs[0].data();
-    const validadoEm = dados.validado_em;
-    if (!validadoEm) {
-      return false;
+    // Verificar se há algum código validado nas últimas 24 horas
+    const agora = new Date();
+    const limite = new Date(agora.getTime() - 24 * 60 * 60 * 1000);
+
+    for (const doc of snapshot.docs) {
+      const dados = doc.data();
+      const validadoEm = dados.validado_em;
+      
+      if (!validadoEm) {
+        continue;
+      }
+
+      const validadoDate = validadoEm.toDate ? validadoEm.toDate() : new Date(validadoEm);
+      
+      if (validadoDate >= limite) {
+        console.log(`✅ Email confirmado recentemente: ${emailNormalizado}`);
+        return true;
+      }
     }
 
-    const validadoDate = validadoEm.toDate ? validadoEm.toDate() : new Date(validadoEm);
-    const limite = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    return validadoDate >= limite;
+    console.log(`❌ Email confirmado expirou (>24h): ${emailNormalizado}`);
+    return false;
+  } catch (error) {
+    console.error('❌ Erro ao verificar email confirmado:', error);
+    return false;
+  }
+}
   } catch (error) {
     console.error('❌ Erro ao verificar email confirmado:', error);
     throw error;

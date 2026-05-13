@@ -322,11 +322,16 @@ router.post('/cadastro', async (req, res) => {
     const { nome, email, senha, estado, cidade, preferencias } = req.body;
 
     if (!nome || !email || !senha) {
+      console.log('❌ Dados obrigatórios faltando');
       return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
     }
 
+    console.log(`🔍 Verificando se email ${email} foi confirmado...`);
     const emailConfirmado = await dbFirestore.verificarEmailConfirmado(email);
+    console.log(`📧 Email confirmado? ${emailConfirmado}`);
+    
     if (!emailConfirmado) {
+      console.log(`❌ Email ${email} não foi confirmado`);
       return res.status(400).json({
         erro: 'Email não confirmado. Por favor, confirme seu email com o código enviado.',
         codigoNaoConfirmado: true
