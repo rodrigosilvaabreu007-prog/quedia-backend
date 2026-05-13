@@ -455,8 +455,19 @@ function filtrarEventos() {
 
     // Uso de filtro local do perfil: se o usuário estiver logado e não estiver pesquisando por outra cidade/estado
     const usuarioLocal = getLocalizacaoUsuario();
+    
+    // Determinar se deve aplicar filtro automático de localização
+    // Só filtra por localização se: não há busca, não há estado selecionado e não há cidade selecionada
+    const aplicarFiltroLocalAutomatico = !termo && !estado && !cidade && usuarioLocal.cidade;
 
     const filtrados = todosEventos.filter(ev => {
+        // Se deve aplicar filtro automático de localização, filtrar por cidade do usuário
+        if (aplicarFiltroLocalAutomatico) {
+            if (ev.cidade !== usuarioLocal.cidade) {
+                return false;
+            }
+        }
+        
         // Busca por nome, cidade, categoria, estado, data, horário ou preço
         let matchesBusca = true;
         if (termo) {
