@@ -6,9 +6,11 @@ const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const nodemailer = require('nodemailer');
+const dns = require('dns').promises;
 const dbFirestore = require('./db-firestore');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_fixa';
+const ALLOW_EMAIL_DEMO = process.env.ALLOW_EMAIL_DEMO === 'true' || process.env.NODE_ENV !== 'production';
 
 // ============ CONFIGURAÇÃO DE EMAIL ============
 let transporter = null;
@@ -42,9 +44,13 @@ configurarEmail();
 async function enviarCodigoEmail(email, codigo) {
   try {
     if (!transporter) {
-      console.warn('⚠️ Email não configurado. Código em modo demo:', codigo);
-      // Em modo demo, apenas log o código
-      return { sucesso: true, modo: 'demo', codigo };
+      const mensagem = 'Serviço de email não está configurado. Configure EMAIL_USER e EMAIL_PASSWORD.';
+      console.warn('⚠️', mensagem);
+      if (ALLOW_EMAIL_DEMO) {
+        console.warn('⚠️ Modo demo ativado. Código em console:', codigo);
+        return { sucesso: true, modo: 'demo', codigo };
+      }
+      throw new Error(mensagem);
     }
     
     const mailOptions = {
@@ -201,6 +207,31 @@ router.get('/verificar-email', async (req, res) => {
   }
 });
 
+async function verificarDominioEmail(email) {
+  try {
+    const dominio = String(email || '').trim().split('@')[1];
+    if (!dominio) return false;
+
+    const mxRecords = await dns.resolveMx(dominio);
+    if (Array.isArray(mxRecords) && mxRecords.length > 0) {
+      return true;
+    }
+  } catch (err) {
+    // Domínio não possui MX ou não foi encontrado; fallback para A/AAAA
+    try {
+      await dns.resolve4(String(email).trim().split('@')[1]);
+      return true;
+    } catch (err4) {
+      try {
+        await dns.resolve6(String(email).trim().split('@')[1]);
+        return true;
+      } catch (err6) {
+        return false;
+      }
+    }
+  }
+}
+
 // ✅ NOVO: Solicitar código de confirmação por email
 router.post('/enviar-codigo', async (req, res) => {
   try {
@@ -216,6 +247,12 @@ router.post('/enviar-codigo', async (req, res) => {
       return res.status(400).json({ erro: 'Email inválido' });
     }
 
+    // Verificar domínio de email antes de continuar
+    const dominioValido = await verificarDominioEmail(email);
+    if (!dominioValido) {
+      return res.status(400).json({ erro: 'Domínio de email inválido ou sem servidor de correio.' });
+    }
+
     // Verificar se email já existe
     const emailExiste = await dbFirestore.verificarEmailExistente(email);
     if (emailExiste) {
@@ -226,17 +263,8 @@ router.post('/enviar-codigo', async (req, res) => {
     const { codigo } = await dbFirestore.gerarEArmazenarCodigoConfirmacao(email);
 
     // Tentar enviar por email
-    try {
-      await enviarCodigoEmail(email, codigo);
-      console.log(`📧 Código enviado para: ${email}`);
-    } catch (err) {
-      console.warn(`⚠️ Erro ao enviar email, mas código gerado: ${codigo}`, err.message);
-      // Em caso de erro de email, ainda retornar sucesso com o código (para testes)
-      return res.status(200).json({ 
-        mensagem: 'Código gerado. Modo demo: verifique o console ou teste com o código acima.',
-        codigo_demo: codigo // Remover isso em produção!
-      });
-    }
+    await enviarCodigoEmail(email, codigo);
+    console.log(`📧 Código enviado para: ${email}`);
 
     res.status(200).json({ 
       mensagem: 'Código enviado para seu email. Válido por 15 minutos.',
@@ -245,7 +273,10 @@ router.post('/enviar-codigo', async (req, res) => {
 
   } catch (err) {
     console.error('❌ Erro ao enviar código:', err.message);
-    res.status(500).json({ erro: 'Erro ao enviar código', detalhes: err.message });
+    if (err.message.includes('Serviço de email não está configurado')) {
+      return res.status(500).json({ erro: err.message });
+    }
+    return res.status(400).json({ erro: err.message || 'Erro ao enviar código' });
   }
 });
 
@@ -280,13 +311,13 @@ router.post('/validar-codigo', async (req, res) => {
 router.post('/cadastro', async (req, res) => {
   try {
     console.log('📝 Cadastro recebido:', { email: req.body.email, nome: req.body.nome });
-    const { nome, email, senha, estado, cidade, preferencias, emailConfirmado } = req.body;
+    const { nome, email, senha, estado, cidade, preferencias } = req.body;
     
     if (!nome || !email || !senha) {
       return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
     }
 
-    // ✅ NOVO: Verificar se email foi confirmado
+    const emailConfirmado = await dbFirestore.verificarEmailConfirmado(email);
     if (!emailConfirmado) {
       return res.status(400).json({ 
         erro: 'Email não confirmado. Por favor, confirme seu email com o código enviado.',

@@ -512,6 +512,35 @@ async function validarCodigoConfirmacao(email, codigo) {
   }
 }
 
+async function verificarEmailConfirmado(email) {
+  try {
+    const emailNormalizado = String(email || '').trim().toLowerCase();
+    const snapshot = await db.collection('confirmacao_emails')
+      .where('email', '==', emailNormalizado)
+      .where('usado', '==', true)
+      .orderBy('validado_em', 'desc')
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return false;
+    }
+
+    const doc = snapshot.docs[0];
+    const dados = doc.data();
+    if (!dados.validado_em) {
+      return false;
+    }
+
+    const validadoEm = dados.validado_em.toDate ? dados.validado_em.toDate() : new Date(dados.validado_em);
+    const maxAgeMs = 24 * 60 * 60 * 1000; // 24 horas
+    return (Date.now() - validadoEm.getTime()) <= maxAgeMs;
+  } catch (error) {
+    console.error('Erro ao verificar confirmação de email:', error);
+    throw error;
+  }
+}
+
 // ============ VERIFICAÇÃO DE INTEGRIDADE ============
 
 /**
@@ -584,6 +613,7 @@ module.exports = {
   atualizarUsuario,
   gerarEArmazenarCodigoConfirmacao,
   validarCodigoConfirmacao,
+  verificarEmailConfirmado,
   listarEventos,
   obterEventosPorOrganizador,
   cadastrarEvento,
