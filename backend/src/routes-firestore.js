@@ -10,113 +10,112 @@ const dns = require('dns').promises;
 const dbFirestore = require('./db-firestore');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_fixa';
-const ALLOW_EMAIL_DEMO = process.env.ALLOW_EMAIL_DEMO === 'true' || process.env.NODE_ENV !== 'production';
+const EMAIL_DEMO_MODE = String(process.env.ALLOW_EMAIL_DEMO || process.env.EMAIL_DEMO || 'false').toLowerCase() === 'true';
 
 // ============ CONFIGURAÇÃO DE EMAIL ============
 let transporter = null;
-const SMTP_USER = process.env.SMTP_USER || process.env.SMTP_EMAIL || process.env.EMAIL_USER || '';
-const SMTP_PASS = process.env.SMTP_PASS || process.env.SMTP_PASSWORD || process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASSWORD || '';
-const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
-const SMTP_PORT = Number(process.env.SMTP_PORT || 465);
-const SMTP_SECURE = process.env.SMTP_SECURE === 'true' || SMTP_PORT === 465;
-const EMAIL_FROM = process.env.EMAIL_FROM || SMTP_USER || 'noreply@quedia.com.br';
 
-// Tentar configurar nodemailer com variáveis de ambiente
 function configurarEmail() {
-  try {
-    if (!SMTP_USER || !SMTP_PASS) {
-      throw new Error('SMTP credentials não configuradas. Defina SMTP_USER/SMTP_EMAIL/EMAIL_USER e SMTP_PASS/SMTP_PASSWORD/GMAIL_APP_PASSWORD/EMAIL_PASSWORD.');
-    }
+  const emailUser = process.env.EMAIL_USER;
+  const emailPassword = process.env.EMAIL_PASSWORD;
+  const emailService = process.env.EMAIL_SERVICE || 'gmail';
 
-    transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: SMTP_PORT,
-      secure: SMTP_SECURE,
-      auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASS
-      },
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
-
-    transporter.verify((err, success) => {
-      if (err) {
-        console.error('❌ Erro na verificação SMTP:', err.message);
-        transporter = null;
-      } else {
-        console.log('✅ Email configurado com sucesso via SMTP:', SMTP_HOST, SMTP_PORT, 'secure=', SMTP_SECURE);
-      }
-    });
-
-    return true;
-  } catch (err) {
-    console.warn('⚠️ Email não configurado. Usando modo simulado:', err.message);
-    transporter = null;
+  if (!emailUser || !emailPassword) {
+    console.warn('⚠️ Credenciais de email não configuradas. Modo demo:', EMAIL_DEMO_MODE);
     return false;
   }
+
+  transporter = nodemailer.createTransport({
+    service: emailService,
+    auth: {
+      user: emailUser,
+      pass: emailPassword
+    }
+  });
+
+  transporter.verify((err, success) => {
+    if (err) {
+      transporter = null;
+      console.warn('⚠️ Falha ao verificar o transporte de email:', err.message);
+      return;
+    }
+    console.log('✅ Email configurado com sucesso');
+  });
+
+  return true;
+}
+
+function pertenceAProviderGoogleOuMicrosoft(dominio) {
+  const provedor = dominio.toLowerCase();
+  return [
+    'gmail.com',
+    'googlemail.com',
+    'outlook.com',
+    'hotmail.com',
+    'live.com',
+    'msn.com',
+    'office365.com',
+    'outlook.com.br'
+  ].some(item => provedor === item || provedor.endsWith(`.${item}`));
+}
+
+async function verificarDominioEmail(email) {
+  const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!regexEmail.test(email)) {
+    return { valido: false, erro: 'Email inválido' };
+  }
+
+  const dominio = email.split('@')[1].toLowerCase();
+
+  try {
+    const registrosMx = await dns.resolveMx(dominio);
+    if (!registrosMx || registrosMx.length === 0) {
+      throw new Error('Sem registros MX');
+    }
+
+    if (pertenceAProviderGoogleOuMicrosoft(dominio)) {
+      const providerValido = registrosMx.some(mx => {
+        return /google\.com$|googlemail\.com$|gmail-smtp-in\.l\.google\.com$|protection\.outlook\.com$|hotmail\.com$|outlook\.com$|msn\.com$/i.test(mx.exchange);
+      });
+      if (!providerValido) {
+        return { valido: false, erro: 'Email não corresponde a um provedor válido do Google ou Microsoft' };
+      }
+    }
+
+    return { valido: true };
+  } catch (err) {
+    try {
+      await dns.resolve(dominio, 'A');
+      return { valido: true };
+    } catch (errA) {}
+
+    try {
+      await dns.resolve(dominio, 'AAAA');
+      return { valido: true };
+    } catch (errAAAA) {}
+
+    return { valido: false, erro: 'Domínio de email sem registros válidos de MX/A/AAAA' };
+  }
+}
+
+async function enviarCodigoEmail(email, codigo) {
+  if (!transporter) {
+    throw new Error('Servidor de email não configurado');
+  }
+
+  const fromAddress = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+  const mailOptions = {
+    from: fromAddress,
+    to: email,
+    subject: 'Seu código de confirmação de cadastro',
+    text: `Seu código de confirmação é: ${codigo}. Ele expira em 15 minutos.`,
+    html: `<p>Seu código de confirmação é: <strong>${codigo}</strong></p><p>Ele expira em 15 minutos.</p>`
+  };
+
+  await transporter.sendMail(mailOptions);
 }
 
 configurarEmail();
-
-// Função para enviar código por email
-async function enviarCodigoEmail(email, codigo) {
-  try {
-    if (!transporter) {
-      const mensagem = 'Serviço de email não está configurado. Configure as variáveis SMTP_USER/EMAIL_USER e SMTP_PASS/EMAIL_PASSWORD.';
-      console.warn('⚠️', mensagem);
-      if (ALLOW_EMAIL_DEMO) {
-        console.warn('⚠️ Modo demo ativado. Código em console:', codigo);
-        return { sucesso: true, modo: 'demo', codigo };
-      }
-      throw new Error(mensagem);
-    }
-    
-    const mailOptions = {
-      from: EMAIL_FROM,
-      to: email,
-      subject: '🔐 Código de Confirmação - Quedia.com.br',
-      html: `
-        <div style="font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px;">
-          <div style="background: white; border-radius: 8px; padding: 30px; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333; margin-bottom: 20px;">Bem-vindo ao Quedia!</h2>
-            <p style="color: #666; font-size: 16px; margin-bottom: 20px;">
-              Para completar seu cadastro, use o código de confirmação abaixo:
-            </p>
-            <div style="background: #f0f0f0; border: 2px solid #007bff; border-radius: 8px; padding: 20px; text-align: center; margin: 30px 0;">
-              <p style="font-size: 32px; font-weight: bold; color: #007bff; margin: 0; letter-spacing: 5px;">
-                ${codigo}
-              </p>
-            </div>
-            <p style="color: #999; font-size: 14px;">
-              ⏱️ Este código expira em 15 minutos
-            </p>
-            <p style="color: #666; font-size: 14px; margin-top: 20px;">
-              Se você não solicitou este código, ignore este email.
-            </p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            <p style="color: #999; font-size: 12px; text-align: center;">
-              © 2026 Quedia.com.br - Agenda de Eventos
-            </p>
-          </div>
-        </div>
-      `
-    };
-    
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Email enviado para: ${email}`, info.response);
-    return { sucesso: true, messageId: info.messageId };
-  } catch (err) {
-    console.error('❌ Erro ao enviar email:', err);
-
-    if (err.responseCode === 535 || /535-5\.7\.8|BadCredentials|Authentication failed/i.test(err.message)) {
-      throw new Error('Credenciais SMTP inválidas. Verifique EMAIL_USER/SMTP_USER e EMAIL_PASSWORD/GMAIL_APP_PASSWORD, e certifique-se de usar App Password do Gmail.');
-    }
-
-    throw err;
-  }
-}
 
 // ============ CONFIGURAÇÃO DO CLOUDINARY ============
 cloudinary.config({
@@ -232,82 +231,60 @@ router.get('/verificar-email', async (req, res) => {
   }
 });
 
-async function verificarDominioEmail(email) {
-  try {
-    const dominio = String(email || '').trim().split('@')[1];
-    if (!dominio) return false;
-
-    const mxRecords = await dns.resolveMx(dominio);
-    if (Array.isArray(mxRecords) && mxRecords.length > 0) {
-      return true;
-    }
-  } catch (err) {
-    // Domínio não possui MX ou não foi encontrado; fallback para A/AAAA
-    try {
-      await dns.resolve4(String(email).trim().split('@')[1]);
-      return true;
-    } catch (err4) {
-      try {
-        await dns.resolve6(String(email).trim().split('@')[1]);
-        return true;
-      } catch (err6) {
-        return false;
-      }
-    }
-  }
-}
-
 // ✅ NOVO: Solicitar código de confirmação por email
 router.post('/enviar-codigo', async (req, res) => {
   try {
     const { email } = req.body;
-    
+
     if (!email) {
       return res.status(400).json({ erro: 'Email é obrigatório' });
     }
 
-    // Validar formato básico do email
-    const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!regexEmail.test(email)) {
-      return res.status(400).json({ erro: 'Email inválido' });
+    const resultadoDominio = await verificarDominioEmail(email);
+    if (!resultadoDominio.valido) {
+      return res.status(400).json({ erro: resultadoDominio.erro });
     }
 
-    // Verificar domínio de email antes de continuar
-    const dominioValido = await verificarDominioEmail(email);
-    if (!dominioValido) {
-      return res.status(400).json({ erro: 'Domínio de email inválido ou sem servidor de correio.' });
-    }
-
-    // Verificar se email já existe
     const emailExiste = await dbFirestore.verificarEmailExistente(email);
     if (emailExiste) {
       return res.status(400).json({ erro: 'Este email já está cadastrado' });
     }
 
-    // Gerar e armazenar código
     const { codigo } = await dbFirestore.gerarEArmazenarCodigoConfirmacao(email);
 
-    // Tentar enviar por email ou modo demo
-    const resultadoEnvio = await enviarCodigoEmail(email, codigo);
-    console.log(`📧 Código enviado para: ${email}`, resultadoEnvio.modo || 'email');
+    if (!transporter) {
+      if (EMAIL_DEMO_MODE) {
+        console.warn('⚠️ Email não configurado. Retornando código demo.');
+        return res.status(200).json({
+          mensagem: 'Código gerado em modo demo. Configure SMTP para envio real.',
+          codigo_demo: codigo
+        });
+      }
 
-    const resposta = {
-      mensagem: 'Código enviado para seu email. Válido por 15 minutos.',
-      email_mascarado: email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
-    };
-
-    if (resultadoEnvio.modo === 'demo' && resultadoEnvio.codigo) {
-      resposta.codigo_demo = resultadoEnvio.codigo;
+      return res.status(503).json({ erro: 'Servidor de email não configurado. Fale com o administrador.' });
     }
 
-    res.status(200).json(resposta);
+    try {
+      await enviarCodigoEmail(email, codigo);
+      console.log(`📧 Código enviado para: ${email}`);
+      return res.status(200).json({
+        mensagem: 'Código enviado para seu email. Válido por 15 minutos.',
+        email_mascarado: email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+      });
+    } catch (err) {
+      console.warn(`⚠️ Erro ao enviar email, mas código gerado: ${codigo}`, err.message);
+      if (EMAIL_DEMO_MODE) {
+        return res.status(200).json({
+          mensagem: 'Não foi possível enviar email. Modo demo ativado.',
+          codigo_demo: codigo
+        });
+      }
 
+      return res.status(500).json({ erro: 'Não foi possível enviar o código por email. Tente novamente mais tarde.' });
+    }
   } catch (err) {
     console.error('❌ Erro ao enviar código:', err.message);
-    if (err.message.includes('Serviço de email não está configurado') || err.message.includes('Credenciais SMTP inválidas')) {
-      return res.status(500).json({ erro: err.message });
-    }
-    return res.status(400).json({ erro: err.message || 'Erro ao enviar código' });
+    res.status(500).json({ erro: 'Erro ao enviar código', detalhes: err.message });
   }
 });
 
@@ -343,20 +320,19 @@ router.post('/cadastro', async (req, res) => {
   try {
     console.log('📝 Cadastro recebido:', { email: req.body.email, nome: req.body.nome });
     const { nome, email, senha, estado, cidade, preferencias } = req.body;
-    
+
     if (!nome || !email || !senha) {
       return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
     }
 
     const emailConfirmado = await dbFirestore.verificarEmailConfirmado(email);
     if (!emailConfirmado) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         erro: 'Email não confirmado. Por favor, confirme seu email com o código enviado.',
         codigoNaoConfirmado: true
       });
     }
 
-    // Hasher a senha ANTES de registrar
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
     const id = await dbFirestore.registrarUsuario({
@@ -629,31 +605,6 @@ router.delete('/eventos/:id', verificarToken, async (req, res) => {
     res.json({ mensagem: 'Evento deletado com sucesso!' });
   } catch (err) {
     res.status(400).json({ erro: 'Erro ao deletar evento', detalhes: err.message });
-  }
-});
-
-// Deletar usuário
-router.delete('/usuario/:id', verificarToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const usuarioId = req.usuario_id;
-    const isAdmin = req.tipo && String(req.tipo).toLowerCase() === 'adm';
-
-    if (!id) {
-      return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
-    }
-
-    if (!isAdmin && String(id) !== String(usuarioId)) {
-      return res.status(403).json({ erro: 'Não autorizado a deletar este usuário' });
-    }
-
-    await dbFirestore.deletarUsuario(id);
-    res.json({ mensagem: 'Usuário deletado com sucesso!' });
-  } catch (err) {
-    if (err.message && err.message.includes('Usuário não encontrado')) {
-      return res.status(404).json({ erro: 'Usuário não encontrado' });
-    }
-    res.status(400).json({ erro: 'Erro ao deletar usuário', detalhes: err.message });
   }
 });
 

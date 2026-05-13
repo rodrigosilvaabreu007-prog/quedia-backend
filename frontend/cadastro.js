@@ -302,8 +302,7 @@ async function completarCadastro() {
     senha: senha,
     estado: estado || 'Não informado',
     cidade: cidade || 'Não informado',
-    preferencias: preferencias,
-    emailConfirmado: true // ✅ NOVO: Indicar que email foi confirmado
+    preferencias: preferencias
   };
 
   try {

@@ -528,9 +528,16 @@ async function validarCodigoConfirmacao(email, codigo) {
   }
 }
 
+/**
+ * Verifica se o email já possui um código confirmado recentemente
+ */
 async function verificarEmailConfirmado(email) {
   try {
     const emailNormalizado = String(email || '').trim().toLowerCase();
+    if (!emailNormalizado) {
+      return false;
+    }
+
     const snapshot = await db.collection('confirmacao_emails')
       .where('email', '==', emailNormalizado)
       .where('usado', '==', true)
@@ -542,17 +549,17 @@ async function verificarEmailConfirmado(email) {
       return false;
     }
 
-    const doc = snapshot.docs[0];
-    const dados = doc.data();
-    if (!dados.validado_em) {
+    const dados = snapshot.docs[0].data();
+    const validadoEm = dados.validado_em;
+    if (!validadoEm) {
       return false;
     }
 
-    const validadoEm = dados.validado_em.toDate ? dados.validado_em.toDate() : new Date(dados.validado_em);
-    const maxAgeMs = 24 * 60 * 60 * 1000; // 24 horas
-    return (Date.now() - validadoEm.getTime()) <= maxAgeMs;
+    const validadoDate = validadoEm.toDate ? validadoEm.toDate() : new Date(validadoEm);
+    const limite = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    return validadoDate >= limite;
   } catch (error) {
-    console.error('Erro ao verificar confirmação de email:', error);
+    console.error('❌ Erro ao verificar email confirmado:', error);
     throw error;
   }
 }
