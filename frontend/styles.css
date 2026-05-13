@@ -2688,7 +2688,7 @@ header {
   padding: 0;
   overflow: hidden;
   flex-shrink: 0;
-  background: #0a0a0a;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2698,8 +2698,8 @@ header {
 #event-modal .modal-header-img {
   width: 100%;
   height: auto;
-  max-height: 50vh;
-  object-fit: cover;
+  max-height: calc(95vh - 260px);
+  object-fit: contain;
   display: block;
   border-radius: 0;
 }
