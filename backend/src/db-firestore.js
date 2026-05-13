@@ -576,11 +576,6 @@ async function verificarEmailConfirmado(email) {
     return false;
   }
 }
-  } catch (error) {
-    console.error('❌ Erro ao verificar email confirmado:', error);
-    throw error;
-  }
-}
 
 // ============ VERIFICAÇÃO DE INTEGRIDADE ============
 
