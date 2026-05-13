@@ -88,10 +88,17 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     estadoCadastro.emailConfirmado = false;
     estadoCadastro.codigoEnviado = false;
-    document.getElementById('codigo-confirmado').style.display = 'none';
-    document.getElementById('validar-codigo-btn').textContent = '✓ Confirmar Código';
-    document.getElementById('validar-codigo-btn').disabled = false;
-    document.getElementById('codigo-input').value = '';
+    const btnValidar = document.getElementById('validar-codigo-btn');
+    if (btnValidar) {
+      btnValidar.style.display = 'inline-flex';
+      btnValidar.disabled = false;
+      btnValidar.textContent = 'Confirmar Código';
+    }
+    const codigoInput = document.getElementById('codigo-input');
+    if (codigoInput) {
+      codigoInput.value = '';
+      codigoInput.disabled = false;
+    }
     irParaPasso(1);
     ocultarMensagem('passo2-status');
   });
@@ -157,7 +164,6 @@ async function enviarCodigoEmail() {
       // Ir para passo 2 após 1 segundo
       setTimeout(() => {
         irParaPasso(2);
-        mostrarMensagem('passo2-status', '📧 Insira o código de confirmação recebido em seu email', 'info');
       }, 1000);
     } else {
       mostrarMensagem('passo1-status', `❌ ${dados.erro || 'Erro ao enviar código'}`, 'error');
@@ -219,15 +225,13 @@ async function validarCodigoEmail() {
 
     if (resposta.ok) {
       estadoCadastro.emailConfirmado = true;
-      mostrarMensagem('passo2-status', '✅ Email confirmado com sucesso!', 'success');
+      mostrarMensagem('passo2-status', '✅ Confirmado', 'success');
       
-      // Mostrar mensagem de sucesso
-      document.getElementById('codigo-confirmado').style.display = 'block';
-      
-      // Desabilitar campos de código
+      // Ocultar botão de confirmar e desabilitar o campo
+      if (btnValidar) {
+        btnValidar.style.display = 'none';
+      }
       codigoInput.disabled = true;
-      btnValidar.disabled = true;
-      btnValidar.textContent = '✓ Confirmado';
     } else {
       estadoCadastro.tentativasValidacao++;
       const tentativasRestantes = estadoCadastro.maxTentativas - estadoCadastro.tentativasValidacao;
@@ -237,7 +241,7 @@ async function validarCodigoEmail() {
         'error');
       
       btnValidar.disabled = false;
-      btnValidar.textContent = '✓ Confirmar Código';
+      btnValidar.textContent = 'Confirmar Código';
     }
   } catch (err) {
     console.error('Erro ao validar código:', err);
@@ -245,7 +249,7 @@ async function validarCodigoEmail() {
       '❌ Erro ao validar código. Tente novamente.', 
       'error');
     btnValidar.disabled = false;
-    btnValidar.textContent = '✓ Confirmar Código';
+    btnValidar.textContent = 'Confirmar Código';
   }
 }
 
