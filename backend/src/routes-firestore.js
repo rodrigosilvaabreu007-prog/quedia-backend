@@ -322,16 +322,11 @@ router.post('/cadastro', async (req, res) => {
     const { nome, email, senha, estado, cidade, preferencias } = req.body;
 
     if (!nome || !email || !senha) {
-      console.log('❌ Dados obrigatórios faltando');
       return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
     }
 
-    console.log(`🔍 Verificando se email ${email} foi confirmado...`);
     const emailConfirmado = await dbFirestore.verificarEmailConfirmado(email);
-    console.log(`📧 Email confirmado? ${emailConfirmado}`);
-    
     if (!emailConfirmado) {
-      console.log(`❌ Email ${email} não foi confirmado`);
       return res.status(400).json({
         erro: 'Email não confirmado. Por favor, confirme seu email com o código enviado.',
         codigoNaoConfirmado: true
@@ -714,6 +709,76 @@ router.post('/admin/eventos/:id/rejeitar', verificarToken, verificarAdmin, async
   } catch (err) {
     console.error('Erro na rota POST /admin/eventos/:id/rejeitar:', err.message);
     return res.status(500).json({ erro: 'Erro ao rejeitar evento.', detalhe: err.message });
+  }
+});
+
+// ============ ATUALIZAR USUÁRIO ============
+
+// Rota PUT: Atualizar usuário
+router.put('/usuario/:id', verificarToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nome, email, estado, cidade, preferencias } = req.body;
+    
+    if (!id) {
+      return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+    }
+
+    // Verificar se o usuário está tentando atualizar sua própria conta
+    const tokenUserId = String(req.usuario_id || '');
+    const paramUserId = String(id);
+    
+    if (tokenUserId !== paramUserId) {
+      return res.status(403).json({ erro: 'Você não tem permissão para atualizar esta conta' });
+    }
+
+    // Atualizar usuário
+    await dbFirestore.atualizarUsuario(id, { nome, email, estado, cidade, preferencias });
+    
+    // Obter usuário atualizado
+    const usuarioAtualizado = await dbFirestore.obterUsuario(id);
+    if (!usuarioAtualizado) {
+      return res.status(404).json({ erro: 'Usuário não encontrado' });
+    }
+
+    return res.json(usuarioAtualizado);
+  } catch (err) {
+    console.error('Erro na rota PUT /usuario/:id:', err.message);
+    return res.status(500).json({ erro: err.message || 'Erro ao atualizar usuário' });
+  }
+});
+
+// Rota PUT: Atualizar usuário (alias para /usuarios/:id)
+router.put('/usuarios/:id', verificarToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nome, email, estado, cidade, preferencias } = req.body;
+    
+    if (!id) {
+      return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+    }
+
+    // Verificar se o usuário está tentando atualizar sua própria conta
+    const tokenUserId = String(req.usuario_id || '');
+    const paramUserId = String(id);
+    
+    if (tokenUserId !== paramUserId) {
+      return res.status(403).json({ erro: 'Você não tem permissão para atualizar esta conta' });
+    }
+
+    // Atualizar usuário
+    await dbFirestore.atualizarUsuario(id, { nome, email, estado, cidade, preferencias });
+    
+    // Obter usuário atualizado
+    const usuarioAtualizado = await dbFirestore.obterUsuario(id);
+    if (!usuarioAtualizado) {
+      return res.status(404).json({ erro: 'Usuário não encontrado' });
+    }
+
+    return res.json(usuarioAtualizado);
+  } catch (err) {
+    console.error('Erro na rota PUT /usuarios/:id:', err.message);
+    return res.status(500).json({ erro: err.message || 'Erro ao atualizar usuário' });
   }
 });
 
