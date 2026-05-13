@@ -86,6 +86,7 @@
     .cadastro-card label select,
     .cadastro-card textarea {
       width: 100%;
+      box-sizing: border-box;
       margin-top: 6px;
       background: rgba(5, 10, 20, 0.8);
       border: 1px solid rgba(var(--cor-principal-rgb), 0.45);
@@ -101,6 +102,21 @@
       outline: none;
       border-color: var(--cor-principal);
       box-shadow: 0 0 12px rgba(var(--cor-principal-rgb), 0.45);
+    }
+    .cadastro-card .form-section {
+      border: 1px solid rgba(var(--cor-principal-rgb), 0.35);
+      padding: 18px 20px;
+      background: rgba(4, 8, 18, 0.72);
+      border-radius: 14px;
+      margin-bottom: 18px;
+    }
+    .cadastro-card .form-section h3 {
+      margin: 0 0 14px;
+      font-size: 1.1rem;
+      color: #fff;
+    }
+    .cadastro-card .form-section .small-info {
+      margin-bottom: 16px;
     }
     .status-message {
       padding: 16px 18px;
@@ -149,6 +165,25 @@
     }
     .password-field input {
       flex: 1;
+      min-height: 48px;
+    }
+    .toggle-senha-button {
+      min-height: 48px;
+      padding: 0 16px;
+      background: var(--cor-principal);
+      border: none;
+      border-radius: 10px;
+      color: var(--bg-primary);
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .toggle-senha-button:hover {
+      background: var(--cor-principal-hover);
+      transform: translateY(-1px);
+    }
+    .toggle-senha-button:active {
+      background: var(--cor-principal-active);
     }
     .cadastro-footer {
       text-align: center;
@@ -243,27 +278,8 @@
           <div id="passo2-status" class="status-message"></div>
 
           <form id="cadastro-form">
-            <!-- Seção: Validar Código -->
-            <fieldset>
-              <legend>Passo 1: Confirme seu Email</legend>
-
-              <div class="form-group">
-                <label>Código de Confirmação (6 dígitos)
-                  <input type="text" id="codigo-input" name="codigo" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
-                  <small id="codigo-erro" style="color: #ff6b6b; display: none;"></small>
-                </label>
-              </div>
-
-              <button type="button" id="validar-codigo-btn" class="btn-form-submit">✓ Confirmar Código</button>
-
-              <div id="codigo-confirmado" class="status-message success" style="display: none;">
-                ✅ Email confirmado com sucesso!
-              </div>
-            </fieldset>
-
-            <!-- Seção: Dados Cadastro -->
-            <fieldset>
-              <legend>Passo 2: Seus Dados</legend>
+            <div class="form-section">
+              <h3>Seus Dados</h3>
 
               <div class="form-group">
                 <label>Nome
@@ -308,10 +324,28 @@
                 <div id="categorias-cadastro" class="categorias-grid"></div>
                 <p id="warning-categorias-cadastro" class="warning-text"></p>
               </div>
+            </div>
 
-              <button type="submit" class="btn-form-submit" id="btn-cadastrar">Cadastrar</button>
-              <p id="mensagem-cadastro"></p>
-            </fieldset>
+            <div class="form-section">
+              <h3>Código de Confirmação</h3>
+              <p class="small-info">Insira o código de confirmação recebido em seu email</p>
+
+              <div class="form-group">
+                <label>Código de Confirmação (6 dígitos)
+                  <input type="text" id="codigo-input" name="codigo" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
+                  <small id="codigo-erro" style="color: #ff6b6b; display: none;"></small>
+                </label>
+              </div>
+
+              <button type="button" id="validar-codigo-btn" class="btn-form-submit">✓ Confirmar Código</button>
+
+              <div id="codigo-confirmado" class="status-message success" style="display: none;">
+                ✅ Email confirmado com sucesso!
+              </div>
+            </div>
+
+            <button type="submit" class="btn-form-submit" id="btn-cadastrar">Cadastrar</button>
+            <p id="mensagem-cadastro"></p>
           </form>
 
           <p class="cadastro-footer">
