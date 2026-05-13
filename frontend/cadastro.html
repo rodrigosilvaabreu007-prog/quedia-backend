@@ -153,12 +153,12 @@
     }
     .password-field input {
       flex: 1;
-      min-height: 44px;
+      min-height: 38px;
       background: rgba(5, 10, 20, 0.8);
       color: #fff;
       border: 1px solid rgba(var(--cor-principal-rgb), 0.45);
       border-radius: 10px;
-      padding: 10px 12px;
+      padding: 8px 12px;
     }
     .small-info {
       text-align: center;
@@ -173,8 +173,8 @@
       min-height: 1.4rem;
     }
     .toggle-senha-button {
-      min-height: 48px;
-      padding: 0 16px;
+      min-height: 38px;
+      padding: 0 12px;
       background: var(--cor-principal);
       border: none;
       border-radius: 10px;
@@ -182,6 +182,7 @@
       font-weight: 700;
       cursor: pointer;
       transition: background 0.2s ease, transform 0.2s ease;
+      font-size: 0.9rem;
     }
     .toggle-senha-button:hover {
       background: var(--cor-principal-hover);
@@ -283,8 +284,6 @@
 
           <form id="cadastro-form">
             <div class="form-section">
-              <h3>Seus Dados</h3>
-
               <div class="form-group">
                 <label>Nome
                   <input type="text" name="nome" required>
@@ -333,9 +332,10 @@
             <div id="passo2-status" class="status-message"></div>
 
             <div class="form-section">
-              <h3>Código de confirmação</h3>
-              <div class="form-group">
-                <input type="text" id="codigo-input" name="codigo" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
+              <p class="small-info" style="margin-bottom: 14px;">Digite o código de 6 dígitos enviado para seu email</p>
+              <div class="form-group" style="margin-bottom: 12px;">
+                <input type="text" id="codigo-input" name="codigo" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required style="text-align: center; font-size: 1.2rem; letter-spacing: 4px; font-weight: bold;">
+                <small id="codigo-erro" style="color: #ff6b6b; display: none; margin-top: 6pxer="000000" maxlength="6" pattern="[0-9]{6}" required>
                 <small id="codigo-erro" style="color: #ff6b6b; display: none;"></small>
               </div>
               <button type="button" id="validar-codigo-btn" class="btn-form-submit">Confirmar código</button>
