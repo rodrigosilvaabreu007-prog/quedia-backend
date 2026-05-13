@@ -115,27 +115,21 @@
             }
 
             container.innerHTML = eventosPendentes.map(evento => `
-                <div class="evento-card">
-                    <div class="evento-header">
-                        <h3>${evento.nome}</h3>
-                        <span class="evento-data">${formatarData(evento.data)}</span>
+                <div class="evento-card-compact">
+                    <div class="evento-compact-header">
+                        <img src="${evento.imagens && evento.imagens.length > 0 ? evento.imagens[0] : 'https://via.placeholder.com/200x150?text=Sem+Imagem'}" alt="Capa" class="evento-compact-img">
+                        <div class="evento-compact-info">
+                            <h3>${evento.nome}</h3>
+                            <p><strong>📅</strong> ${formatarData(evento.data)}</p>
+                            <p><strong>👤</strong> ${evento.organizador}</p>
+                            <p><strong>📍</strong> ${evento.cidade}, ${evento.estado}</p>
+                            <p><strong>🏷️</strong> ${evento.categoria}</p>
+                        </div>
                     </div>
-                    <div class="evento-info">
-                        <p><strong>Organizador:</strong> ${evento.organizador}</p>
-                        <p><strong>Categoria:</strong> ${evento.categoria}</p>
-                        <p><strong>Local:</strong> ${evento.cidade}, ${evento.estado}</p>
-                        <p><strong>Descrição:</strong> ${evento.descricao}</p>
-                    </div>
-                    <div class="evento-imagens">
-                        ${evento.imagens && evento.imagens.length > 0 ? 
-                            evento.imagens.map(img => `<img src="${img}" alt="Imagem do evento" class="evento-thumb">`).join('') :
-                            '<p>Sem imagens</p>'
-                        }
-                    </div>
-                    <div class="evento-actions">
-                        <button onclick="verEvento('${evento.id || evento._id}');" class="btn-secondary">Ver Evento</button>
-                        <button onclick="mostrarConfirmacaoAprovacao('${evento.id || evento._id}')" class="btn-success">Aprovar</button>
-                        <button onclick="rejeitarEvento('${evento.id || evento._id}')" class="btn-danger">Rejeitar</button>
+                    <div class="evento-compact-actions">
+                        <button onclick="verEvento('${evento.id || evento._id}');" class="btn-secondary btn-small">Ver</button>
+                        <button onclick="mostrarConfirmacaoAprovacao('${evento.id || evento._id}')" class="btn-success btn-small">Aprovar</button>
+                        <button onclick="rejeitarEvento('${evento.id || evento._id}')" class="btn-danger btn-small">Rejeitar</button>
                     </div>
                 </div>
             `).join('');

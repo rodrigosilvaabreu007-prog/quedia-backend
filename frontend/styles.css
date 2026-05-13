@@ -757,6 +757,80 @@ header {
   box-shadow: 0 10px 30px rgba(var(--cor-principal-rgb), 0.2);
 }
 
+/* --- Eventos Compactos (Admin) --- */
+.evento-card-compact {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 12px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  max-height: 120px;
+}
+
+.evento-card-compact:hover {
+  border-color: var(--cor-principal);
+  box-shadow: 0 4px 15px rgba(var(--cor-principal-rgb), 0.15);
+}
+
+.evento-compact-header {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+}
+
+.evento-compact-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+
+.evento-compact-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.evento-compact-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 0.95rem;
+  color: var(--cor-principal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.evento-compact-info p {
+  margin: 2px 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.evento-compact-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-small {
+  padding: 6px 12px !important;
+  font-size: 0.85rem !important;
+  min-width: 70px;
+}
+
 /* --- 4. FORMULÁRIOS --- */
 .card-form {
   max-width: 1000px;
