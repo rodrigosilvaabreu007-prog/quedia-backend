@@ -1976,32 +1976,6 @@ header {
   position: relative;
 }
 
-.evento-header {
-  display: grid;
-  grid-template-columns: minmax(320px, 45%) minmax(320px, 1fr);
-  gap: 32px;
-  margin-bottom: 32px;
-  align-items: start;
-  position: relative;
-  min-height: 320px;
-}
-
-@media (max-width: 1080px) {
-  .evento-header {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .evento-imagem-principal {
-    max-height: 320px;
-    border-radius: 18px;
-  }
-
-  .evento-info-principal {
-    min-width: 0;
-  }
-}
-
 .evento-fotos {
   margin: 24px 0;
 }
@@ -2081,12 +2055,12 @@ header {
 }
 
 .evento-imagem-principal {
+  display: block;
   width: 100%;
   max-width: 100%;
-  max-height: 320px;
-  min-height: 240px;
   height: auto;
-  object-fit: cover;
+  max-height: none;
+  object-fit: contain;
   border-radius: 18px;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
 }
@@ -2097,6 +2071,24 @@ header {
   justify-content: flex-start;
   min-width: 320px;
   position: relative;
+}
+
+@media (max-width: 1080px) {
+  .evento-header {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .evento-imagem-principal {
+    width: 100%;
+    height: auto;
+    max-height: none;
+    border-radius: 18px;
+  }
+
+  .evento-info-principal {
+    min-width: 0;
+  }
 }
 
 .evento-interesse-container {
