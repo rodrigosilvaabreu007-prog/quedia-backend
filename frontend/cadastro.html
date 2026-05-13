@@ -7,15 +7,29 @@
   <link rel="stylesheet" href="styles.css?v=5">
   <link rel="stylesheet" href="theme.css?v=5">
   <style>
+    .cadastro-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 26px;
+      padding: 32px;
+      max-width: 760px;
+      margin: 0 auto 40px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(12px);
+    }
     .hero-section {
       text-align: center;
-      margin: 28px 0 22px;
+      margin-bottom: 28px;
     }
-    .hero-section .logo {
+    .hero-section .logo,
+    .page-title {
       margin: 0;
+      color: #fff;
+    }
+    .page-title {
       font-size: clamp(2.5rem, 5vw, 3.8rem);
       letter-spacing: 0.04em;
-      color: #fff;
+      line-height: 1;
     }
     .cadastro-step {
       display: none;
@@ -26,12 +40,12 @@
     .step-indicator {
       display: flex;
       gap: 18px;
-      margin-bottom: 34px;
+      margin-bottom: 32px;
       align-items: center;
     }
     .step-circle {
-      width: 52px;
-      height: 52px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -66,15 +80,10 @@
       color: var(--text-primary);
       font-weight: 600;
     }
-    .input-com-botao {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-    .input-com-botao input {
-      flex: 1;
+    .cadastro-card label input,
+    .cadastro-card label select {
+      width: 100%;
+      margin-top: 8px;
     }
     .status-message {
       padding: 16px 18px;
@@ -102,22 +111,6 @@
       border: 1px solid rgba(89, 178, 245, 0.28);
       display: block;
     }
-    #email-form {
-      max-width: 420px;
-      margin: 0 auto;
-    }
-    .card-form {
-      max-width: 780px;
-      margin: 0 auto;
-      display: grid;
-      gap: 24px;
-    }
-    .cadastro-step h2 {
-      text-align: center;
-      margin-bottom: 28px;
-      font-size: 1.55rem;
-      color: var(--text-primary);
-    }
     .small-info {
       text-align: center;
       color: var(--text-secondary);
@@ -128,10 +121,30 @@
       margin-top: 16px;
       text-align: center;
       color: var(--text-primary);
+      min-height: 1.4rem;
+    }
+    .password-field {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .password-field input {
+      flex: 1;
+    }
+    .cadastro-footer {
+      text-align: center;
+      margin-top: 24px;
+      color: var(--text-secondary);
+    }
+    .cadastro-footer a {
+      color: var(--cor-principal);
+      text-decoration: none;
+      font-weight: 700;
     }
     @media (max-width: 768px) {
-      .hero-section {
-        margin: 20px 0 18px;
+      .cadastro-card {
+        padding: 24px;
       }
       .step-indicator {
         flex-wrap: wrap;
@@ -140,6 +153,10 @@
       .step-circle {
         width: 44px;
         height: 44px;
+      }
+      .password-field {
+        flex-direction: column;
+        align-items: stretch;
       }
     }
   </style>
@@ -172,112 +189,123 @@
       <a href="cadastro.html">Cadastro</a>
     </nav>
     <main>
-      <div class="hero-section">
-        <h1 class="logo">Cadastro</h1>
-      </div>
-      <!-- Indicador de Passos -->
-      <div class="step-indicator">
-        <div class="step-circle active" id="step1-circle">1</div>
-        <div class="step-line" id="step-line"></div>
-        <div class="step-circle" id="step2-circle">2</div>
-      </div>
+      <div class="cadastro-card">
+        <div class="hero-section">
+          <h1 class="page-title">Cadastro</h1>
+          <p class="small-info">Crie sua conta e comece a publicar eventos agora mesmo.</p>
+        </div>
 
-      <!-- PASSO 1: Verificação de Email -->
-      <div id="passo1" class="cadastro-step active">
-        <h2>Confirme seu Email</h2>
-        
-        <div id="passo1-status" class="status-message"></div>
+        <div class="step-indicator">
+          <div class="step-circle active" id="step1-circle">1</div>
+          <div class="step-line" id="step-line"></div>
+          <div class="step-circle" id="step2-circle">2</div>
+        </div>
 
-        <form id="email-form">
-          <div class="form-group">
-            <label>Email
-              <input type="email" id="email-input" name="email" placeholder="seu@email.com" required>
-              <small id="email-erro" style="color: #ff6b6b; display: none;"></small>
-            </label>
-          </div>
+        <!-- PASSO 1: Verificação de Email -->
+        <div id="passo1" class="cadastro-step active">
+          <h2>Confirme seu Email</h2>
+          <div id="passo1-status" class="status-message"></div>
 
-          <div class="form-group input-com-botao">
-            <input type="submit" value="Enviar Código" class="btn-form-submit">
-          </div>
-
-          <p class="small-info">
-            ✉️ Você receberá um código de 6 dígitos em seu email
-          </p>
-        </form>
-      </div>
-
-      <!-- PASSO 2: Validação de Código + Dados Cadastro -->
-      <div id="passo2" class="cadastro-step">
-        <h2>Complete seu Cadastro</h2>
-        
-        <div id="passo2-status" class="status-message"></div>
-
-        <form id="cadastro-form" class="card-form">
-          <!-- Seção: Validar Código -->
-          <fieldset>
-            <legend>Passo 1: Confirme seu Email</legend>
-            
+          <form id="email-form">
             <div class="form-group">
-              <label>Código de Confirmação (6 dígitos)
-                <input type="text" id="codigo-input" name="codigo" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
-                <small id="codigo-erro" style="color: #ff6b6b; display: none;"></small>
+              <label>Email
+                <input type="email" id="email-input" name="email" placeholder="seu@email.com" required>
+                <small id="email-erro" style="color: #ff6b6b; display: none;"></small>
               </label>
             </div>
 
-              <button type="button" id="validar-codigo-btn" class="btn-form-submit">
-              ✓ Confirmar Código
-            </button>
+            <button type="submit" class="btn-form-submit">Enviar Código</button>
 
-            <div id="codigo-confirmado" class="status-message success" style="display: none;">
-              ✅ Email confirmado com sucesso!
-            </div>
-          </fieldset>
+            <p class="small-info">✉️ Você receberá um código de 6 dígitos em seu email</p>
+          </form>
+        </div>
 
-          <!-- Seção: Dados Cadastro -->
-          <fieldset>
-            <legend>Passo 2: Seus Dados</legend>
-            
-            <label>Nome
-              <input type="text" name="nome" required>
-            </label>
+        <!-- PASSO 2: Validação de Código + Dados Cadastro -->
+        <div id="passo2" class="cadastro-step">
+          <h2>Complete seu Cadastro</h2>
+          <div id="passo2-status" class="status-message"></div>
 
-            <label>Senha
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <input type="password" name="senha" id="senha" required>
-                <button type="button" onclick="toggleSenha('senha')" class="toggle-senha-button">👁</button>
+          <form id="cadastro-form">
+            <!-- Seção: Validar Código -->
+            <fieldset>
+              <legend>Passo 1: Confirme seu Email</legend>
+
+              <div class="form-group">
+                <label>Código de Confirmação (6 dígitos)
+                  <input type="text" id="codigo-input" name="codigo" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
+                  <small id="codigo-erro" style="color: #ff6b6b; display: none;"></small>
+                </label>
               </div>
-            </label>
 
-            <label>Confirmar Senha
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <input type="password" name="confirmar_senha" id="confirmar-senha" required>
-                <button type="button" onclick="toggleSenha('confirmar-senha')" class="toggle-senha-button">👁</button>
+              <button type="button" id="validar-codigo-btn" class="btn-form-submit">✓ Confirmar Código</button>
+
+              <div id="codigo-confirmado" class="status-message success" style="display: none;">
+                ✅ Email confirmado com sucesso!
               </div>
-            </label>
-            
-            <label>Estado<select name="estado" id="estado" required onchange="atualizarCidades()">
-              <option value="">Selecione um estado</option>
-            </select></label>
-            
-            <label>Cidade<select name="cidade" id="cidade" required>
-              <option value="">Selecione primeiro um estado</option>
-            </select></label>
+            </fieldset>
 
-            <label>Preferências de categorias</label>
-            <div id="categorias-cadastro" class="categorias-grid"></div>
-            <p id="warning-categorias-cadastro" class="warning-text"></p>
+            <!-- Seção: Dados Cadastro -->
+            <fieldset>
+              <legend>Passo 2: Seus Dados</legend>
 
-            <button type="submit" class="btn-primary" id="btn-cadastrar">Cadastrar</button>
-          </fieldset>
-        </form>
+              <div class="form-group">
+                <label>Nome
+                  <input type="text" name="nome" required>
+                </label>
+              </div>
 
-        <p style="text-align: center; margin-top: 20px;">
-          <a href="#" id="voltar-email" style="color: var(--cor-principal); text-decoration: underline;">← Voltar para verificação de email</a>
+              <div class="form-group">
+                <label>Senha</label>
+                <div class="password-field">
+                  <input type="password" name="senha" id="senha" required>
+                  <button type="button" onclick="toggleSenha('senha')" class="toggle-senha-button">👁</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Confirmar Senha</label>
+                <div class="password-field">
+                  <input type="password" name="confirmar_senha" id="confirmar-senha" required>
+                  <button type="button" onclick="toggleSenha('confirmar-senha')" class="toggle-senha-button">👁</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Estado
+                  <select name="estado" id="estado" required onchange="atualizarCidades()">
+                    <option value="">Selecione um estado</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label>Cidade
+                  <select name="cidade" id="cidade" required>
+                    <option value="">Selecione primeiro um estado</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label>Preferências de categorias</label>
+                <div id="categorias-cadastro" class="categorias-grid"></div>
+                <p id="warning-categorias-cadastro" class="warning-text"></p>
+              </div>
+
+              <button type="submit" class="btn-form-submit" id="btn-cadastrar">Cadastrar</button>
+              <p id="mensagem-cadastro"></p>
+            </fieldset>
+          </form>
+
+          <p class="cadastro-footer">
+            <a href="#" id="voltar-email">← Voltar para verificação de email</a>
+          </p>
+        </div>
+
+        <p class="cadastro-footer">
+          Já possui uma conta? <a href="login.html">Faça login</a>
         </p>
       </div>
-
-      <div id="mensagem-cadastro"></div>
-      <p style="text-align: center; margin-top: 24px;">Já possui uma conta? <a href="login.html" style="color: var(--text-primary, #fff);">Faça login</a></p>
     </main>
   </div>
 
