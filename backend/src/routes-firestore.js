@@ -287,14 +287,20 @@ router.post('/enviar-codigo', async (req, res) => {
     // Gerar e armazenar código
     const { codigo } = await dbFirestore.gerarEArmazenarCodigoConfirmacao(email);
 
-    // Tentar enviar por email
-    await enviarCodigoEmail(email, codigo);
-    console.log(`📧 Código enviado para: ${email}`);
+    // Tentar enviar por email ou modo demo
+    const resultadoEnvio = await enviarCodigoEmail(email, codigo);
+    console.log(`📧 Código enviado para: ${email}`, resultadoEnvio.modo || 'email');
 
-    res.status(200).json({ 
+    const resposta = {
       mensagem: 'Código enviado para seu email. Válido por 15 minutos.',
       email_mascarado: email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
-    });
+    };
+
+    if (resultadoEnvio.modo === 'demo' && resultadoEnvio.codigo) {
+      resposta.codigo_demo = resultadoEnvio.codigo;
+    }
+
+    res.status(200).json(resposta);
 
   } catch (err) {
     console.error('❌ Erro ao enviar código:', err.message);
