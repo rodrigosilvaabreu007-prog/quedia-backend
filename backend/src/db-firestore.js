@@ -191,14 +191,14 @@ async function deletarUsuario(id) {
 async function listarEventos() {
   try {
     const snapshot = await db.collection('eventos')
-      .where('status', 'in', ['aprovado', 'pendente'])
+      .where('status', '==', 'aprovado')
       .get();
     const eventos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     // Ordenar manualmente por criado_em desc
     eventos.sort((a, b) => new Date(b.criado_em) - new Date(a.criado_em));
 
-    console.log(`📊 Eventos aprovados/pendentes listados: ${eventos.length} encontrados`);
+    console.log(`📊 Eventos aprovados listados: ${eventos.length} encontrados`);
 
     // Verificar integridade básica
     const eventosInvalidos = eventos.filter(e => !e.nome || !e.categoria);
@@ -538,29 +538,42 @@ async function verificarEmailConfirmado(email) {
       return false;
     }
 
+    // Buscar qualquer código validado recentemente (últimas 24 horas)
     const snapshot = await db.collection('confirmacao_emails')
       .where('email', '==', emailNormalizado)
       .where('usado', '==', true)
-      .orderBy('validado_em', 'desc')
-      .limit(1)
       .get();
 
     if (snapshot.empty) {
+      console.log(`❌ Nenhuma confirmação encontrada para: ${emailNormalizado}`);
       return false;
     }
 
-    const dados = snapshot.docs[0].data();
-    const validadoEm = dados.validado_em;
-    if (!validadoEm) {
-      return false;
+    // Verificar se há algum código validado nas últimas 24 horas
+    const agora = new Date();
+    const limite = new Date(agora.getTime() - 24 * 60 * 60 * 1000);
+
+    for (const doc of snapshot.docs) {
+      const dados = doc.data();
+      const validadoEm = dados.validado_em;
+      
+      if (!validadoEm) {
+        continue;
+      }
+
+      const validadoDate = validadoEm.toDate ? validadoEm.toDate() : new Date(validadoEm);
+      
+      if (validadoDate >= limite) {
+        console.log(`✅ Email confirmado recentemente: ${emailNormalizado}`);
+        return true;
+      }
     }
 
-    const validadoDate = validadoEm.toDate ? validadoEm.toDate() : new Date(validadoEm);
-    const limite = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    return validadoDate >= limite;
+    console.log(`❌ Email confirmado expirou (>24h): ${emailNormalizado}`);
+    return false;
   } catch (error) {
     console.error('❌ Erro ao verificar email confirmado:', error);
-    throw error;
+    return false;
   }
 }
 
