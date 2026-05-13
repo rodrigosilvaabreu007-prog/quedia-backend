@@ -88,10 +88,17 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     estadoCadastro.emailConfirmado = false;
     estadoCadastro.codigoEnviado = false;
-    document.getElementById('codigo-confirmado').style.display = 'none';
-    document.getElementById('validar-codigo-btn').textContent = '✓ Confirmar Código';
-    document.getElementById('validar-codigo-btn').disabled = false;
-    document.getElementById('codigo-input').value = '';
+    const btnValidar = document.getElementById('validar-codigo-btn');
+    const codigoInput = document.getElementById('codigo-input');
+    if (btnValidar) {
+      btnValidar.textContent = '✓ Confirmar Código';
+      btnValidar.disabled = false;
+      btnValidar.style.display = 'block';
+    }
+    if (codigoInput) {
+      codigoInput.value = '';
+      codigoInput.disabled = false;
+    }
     irParaPasso(1);
     ocultarMensagem('passo2-status');
   });
@@ -219,15 +226,11 @@ async function validarCodigoEmail() {
 
     if (resposta.ok) {
       estadoCadastro.emailConfirmado = true;
-      mostrarMensagem('passo2-status', '✅ Email confirmado com sucesso!', 'success');
+      mostrarMensagem('passo2-status', 'confirmado', 'success');
       
-      // Mostrar mensagem de sucesso
-      document.getElementById('codigo-confirmado').style.display = 'block';
-      
-      // Desabilitar campos de código
+      // Desabilitar campos de código e ocultar botão de validação
       codigoInput.disabled = true;
-      btnValidar.disabled = true;
-      btnValidar.textContent = '✓ Confirmado';
+      btnValidar.style.display = 'none';
     } else {
       estadoCadastro.tentativasValidacao++;
       const tentativasRestantes = estadoCadastro.maxTentativas - estadoCadastro.tentativasValidacao;
