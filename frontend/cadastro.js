@@ -88,17 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     estadoCadastro.emailConfirmado = false;
     estadoCadastro.codigoEnviado = false;
-    const btnValidar = document.getElementById('validar-codigo-btn');
-    if (btnValidar) {
-      btnValidar.style.display = 'inline-flex';
-      btnValidar.disabled = false;
-      btnValidar.textContent = '✓ Confirmar Código';
-    }
-    const codigoInput = document.getElementById('codigo-input');
-    if (codigoInput) {
-      codigoInput.value = '';
-      codigoInput.disabled = false;
-    }
+    document.getElementById('codigo-confirmado').style.display = 'none';
+    document.getElementById('validar-codigo-btn').textContent = '✓ Confirmar Código';
+    document.getElementById('validar-codigo-btn').disabled = false;
+    document.getElementById('codigo-input').value = '';
     irParaPasso(1);
     ocultarMensagem('passo2-status');
   });
@@ -164,6 +157,7 @@ async function enviarCodigoEmail() {
       // Ir para passo 2 após 1 segundo
       setTimeout(() => {
         irParaPasso(2);
+        mostrarMensagem('passo2-status', '📧 Insira o código de confirmação recebido em seu email', 'info');
       }, 1000);
     } else {
       mostrarMensagem('passo1-status', `❌ ${dados.erro || 'Erro ao enviar código'}`, 'error');
@@ -225,16 +219,15 @@ async function validarCodigoEmail() {
 
     if (resposta.ok) {
       estadoCadastro.emailConfirmado = true;
-      mostrarMensagem('passo2-status', '✅ Confirmado', 'success');
+      mostrarMensagem('passo2-status', '✅ Email confirmado com sucesso!', 'success');
       
-      // Ocultar botão de confirmar
-      const btnValidar = document.getElementById('validar-codigo-btn');
-      if (btnValidar) {
-        btnValidar.style.display = 'none';
-      }
+      // Mostrar mensagem de sucesso
+      document.getElementById('codigo-confirmado').style.display = 'block';
       
-      // Desabilitar campo de código
+      // Desabilitar campos de código
       codigoInput.disabled = true;
+      btnValidar.disabled = true;
+      btnValidar.textContent = '✓ Confirmado';
     } else {
       estadoCadastro.tentativasValidacao++;
       const tentativasRestantes = estadoCadastro.maxTentativas - estadoCadastro.tentativasValidacao;
