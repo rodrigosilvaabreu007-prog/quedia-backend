@@ -427,28 +427,30 @@ window.abrirPrevia = async function(evento, imgResolvida) {
     const modalBody = modal.querySelector('.modal-body');
     const modalPadding = modal.querySelector('.modal-padding');
     const modalImg = modal.querySelector('.modal-header-img');
-    const modalWidth = imageWidth;
+    const modalWidth = Math.min(Math.max(imageWidth, 380), maxWidth);
     if (modalContent) {
         modalContent.style.width = `${modalWidth}px`;
         modalContent.style.maxWidth = '95vw';
         modalContent.style.maxHeight = '95vh';
+        modalContent.style.overflowY = 'auto';
+        modalContent.style.overflowX = 'hidden';
     }
     if (modalHeader) {
         modalHeader.style.width = '100%';
     }
     if (modalImg) {
-        modalImg.style.width = `${imageWidth}px`;
-        modalImg.style.height = `${imageHeight}px`;
+        modalImg.style.width = '100%';
+        modalImg.style.height = 'auto';
         modalImg.style.maxWidth = '100%';
         modalImg.style.maxHeight = `${imageMaxHeight}px`;
     }
     if (modalBody) {
-        modalBody.style.maxHeight = '95vh';
-        modalBody.style.overflow = 'hidden';
+        modalBody.style.maxHeight = 'none';
+        modalBody.style.overflow = 'visible';
     }
     if (modalPadding) {
-        modalPadding.style.maxHeight = `${Math.max(imageMaxHeight - 20, 140)}px`;
-        modalPadding.style.overflowY = 'auto';
+        modalPadding.style.maxHeight = 'none';
+        modalPadding.style.overflowY = 'visible';
     }
 
     window.currentEventId = eventoId;
