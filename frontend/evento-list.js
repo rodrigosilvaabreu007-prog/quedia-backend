@@ -425,17 +425,15 @@ window.abrirPrevia = async function(evento, imgResolvida) {
     const modalBody = modal.querySelector('.modal-body');
     const modalPadding = modal.querySelector('.modal-padding');
     const modalImg = modal.querySelector('.modal-header-img');
-    const imageScale = 0.92;
     const modalWidth = Math.min(viewportWidth, Math.max(width, 380));
-    const imageWidth = Math.round(width * imageScale);
-    const imageHeight = Math.round(height * imageScale);
+    const imageHeight = Math.round(height);
     if (modalContent) {
         modalContent.style.width = `${modalWidth}px`;
         modalContent.style.maxWidth = '95vw';
         modalContent.style.maxHeight = '95vh';
     }
     if (modalImg) {
-        modalImg.style.width = `${imageWidth}px`;
+        modalImg.style.width = '100%';
         modalImg.style.height = 'auto';
         modalImg.style.maxWidth = '100%';
         modalImg.style.maxHeight = `${viewportHeight}px`;
