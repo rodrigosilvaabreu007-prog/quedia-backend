@@ -2668,9 +2668,9 @@ header {
 }
 
 #event-modal .modal-content {
-  width: fit-content;
-  min-width: 320px;
-  max-width: 85vw;
+  width: auto;
+  min-width: auto;
+  max-width: 95vw;
   max-height: 95vh;
   border-radius: 24px;
   overflow: auto;
@@ -2684,8 +2684,8 @@ header {
 /* Header com imagem - se adapta ao tamanho da imagem */
 #event-modal .modal-header {
   position: relative;
-  width: fit-content;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 0;
   flex-shrink: 0;
   background: transparent;
@@ -2696,10 +2696,10 @@ header {
 
 /* Imagem do evento - usa tamanho natural com proteção */
 #event-modal .modal-header-img {
-  width: auto;
+  width: 100%;
   height: auto;
-  max-width: 85vw;
-  max-height: 70vh;
+  max-width: 95vw;
+  max-height: calc(95vh - 170px);
   display: block;
   border-radius: 0;
   object-fit: contain;
