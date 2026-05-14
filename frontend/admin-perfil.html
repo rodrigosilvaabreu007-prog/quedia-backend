@@ -39,60 +39,15 @@
                     <span class="admin-badge">Administrador</span>
                 </div>
             </div>
-
-            <div class="admin-stats">
-                <div class="stat-card">
-                    <div class="stat-number" id="stat-pendentes">0</div>
-                    <div class="stat-label">Aprovação Pendente</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="stat-mensagens">0</div>
-                    <div class="stat-label">Respostas Pendentes</div>
-                </div>
-            </div>
-
-            <div class="admin-actions">
-                <h2>Ações Administrativas</h2>
-                <div class="actions-grid">
-                    <button onclick="window.location.href='admin-eventos.html'" class="action-btn">
-                        <span class="action-icon">✅</span>
-                        <span class="action-text">Aprovar Eventos</span>
-                    </button>
-                    <button onclick="window.location.href='admin-contato.html'" class="action-btn">
-                        <span class="action-icon">💬</span>
-                        <span class="action-text">Responder Mensagens</span>
-                    </button>
-                    <button onclick="editarPerfil()" class="action-btn">
-                        <span class="action-icon">⚙️</span>
-                        <span class="action-text">Editar Perfil</span>
-                    </button>
-                    <button onclick="logout()" class="btn-secondary">
-                        <span class="action-icon">🚪</span>
-                        <span class="action-text">Sair</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="admin-details">
-                <h2>Informações Administrativas</h2>
-                <div class="details-grid">
-                    <div class="detail-item">
-                        <label>Última Atividade</label>
-                        <span id="ultima-atividade">Carregando...</span>
-                    </div>
-                    <div class="detail-item">
-                        <label>Status</label>
-                        <span class="status-ativo">🟢 Ativo</span>
-                    </div>
-                    <div class="detail-item">
-                        <label>Nível de Acesso</label>
-                        <span>Administrador Pleno</span>
-                    </div>
-                    <div class="detail-item">
-                        <label>Membro Desde</label>
-                        <span id="membro-desde">Carregando...</span>
-                    </div>
-                </div>
+            <div class="admin-actions" style="background: var(--bg-secondary); padding: 30px; border-radius: 12px; margin-top: 30px; display: flex; gap: 20px; justify-content: center;">
+                <button onclick="editarPerfil()" class="action-btn">
+                    <span class="action-icon">⚙️</span>
+                    <span class="action-text">Editar Perfil</span>
+                </button>
+                <button onclick="logout()" class="btn-secondary">
+                    <span class="action-icon">🚪</span>
+                    <span class="action-text">Sair</span>
+                </button>
             </div>
         </section>
     </main>
@@ -108,10 +63,6 @@
                 <label style="display: grid;">
                     Nome
                     <input type="text" id="editar-nome" style="padding: 12px; border: 1px solid var(--cor-principal); border-radius: 4px; background: var(--bg-primary); color: var(--text-color); margin-top: 6px;" required>
-                </label>
-                <label style="display: grid;">
-                    Email
-                    <input type="email" id="editar-email" style="padding: 12px; border: 1px solid var(--cor-principal); border-radius: 4px; background: var(--bg-primary); color: var(--text-color); margin-top: 6px;" required>
                 </label>
                 <label style="display: grid;">
                     Estado
@@ -442,7 +393,6 @@
 
             usuarioAtualAdmin = usuario;
             document.getElementById('editar-nome').value = usuarioAtualAdmin.nome || '';
-            document.getElementById('editar-email').value = usuarioAtualAdmin.email || '';
 
             preencherEstadosEditar();
             const estadoSelecionado = obterSiglaEstado(usuarioAtualAdmin.estado || '');
@@ -551,11 +501,10 @@
             }
 
             const nome = document.getElementById('editar-nome').value.trim();
-            const email = document.getElementById('editar-email').value.trim();
             const estado = document.getElementById('editar-estado').value;
             const cidade = document.getElementById('editar-cidade').value;
 
-            if (!nome || !email || !estado || !cidade) {
+            if (!nome || !estado || !cidade) {
                 window.showNotification('Por favor, preencha todos os campos obrigatórios.', 'error');
                 return;
             }
@@ -565,7 +514,6 @@
 
             const dadosAtualizados = {
                 nome,
-                email,
                 estado,
                 cidade,
                 preferencias
