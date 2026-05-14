@@ -465,12 +465,14 @@ window.abrirPrevia = async function(evento, imgResolvida) {
             scrollThumb.style.height = `${thumbHeight}px`;
             scrollThumb.style.top = `${thumbTop}px`;
         };
-        modalContent.addEventListener('scroll', updateScrollThumb, { passive: true });
-        if (!modalContent.__scrollThumbResizeAttached) {
+        if (!modalContent.__scrollThumbInitialized) {
+            modalContent.addEventListener('scroll', updateScrollThumb, { passive: true });
             window.addEventListener('resize', updateScrollThumb);
-            modalContent.__scrollThumbResizeAttached = true;
+            modalContent.__scrollThumbInitialized = true;
         }
-        updateScrollThumb();
+        const refreshScrollThumb = () => requestAnimationFrame(updateScrollThumb);
+        refreshScrollThumb();
+        setTimeout(refreshScrollThumb, 50);
     }
     if (modalHeader) {
         modalHeader.style.width = '100%';
