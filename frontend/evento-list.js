@@ -445,16 +445,17 @@ window.abrirPrevia = async function(evento, imgResolvida) {
         modalContent.style.paddingRight = '0';
         modalContent.scrollTop = 0;
 
-        let scrollTrack = modalContent.querySelector('.modal-scroll-track');
+        const modal = document.querySelector('#event-modal');
+        let scrollTrack = modal.querySelector('.modal-scroll-track');
         if (!scrollTrack) {
             scrollTrack = document.createElement('div');
             scrollTrack.className = 'modal-scroll-track';
             const scrollThumb = document.createElement('div');
             scrollThumb.className = 'modal-scroll-thumb';
             scrollTrack.appendChild(scrollThumb);
-            modalContent.appendChild(scrollTrack);
+            modal.appendChild(scrollTrack);
         }
-        const scrollThumb = modalContent.querySelector('.modal-scroll-thumb');
+        const scrollThumb = modal.querySelector('.modal-scroll-thumb');
 
         const updateScrollThumb = () => {
             const scrollHeight = modalContent.scrollHeight;
@@ -528,9 +529,9 @@ window.fecharModal = () => {
         const modalContent = modal.querySelector('.modal-content');
         if (modalContent) {
             modalContent.scrollTop = 0;
-            const scrollTrack = modalContent.querySelector('.modal-scroll-track');
-            if (scrollTrack) scrollTrack.remove();
         }
+        const scrollTrack = modal.querySelector('.modal-scroll-track');
+        if (scrollTrack) scrollTrack.remove();
         modal.style.display = 'none';
     }
     document.documentElement.classList.remove('modal-open');
