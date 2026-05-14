@@ -2718,7 +2718,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Imagem do evento - usa tamanho natural com proteção */
