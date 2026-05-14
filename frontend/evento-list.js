@@ -467,9 +467,10 @@ window.abrirPrevia = async function(evento, imgResolvida) {
                 return;
             }
             modalContent.classList.add('scrolling');
+            const viewportHeight = window.innerHeight;
             const visibleRatio = clientHeight / scrollHeight;
-            const thumbHeight = Math.max(visibleRatio * clientHeight, 44);
-            const maxTop = Math.max(clientHeight - thumbHeight, 0);
+            const thumbHeight = Math.max(visibleRatio * viewportHeight, 44);
+            const maxTop = Math.max(viewportHeight - thumbHeight, 0);
             const thumbTop = Math.min(Math.max((modalContent.scrollTop / Math.max(scrollHeight - clientHeight, 1)) * maxTop, 0), maxTop);
             scrollThumb.style.height = `${thumbHeight}px`;
             scrollThumb.style.top = `${thumbTop}px`;
@@ -525,7 +526,11 @@ window.fecharModal = () => {
     const modal = document.getElementById('event-modal');
     if (modal) {
         const modalContent = modal.querySelector('.modal-content');
-        if (modalContent) modalContent.scrollTop = 0;
+        if (modalContent) {
+            modalContent.scrollTop = 0;
+            const scrollTrack = modalContent.querySelector('.modal-scroll-track');
+            if (scrollTrack) scrollTrack.remove();
+        }
         modal.style.display = 'none';
     }
     document.documentElement.classList.remove('modal-open');
