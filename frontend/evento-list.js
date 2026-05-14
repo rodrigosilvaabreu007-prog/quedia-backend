@@ -442,9 +442,11 @@ window.abrirPrevia = async function(evento, imgResolvida) {
     }
     if (modalBody) {
         modalBody.style.maxHeight = '95vh';
+        modalBody.style.overflow = 'hidden';
     }
     if (modalPadding) {
         modalPadding.style.maxHeight = `${Math.max(viewportHeight - imageHeight - 20, 140)}px`;
+        modalPadding.style.overflowY = 'auto';
     }
 
     window.currentEventId = eventoId;
