@@ -2669,7 +2669,7 @@ header {
 
 #event-modal .modal-content {
   width: auto;
-  max-width: min(95vw, 800px);
+  max-width: min(95vw, 750px);
   max-height: 95vh;
   border-radius: 24px;
   overflow: hidden;
@@ -2698,7 +2698,7 @@ header {
   width: 100%;
   max-width: 100%;
   height: auto;
-  max-height: 45vh;
+  max-height: 50vh;
   display: block;
   border-radius: 0;
   object-fit: contain;
@@ -2713,12 +2713,12 @@ header {
 }
 
 #event-modal .modal-padding {
-  padding: 20px;
+  padding: 15px 20px 20px 20px;
   color: white;
   overflow-y: auto;
   flex: 1 1 auto;
   min-height: 0;
-  max-height: calc(95vh - 45vh - 60px);
+  max-height: calc(95vh - 50vh - 60px);
 }
 
 #event-modal .modal-padding h2 {
@@ -2768,17 +2768,17 @@ header {
 /* --- RESPONSIVIDADE MODAL --- */
 @media (max-width: 900px) {
   #event-modal .modal-content {
-    max-width: min(95vw, 650px);
+    max-width: min(95vw, 700px);
     max-height: 90vh;
   }
 
   #event-modal .modal-header-img {
-    max-height: 40vh;
+    max-height: 45vh;
   }
 
   #event-modal .modal-padding {
-    max-height: calc(90vh - 40vh - 60px);
-    padding: 16px;
+    max-height: calc(90vh - 45vh - 60px);
+    padding: 15px 16px 16px 16px;
     font-size: 0.95rem;
   }
 
@@ -2800,11 +2800,11 @@ header {
   }
 
   #event-modal .modal-header-img {
-    max-height: 35vh;
+    max-height: 40vh;
   }
 
   #event-modal .modal-padding {
-    max-height: calc(95vh - 35vh - 60px);
+    max-height: calc(95vh - 40vh - 60px);
     padding: 12px;
     font-size: 0.9rem;
   }
