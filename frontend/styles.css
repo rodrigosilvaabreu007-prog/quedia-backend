@@ -2668,8 +2668,8 @@ header {
 }
 
 #event-modal .modal-content {
-  width: auto;
-  min-width: auto;
+  width: fit-content;
+  min-width: 280px;
   max-width: 95vw;
   max-height: 95vh;
   border-radius: 24px;
@@ -2684,7 +2684,7 @@ header {
 /* Header com imagem - se adapta ao tamanho da imagem */
 #event-modal .modal-header {
   position: relative;
-  width: auto;
+  width: fit-content;
   margin: 0;
   padding: 0;
   flex-shrink: 0;
@@ -2698,7 +2698,7 @@ header {
 #event-modal .modal-header-img {
   width: auto;
   height: auto;
-  max-width: 95vw;
+  max-width: 100%;
   max-height: calc(95vh - 170px);
   display: block;
   border-radius: 0;
@@ -2711,6 +2711,7 @@ header {
   min-height: 0;
   overflow: hidden;
   flex: 1 1 auto;
+  width: 100%;
 }
 
 #event-modal .modal-padding {
@@ -2719,6 +2720,8 @@ header {
   overflow-y: auto;
   flex: 1 1 auto;
   min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 #event-modal .modal-padding h2 {

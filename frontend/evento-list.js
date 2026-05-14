@@ -384,13 +384,28 @@ function filtrarEventosParaVoce(eventosBase = todosEventos, termoBusca = '', est
 }
 
 // 3. Modal Detalhado
-window.abrirPrevia = function(evento, imgResolvida) {
+window.abrirPrevia = async function(evento, imgResolvida) {
     const eventoId = evento._id || evento.id || '';
     const modal = document.getElementById('event-modal');
     const body = document.getElementById('modal-body');
     if (!modal || !body) return;
 
     const localizacao = evento.local || evento.endereco || 'Endereço não informado';
+    const image = new Image();
+    image.src = imgResolvida;
+    await new Promise(resolve => {
+        if (image.complete) return resolve();
+        image.onload = resolve;
+        image.onerror = resolve;
+    });
+
+    const viewportWidth = window.innerWidth * 0.95;
+    const viewportHeight = window.innerHeight * 0.95 - 170;
+    let width = image.naturalWidth || viewportWidth;
+    let height = image.naturalHeight || viewportHeight;
+    const scale = Math.min(viewportWidth / width, viewportHeight / height, 1);
+    width = Math.round(width * scale);
+    height = Math.round(height * scale);
 
     body.innerHTML = `
         <div class="modal-header">
@@ -405,6 +420,20 @@ window.abrirPrevia = function(evento, imgResolvida) {
             <p style="color:#ccc; line-height:1.6; white-space: pre-wrap;">${evento.descricao || 'Sem descrição disponível.'}</p>
         </div>
     `;
+
+    const modalContent = modal.querySelector('.modal-content');
+    const modalImg = modal.querySelector('.modal-header-img');
+    if (modalContent) {
+        modalContent.style.width = `${width}px`;
+        modalContent.style.maxWidth = '95vw';
+        modalContent.style.maxHeight = '95vh';
+    }
+    if (modalImg) {
+        modalImg.style.width = `${width}px`;
+        modalImg.style.height = 'auto';
+        modalImg.style.maxWidth = '100%';
+        modalImg.style.maxHeight = `${viewportHeight}px`;
+    }
 
     window.currentEventId = eventoId;
     const footer = modal.querySelector('.modal-footer');
