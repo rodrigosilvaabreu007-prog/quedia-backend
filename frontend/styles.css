@@ -2692,8 +2692,7 @@ header {
   height: 0;
 }
 
-#event-modal .modal-content::before {
-  content: '';
+#event-modal .modal-scroll-track {
   position: absolute;
   top: 0;
   right: 0;
@@ -2704,17 +2703,16 @@ header {
   pointer-events: none;
 }
 
-#event-modal .modal-content:hover::before {
+#event-modal .modal-content:hover .modal-scroll-track {
   background: rgba(255, 255, 255, 0.08);
 }
 
-#event-modal .modal-content::after {
-  content: '';
+#event-modal .modal-scroll-thumb {
   position: absolute;
   right: 0;
-  width: 10px;
-  height: var(--scroll-thumb-height, 0px);
-  top: var(--scroll-thumb-top, 0px);
+  width: 100%;
+  top: 0;
+  height: 0;
   background: rgba(var(--cor-principal-rgb), 0.65);
   border-radius: 999px;
   box-shadow: 0 0 16px rgba(var(--cor-principal-rgb), 0.22);
@@ -2723,12 +2721,12 @@ header {
   transition: opacity 0.2s ease, background 0.2s ease, top 0.2s ease, height 0.2s ease;
 }
 
-#event-modal .modal-content.scrolling::after,
-#event-modal .modal-content:hover::after {
+#event-modal .modal-content.scrolling .modal-scroll-thumb,
+#event-modal .modal-content:hover .modal-scroll-thumb {
   opacity: 1;
 }
 
-#event-modal .modal-content.scrolling::after {
+#event-modal .modal-content.scrolling .modal-scroll-thumb {
   background: rgba(var(--cor-principal-rgb), 0.8);
 }
 

@@ -435,15 +435,26 @@ window.abrirPrevia = async function(evento, imgResolvida) {
         modalContent.style.overflowY = 'auto';
         modalContent.style.overflowX = 'hidden';
         modalContent.style.paddingRight = '0';
-        modalContent.style.setProperty('--scroll-thumb-top', '0px');
-        modalContent.style.setProperty('--scroll-thumb-height', '0px');
+
+        let scrollTrack = modalContent.querySelector('.modal-scroll-track');
+        if (!scrollTrack) {
+            scrollTrack = document.createElement('div');
+            scrollTrack.className = 'modal-scroll-track';
+            const scrollThumb = document.createElement('div');
+            scrollThumb.className = 'modal-scroll-thumb';
+            scrollTrack.appendChild(scrollThumb);
+            modalContent.appendChild(scrollTrack);
+        }
+        const scrollThumb = modalContent.querySelector('.modal-scroll-thumb');
+
         const updateScrollThumb = () => {
             const scrollHeight = modalContent.scrollHeight;
             const clientHeight = modalContent.clientHeight;
+            if (!scrollThumb) return;
             if (scrollHeight <= clientHeight) {
                 modalContent.classList.remove('scrolling');
-                modalContent.style.setProperty('--scroll-thumb-top', '0px');
-                modalContent.style.setProperty('--scroll-thumb-height', '0px');
+                scrollThumb.style.top = '0px';
+                scrollThumb.style.height = '0px';
                 return;
             }
             modalContent.classList.add('scrolling');
@@ -451,11 +462,14 @@ window.abrirPrevia = async function(evento, imgResolvida) {
             const thumbHeight = Math.max(visibleRatio * clientHeight, 44);
             const maxTop = Math.max(clientHeight - thumbHeight, 0);
             const thumbTop = Math.min(Math.max((modalContent.scrollTop / Math.max(scrollHeight - clientHeight, 1)) * maxTop, 0), maxTop);
-            modalContent.style.setProperty('--scroll-thumb-top', `${thumbTop}px`);
-            modalContent.style.setProperty('--scroll-thumb-height', `${thumbHeight}px`);
+            scrollThumb.style.height = `${thumbHeight}px`;
+            scrollThumb.style.top = `${thumbTop}px`;
         };
         modalContent.addEventListener('scroll', updateScrollThumb, { passive: true });
-        window.addEventListener('resize', updateScrollThumb);
+        if (!modalContent.__scrollThumbResizeAttached) {
+            window.addEventListener('resize', updateScrollThumb);
+            modalContent.__scrollThumbResizeAttached = true;
+        }
         updateScrollThumb();
     }
     if (modalHeader) {
