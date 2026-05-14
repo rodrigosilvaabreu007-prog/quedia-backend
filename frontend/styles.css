@@ -2674,7 +2674,7 @@ header {
   max-height: 95vh;
   border-radius: 24px;
   padding-right: 0;
-  overflow-y: auto;
+  overflow-y: overlay;
   overflow-x: visible;
   display: flex;
   flex-direction: column;
