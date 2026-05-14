@@ -2673,7 +2673,7 @@ header {
   max-width: 95vw;
   max-height: 95vh;
   border-radius: 24px;
-  padding-right: 0;
+  padding-right: 16px;
   overflow-y: overlay;
   overflow-x: visible;
   display: flex;
@@ -2685,7 +2685,7 @@ header {
 }
 
 #event-modal .modal-content::-webkit-scrollbar {
-  width: 8px;
+  width: 16px;
 }
 
 #event-modal .modal-content::-webkit-scrollbar-track {
