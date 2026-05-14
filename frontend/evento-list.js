@@ -443,6 +443,7 @@ window.abrirPrevia = async function(evento, imgResolvida) {
         modalContent.style.overflowY = 'auto';
         modalContent.style.overflowX = 'hidden';
         modalContent.style.paddingRight = '0';
+        modalContent.scrollTop = 0;
 
         let scrollTrack = modalContent.querySelector('.modal-scroll-track');
         if (!scrollTrack) {
@@ -522,7 +523,11 @@ window.irParaDetalhes = function() {
 // 4. Fechar Modal
 window.fecharModal = () => {
     const modal = document.getElementById('event-modal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) modalContent.scrollTop = 0;
+        modal.style.display = 'none';
+    }
     document.documentElement.classList.remove('modal-open');
     document.body.classList.remove('modal-open');
 
