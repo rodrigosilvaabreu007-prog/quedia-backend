@@ -2673,8 +2673,8 @@ header {
   max-width: 95vw;
   max-height: 95vh;
   border-radius: 24px;
-  padding-right: 16px;
-  overflow-y: overlay;
+  padding-right: 0;
+  overflow-y: auto;
   overflow-x: visible;
   display: flex;
   flex-direction: column;
@@ -2682,10 +2682,14 @@ header {
   background: #1a1a1a;
   animation: modalSobe 0.3s ease-out;
   -webkit-overflow-scrolling: touch;
+  scrollbar-color: rgba(var(--cor-principal-rgb), 0.35) transparent;
+  scrollbar-width: thin;
+  background-clip: padding-box;
+  position: relative;
 }
 
 #event-modal .modal-content::-webkit-scrollbar {
-  width: 16px;
+  width: 20px;
 }
 
 #event-modal .modal-content::-webkit-scrollbar-track {
