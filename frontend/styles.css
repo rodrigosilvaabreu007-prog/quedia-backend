@@ -2695,9 +2695,9 @@ header {
 #event-modal .modal-content::before {
   content: '';
   position: absolute;
-  top: 14px;
+  top: 0;
   right: 12px;
-  bottom: 14px;
+  bottom: 0;
   width: 6px;
   background: rgba(255, 255, 255, 0.08);
   border-radius: 999px;
@@ -2709,8 +2709,8 @@ header {
   position: absolute;
   right: 12px;
   width: 6px;
-  height: var(--scroll-thumb-height, 64px);
-  top: var(--scroll-thumb-top, 14px);
+  height: var(--scroll-thumb-height, 0px);
+  top: var(--scroll-thumb-top, 0px);
   background: rgba(var(--cor-principal-rgb), 0.65);
   border-radius: 999px;
   box-shadow: 0 0 14px rgba(var(--cor-principal-rgb), 0.18);

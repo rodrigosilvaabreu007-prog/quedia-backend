@@ -435,19 +435,21 @@ window.abrirPrevia = async function(evento, imgResolvida) {
         modalContent.style.overflowY = 'auto';
         modalContent.style.overflowX = 'hidden';
         modalContent.style.paddingRight = '0';
-        modalContent.style.setProperty('--scroll-thumb-top', '14px');
-        modalContent.style.setProperty('--scroll-thumb-height', '64px');
+        modalContent.style.setProperty('--scroll-thumb-top', '0px');
+        modalContent.style.setProperty('--scroll-thumb-height', '0px');
         const updateScrollThumb = () => {
             const scrollHeight = modalContent.scrollHeight;
             const clientHeight = modalContent.clientHeight;
             if (scrollHeight <= clientHeight) {
                 modalContent.classList.remove('scrolling');
+                modalContent.style.setProperty('--scroll-thumb-top', '0px');
+                modalContent.style.setProperty('--scroll-thumb-height', '0px');
                 return;
             }
             modalContent.classList.add('scrolling');
             const visibleRatio = clientHeight / scrollHeight;
-            const thumbHeight = Math.max(visibleRatio * (clientHeight - 28), 44);
-            const thumbTop = 14 + (modalContent.scrollTop / (scrollHeight - clientHeight)) * ((clientHeight - 28) - thumbHeight);
+            const thumbHeight = Math.max(visibleRatio * clientHeight, 44);
+            const thumbTop = (modalContent.scrollTop / (scrollHeight - clientHeight)) * (clientHeight - thumbHeight);
             modalContent.style.setProperty('--scroll-thumb-top', `${thumbTop}px`);
             modalContent.style.setProperty('--scroll-thumb-height', `${thumbHeight}px`);
         };
