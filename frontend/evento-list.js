@@ -436,6 +436,16 @@ window.abrirPrevia = async function(evento, imgResolvida) {
     const modalPadding = modal.querySelector('.modal-padding');
     const modalImg = modal.querySelector('.modal-header-img');
     const modalWidth = Math.min(Math.max(imageWidth, 380), maxWidth);
+
+    if (!modal.__overlayCloseInitialized) {
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                window.fecharModal();
+            }
+        });
+        modal.__overlayCloseInitialized = true;
+    }
+
     if (modalContent) {
         modalContent.style.width = `${modalWidth}px`;
         modalContent.style.maxWidth = '95vw';
