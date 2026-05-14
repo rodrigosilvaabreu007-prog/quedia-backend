@@ -423,14 +423,41 @@ window.abrirPrevia = async function(evento, imgResolvida) {
     `;
 
     const modalContent = modal.querySelector('.modal-content');
+    const modalHeader = modal.querySelector('.modal-header');
+    const modalBody = modal.querySelector('.modal-body');
+    const modalPadding = modal.querySelector('.modal-padding');
     const modalImg = modal.querySelector('.modal-header-img');
+    const modalWidth = Math.min(Math.max(imageWidth, 380), maxWidth);
     if (modalContent) {
-        modalContent.style.width = '720px';
+        modalContent.style.width = `${modalWidth}px`;
         modalContent.style.maxWidth = '95vw';
-        modalContent.style.maxHeight = '90vh';
-        modalContent.style.paddingRight = '0';
+        modalContent.style.maxHeight = '95vh';
         modalContent.style.overflowY = 'auto';
         modalContent.style.overflowX = 'hidden';
+        modalContent.style.paddingRight = '0';
+        modalContent.style.setProperty('--scroll-thumb-top', '0px');
+        modalContent.style.setProperty('--scroll-thumb-height', '0px');
+        const updateScrollThumb = () => {
+            const scrollHeight = modalContent.scrollHeight;
+            const clientHeight = modalContent.clientHeight;
+            if (scrollHeight <= clientHeight) {
+                modalContent.classList.remove('scrolling');
+                modalContent.style.setProperty('--scroll-thumb-top', '0px');
+                modalContent.style.setProperty('--scroll-thumb-height', '0px');
+                return;
+            }
+            modalContent.classList.add('scrolling');
+            const visibleRatio = clientHeight / scrollHeight;
+            const thumbHeight = Math.max(visibleRatio * clientHeight, 44);
+            const thumbTop = (modalContent.scrollTop / (scrollHeight - clientHeight)) * (clientHeight - thumbHeight);
+            modalContent.style.setProperty('--scroll-thumb-top', `${thumbTop}px`);
+            modalContent.style.setProperty('--scroll-thumb-height', `${thumbHeight}px`);
+        };
+        modalContent.addEventListener('scroll', updateScrollThumb);
+        updateScrollThumb();
+    }
+    if (modalHeader) {
+        modalHeader.style.width = '100%';
     }
     if (modalImg) {
         modalImg.style.width = '100%';
@@ -438,6 +465,14 @@ window.abrirPrevia = async function(evento, imgResolvida) {
         modalImg.style.height = 'auto';
         modalImg.style.maxWidth = '100%';
         modalImg.style.maxHeight = `${imageMaxHeight}px`;
+    }
+    if (modalBody) {
+        modalBody.style.maxHeight = 'none';
+        modalBody.style.overflow = 'visible';
+    }
+    if (modalPadding) {
+        modalPadding.style.maxHeight = 'none';
+        modalPadding.style.overflowY = 'visible';
     }
 
     window.currentEventId = eventoId;
