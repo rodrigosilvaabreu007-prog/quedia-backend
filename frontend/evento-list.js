@@ -432,8 +432,8 @@ window.abrirPrevia = async function(evento, imgResolvida) {
         modalContent.style.width = `${modalWidth}px`;
         modalContent.style.maxWidth = '95vw';
         modalContent.style.maxHeight = '95vh';
-        modalContent.style.overflowY = 'auto';
-        modalContent.style.overflowX = 'hidden';
+        modalContent.style.overflowY = 'overlay';
+        modalContent.style.overflowX = 'visible';
     }
     if (modalHeader) {
         modalHeader.style.width = '100%';
