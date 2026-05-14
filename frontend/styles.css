@@ -2669,10 +2669,11 @@ header {
 
 #event-modal .modal-content {
   width: auto;
-  max-width: min(90vw, 700px);
+  min-width: 280px;
+  max-width: 90vw;
   max-height: 95vh;
   border-radius: 24px;
-  overflow: hidden;
+  overflow: auto;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -2693,11 +2694,12 @@ header {
   justify-content: center;
 }
 
-/* Imagem do evento - se adapta às dimensões reais mantendo proporções */
+/* Imagem do evento - usa tamanho natural com limites para não ocupar 100% da tela */
 #event-modal .modal-header-img {
-  width: 100%;
+  width: auto;
   height: auto;
   max-width: 100%;
+  max-height: 65vh;
   display: block;
   border-radius: 0;
   object-fit: contain;
