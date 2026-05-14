@@ -2669,7 +2669,7 @@ header {
 
 #event-modal .modal-content {
   width: auto;
-  max-width: min(92vw, 650px);
+  max-width: min(95vw, 800px);
   max-height: 95vh;
   border-radius: 24px;
   overflow: hidden;
@@ -2686,11 +2686,10 @@ header {
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
   flex-shrink: 0;
   background: transparent;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
 }
 
@@ -2699,10 +2698,9 @@ header {
   width: 100%;
   max-width: 100%;
   height: auto;
-  max-height: calc(95vh - 220px);
-  object-fit: contain;
   display: block;
   border-radius: 0;
+  object-fit: contain;
 }
 
 #event-modal .modal-body {
@@ -2719,7 +2717,6 @@ header {
   overflow-y: auto;
   flex: 1 1 auto;
   min-height: 0;
-  max-height: calc(95vh - 360px);
 }
 
 #event-modal .modal-padding h2 {
@@ -2769,16 +2766,15 @@ header {
 /* --- RESPONSIVIDADE MODAL --- */
 @media (max-width: 900px) {
   #event-modal .modal-content {
-    max-width: min(95vw, 580px);
+    max-width: min(95vw, 800px);
     max-height: 90vh;
   }
 
   #event-modal .modal-header-img {
-    max-height: 40vh;
+    /* Permite imagem redimensionar responsivamente */
   }
 
   #event-modal .modal-padding {
-    max-height: calc(90vh - 320px);
     padding: 16px;
     font-size: 0.95rem;
   }
@@ -2801,11 +2797,10 @@ header {
   }
 
   #event-modal .modal-header-img {
-    max-height: 35vh;
+    /* Permite imagem redimensionar responsivamente */
   }
 
   #event-modal .modal-padding {
-    max-height: calc(95vh - 300px);
     padding: 12px;
     font-size: 0.9rem;
   }
