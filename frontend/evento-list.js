@@ -135,7 +135,52 @@ function criarCardEvento(evento, mostrarFavorito = true) {
         <div class="interest-badge">
             <span class="interest-count">👥 0</span>
         </div>
+        <div class="admin-actions-evento" style="margin-top:10px; text-align:right; display:none;">
+            <button type="button" class="btn-danger btn-excluir-evento" style="font-size:0.95em;">Excluir Evento</button>
+        </div>
     `;
+    // Exibir botão de excluir só para admin
+    if (window.isAdminUser && window.isAdminUser()) {
+        const adminActions = div.querySelector('.admin-actions-evento');
+        if (adminActions) adminActions.style.display = 'block';
+        const btnExcluir = div.querySelector('.btn-excluir-evento');
+        if (btnExcluir) {
+            btnExcluir.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (confirm('Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.')) {
+                    await excluirEventoPorId(eventoId, div);
+                }
+            });
+        }
+    }
+// Função para excluir evento (chama API e remove card)
+async function excluirEventoPorId(eventoId, cardElement) {
+    try {
+        const token = localStorage.getItem('eventhub-token');
+        if (!token) {
+            alert('Você precisa estar logado como administrador.');
+            return;
+        }
+        const resp = await fetch(`${window.API_URL}/eventos/${eventoId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        if (resp.ok) {
+            if (cardElement && cardElement.parentNode) {
+                cardElement.parentNode.removeChild(cardElement);
+            }
+            alert('Evento excluído com sucesso!');
+        } else {
+            const erro = await resp.json().catch(() => ({}));
+            alert(erro.erro || 'Erro ao excluir evento.');
+        }
+    } catch (err) {
+        alert('Erro ao excluir evento: ' + err.message);
+    }
+}
 
     const interestButton = div.querySelector('.interest-btn-corner');
     const interestCount = div.querySelector('.interest-count');
