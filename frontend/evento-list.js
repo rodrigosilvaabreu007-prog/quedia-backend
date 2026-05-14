@@ -132,11 +132,13 @@ function criarCardEvento(evento, mostrarFavorito = true) {
             </div>
             <p class="event-price">${precoTexto}</p>
         </div>
-        <div class="interest-badge">
-            <span class="interest-count">👥 0</span>
-        </div>
-        <div class="admin-actions-evento" style="margin-top:10px; text-align:right; display:none;">
-            <button type="button" class="btn-danger btn-excluir-evento" style="font-size:0.95em;">Excluir Evento</button>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px;">
+            <div class="admin-actions-evento" style="display:none;">
+                <button type="button" class="btn-danger btn-excluir-evento" style="font-size:0.95em;">Excluir Evento</button>
+            </div>
+            <div class="interest-badge">
+                <span class="interest-count">👥 0</span>
+            </div>
         </div>
     `;
     // Exibir botão de excluir só para admin
