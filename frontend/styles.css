@@ -2768,6 +2768,33 @@ header {
   background: var(--cor-principal-hover);
 }
 
+#event-modal .modal-content::-webkit-scrollbar,
+#event-modal .modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+#event-modal .modal-content::-webkit-scrollbar-track,
+#event-modal .modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#event-modal .modal-content::-webkit-scrollbar-thumb,
+#event-modal .modal-body::-webkit-scrollbar-thumb {
+  background: rgba(var(--cor-principal-rgb), 0.35);
+  border-radius: 999px;
+}
+
+#event-modal .modal-content::-webkit-scrollbar-thumb:hover,
+#event-modal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--cor-principal-rgb), 0.55);
+}
+
+#event-modal .modal-content,
+#event-modal .modal-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--cor-principal-rgb), 0.35) transparent;
+}
+
 /* --- RESPONSIVIDADE MODAL --- */
 @media (max-width: 900px) {
   #event-modal .modal-content {
