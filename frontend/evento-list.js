@@ -449,11 +449,13 @@ window.abrirPrevia = async function(evento, imgResolvida) {
             modalContent.classList.add('scrolling');
             const visibleRatio = clientHeight / scrollHeight;
             const thumbHeight = Math.max(visibleRatio * clientHeight, 44);
-            const thumbTop = (modalContent.scrollTop / (scrollHeight - clientHeight)) * (clientHeight - thumbHeight);
+            const maxTop = Math.max(clientHeight - thumbHeight, 0);
+            const thumbTop = Math.min(Math.max((modalContent.scrollTop / Math.max(scrollHeight - clientHeight, 1)) * maxTop, 0), maxTop);
             modalContent.style.setProperty('--scroll-thumb-top', `${thumbTop}px`);
             modalContent.style.setProperty('--scroll-thumb-height', `${thumbHeight}px`);
         };
-        modalContent.addEventListener('scroll', updateScrollThumb);
+        modalContent.addEventListener('scroll', updateScrollThumb, { passive: true });
+        window.addEventListener('resize', updateScrollThumb);
         updateScrollThumb();
     }
     if (modalHeader) {

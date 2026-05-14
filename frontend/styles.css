@@ -2696,24 +2696,28 @@ header {
   content: '';
   position: absolute;
   top: 0;
-  right: 12px;
+  right: 0;
   bottom: 0;
-  width: 6px;
-  background: rgba(255, 255, 255, 0.08);
+  width: 10px;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 999px;
   pointer-events: none;
+}
+
+#event-modal .modal-content:hover::before {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 #event-modal .modal-content::after {
   content: '';
   position: absolute;
-  right: 12px;
-  width: 6px;
+  right: 0;
+  width: 10px;
   height: var(--scroll-thumb-height, 0px);
   top: var(--scroll-thumb-top, 0px);
   background: rgba(var(--cor-principal-rgb), 0.65);
   border-radius: 999px;
-  box-shadow: 0 0 14px rgba(var(--cor-principal-rgb), 0.18);
+  box-shadow: 0 0 16px rgba(var(--cor-principal-rgb), 0.22);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.2s ease, background 0.2s ease, top 0.2s ease, height 0.2s ease;
@@ -2725,7 +2729,7 @@ header {
 }
 
 #event-modal .modal-content.scrolling::after {
-  background: rgba(var(--cor-principal-rgb), 0.75);
+  background: rgba(var(--cor-principal-rgb), 0.8);
 }
 
 #event-modal .modal-header {
