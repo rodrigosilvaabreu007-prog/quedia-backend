@@ -399,13 +399,14 @@ window.abrirPrevia = async function(evento, imgResolvida) {
         image.onerror = resolve;
     });
 
-    const viewportWidth = window.innerWidth * 0.95;
-    const viewportHeight = window.innerHeight * 0.95 - 170;
-    let width = image.naturalWidth || viewportWidth;
-    let height = image.naturalHeight || viewportHeight;
-    const scale = Math.min(viewportWidth / width, viewportHeight / height, 1);
-    width = Math.round(width * scale);
-    height = Math.round(height * scale);
+    const maxWidth = window.innerWidth * 0.95;
+    const maxHeight = window.innerHeight * 0.95;
+    const naturalWidth = image.naturalWidth || maxWidth;
+    const naturalHeight = image.naturalHeight || maxHeight;
+    const imageMaxHeight = Math.max(maxHeight - 160, 200);
+    const scale = Math.min(maxWidth / naturalWidth, imageMaxHeight / naturalHeight, 1);
+    const imageWidth = Math.round(naturalWidth * scale);
+    const imageHeight = Math.round(naturalHeight * scale);
 
     body.innerHTML = `
         <div class="modal-header">
@@ -422,28 +423,31 @@ window.abrirPrevia = async function(evento, imgResolvida) {
     `;
 
     const modalContent = modal.querySelector('.modal-content');
+    const modalHeader = modal.querySelector('.modal-header');
     const modalBody = modal.querySelector('.modal-body');
     const modalPadding = modal.querySelector('.modal-padding');
     const modalImg = modal.querySelector('.modal-header-img');
-    const modalWidth = Math.min(viewportWidth, Math.max(width, 380));
-    const imageHeight = Math.round(height);
+    const modalWidth = imageWidth;
     if (modalContent) {
         modalContent.style.width = `${modalWidth}px`;
         modalContent.style.maxWidth = '95vw';
         modalContent.style.maxHeight = '95vh';
     }
+    if (modalHeader) {
+        modalHeader.style.width = '100%';
+    }
     if (modalImg) {
-        modalImg.style.width = '100%';
-        modalImg.style.height = 'auto';
+        modalImg.style.width = `${imageWidth}px`;
+        modalImg.style.height = `${imageHeight}px`;
         modalImg.style.maxWidth = '100%';
-        modalImg.style.maxHeight = `${viewportHeight}px`;
+        modalImg.style.maxHeight = `${imageMaxHeight}px`;
     }
     if (modalBody) {
         modalBody.style.maxHeight = '95vh';
         modalBody.style.overflow = 'hidden';
     }
     if (modalPadding) {
-        modalPadding.style.maxHeight = `${Math.max(viewportHeight - imageHeight - 20, 140)}px`;
+        modalPadding.style.maxHeight = `${Math.max(imageMaxHeight - 20, 140)}px`;
         modalPadding.style.overflowY = 'auto';
     }
 

@@ -2684,7 +2684,7 @@ header {
 /* Header com imagem - se adapta ao tamanho da imagem */
 #event-modal .modal-header {
   position: relative;
-  width: fit-content;
+  width: 100%;
   margin: 0;
   padding: 0;
   flex-shrink: 0;
@@ -2692,6 +2692,7 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 /* Imagem do evento - usa tamanho natural com proteção */
@@ -2699,7 +2700,7 @@ header {
   width: auto;
   height: auto;
   max-width: 100%;
-  max-height: calc(95vh - 170px);
+  max-height: calc(95vh - 140px);
   display: block;
   border-radius: 0;
   object-fit: contain;
