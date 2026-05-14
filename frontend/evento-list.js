@@ -450,8 +450,18 @@ window.abrirPrevia = async function(evento, imgResolvida) {
         if (!scrollTrack) {
             scrollTrack = document.createElement('div');
             scrollTrack.className = 'modal-scroll-track';
+            scrollTrack.style.position = 'fixed';
+            scrollTrack.style.top = '0';
+            scrollTrack.style.right = '0';
+            scrollTrack.style.height = '100vh';
+            scrollTrack.style.width = '10px';
+            scrollTrack.style.zIndex = '100000';
             const scrollThumb = document.createElement('div');
             scrollThumb.className = 'modal-scroll-thumb';
+            scrollThumb.style.position = 'fixed';
+            scrollThumb.style.right = '0';
+            scrollThumb.style.top = '0';
+            scrollThumb.style.zIndex = '100001';
             scrollTrack.appendChild(scrollThumb);
             modal.appendChild(scrollTrack);
         }
