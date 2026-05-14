@@ -2674,42 +2674,68 @@ header {
   max-height: 95vh;
   border-radius: 24px;
   padding-right: 0;
-  overflow-y: overlay;
-  overflow-x: visible;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   background: #1a1a1a;
   animation: modalSobe 0.3s ease-out;
   -webkit-overflow-scrolling: touch;
-  scrollbar-color: rgba(var(--cor-principal-rgb), 0.35) transparent;
-  scrollbar-width: thin;
-  background-clip: padding-box;
   position: relative;
+  scrollbar-width: none;
 }
 
 #event-modal .modal-content::-webkit-scrollbar {
-  width: 24px;
+  width: 0;
+  height: 0;
 }
 
-#event-modal .modal-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-#event-modal .modal-content::-webkit-scrollbar-thumb {
-  background: rgba(var(--cor-principal-rgb), 0.35);
+#event-modal .modal-content::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  right: 12px;
+  bottom: 14px;
+  width: 9px;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 999px;
+  pointer-events: none;
 }
 
-#event-modal .modal-content::-webkit-scrollbar-thumb:hover {
+#event-modal .modal-content::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  width: 9px;
+  height: var(--scroll-thumb-height, 64px);
+  top: var(--scroll-thumb-top, 14px);
+  background: rgba(var(--cor-principal-rgb), 0.45);
+  border-radius: 999px;
+  pointer-events: none;
+  transform: translateY(0);
+  transition: background 0.2s ease;
+}
+
+#event-modal .modal-content.scrolling::after {
   background: rgba(var(--cor-principal-rgb), 0.55);
 }
 
-#event-modal .modal-content {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(var(--cor-principal-rgb), 0.35) transparent;
-  background-clip: padding-box;
-  overflow-x: visible;
+#event-modal .modal-content:hover::after {
+  background: rgba(var(--cor-principal-rgb), 0.55);
+}
+
+#event-modal .modal-header {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
 }
 
 /* Header com imagem - se adapta ao tamanho da imagem */

@@ -432,18 +432,36 @@ window.abrirPrevia = async function(evento, imgResolvida) {
         modalContent.style.width = `${modalWidth}px`;
         modalContent.style.maxWidth = '95vw';
         modalContent.style.maxHeight = '95vh';
-        modalContent.style.overflowY = 'overlay';
-        modalContent.style.overflowX = 'visible';
+        modalContent.style.overflowY = 'auto';
+        modalContent.style.overflowX = 'hidden';
         modalContent.style.paddingRight = '0';
+        modalContent.style.setProperty('--scroll-thumb-top', '14px');
+        modalContent.style.setProperty('--scroll-thumb-height', '64px');
+        const updateScrollThumb = () => {
+            const scrollHeight = modalContent.scrollHeight;
+            const clientHeight = modalContent.clientHeight;
+            if (scrollHeight <= clientHeight) {
+                modalContent.classList.remove('scrolling');
+                return;
+            }
+            modalContent.classList.add('scrolling');
+            const visibleRatio = clientHeight / scrollHeight;
+            const thumbHeight = Math.max(visibleRatio * (clientHeight - 28), 44);
+            const thumbTop = 14 + (modalContent.scrollTop / (scrollHeight - clientHeight)) * ((clientHeight - 28) - thumbHeight);
+            modalContent.style.setProperty('--scroll-thumb-top', `${thumbTop}px`);
+            modalContent.style.setProperty('--scroll-thumb-height', `${thumbHeight}px`);
+        };
+        modalContent.addEventListener('scroll', updateScrollThumb);
+        updateScrollThumb();
     }
     if (modalHeader) {
         modalHeader.style.width = '100%';
     }
     if (modalImg) {
-        modalImg.style.width = 'calc(100% + 24px)';
-        modalImg.style.marginRight = '-24px';
+        modalImg.style.width = '100%';
+        modalImg.style.marginRight = '0';
         modalImg.style.height = 'auto';
-        modalImg.style.maxWidth = 'none';
+        modalImg.style.maxWidth = '100%';
         modalImg.style.maxHeight = `${imageMaxHeight}px`;
     }
     if (modalBody) {
