@@ -390,6 +390,14 @@ window.abrirPrevia = async function(evento, imgResolvida) {
     const body = document.getElementById('modal-body');
     if (!modal || !body) return;
 
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
+    window.__eventModalScrollY = scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+
     const localizacao = evento.local || evento.endereco || 'Endereço não informado';
     const image = new Image();
     image.src = imgResolvida;
@@ -517,6 +525,16 @@ window.fecharModal = () => {
     if (modal) modal.style.display = 'none';
     document.documentElement.classList.remove('modal-open');
     document.body.classList.remove('modal-open');
+
+    if (window.__eventModalScrollY !== undefined) {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
+        window.scrollTo(0, window.__eventModalScrollY);
+        delete window.__eventModalScrollY;
+    }
 };
 
 // --- 🔍 FILTROS ---
