@@ -61,7 +61,6 @@
             <div class="modal-actions">
                 <button onclick="fecharModalEvento()" class="btn-secondary">Fechar</button>
                 <button id="btn-editar-evento" onclick="editarEvento()" class="btn-primary">Editar</button>
-                <button id="btn-excluir-evento" onclick="excluirEvento()" class="btn-danger">Excluir</button>
             </div>
         </div>
     </div>
@@ -255,6 +254,17 @@
             line-height: 1.6;
         }
 
+        .evento-delete-section {
+            margin-top: 24px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .evento-delete-section .full-width {
+            width: 100%;
+            max-width: 280px;
+        }
+
         .modal-actions {
             display: flex;
             gap: 10px;
@@ -370,6 +380,9 @@
                 <p><strong>Preço:</strong> ${eventoSelecionado.preco ? `R$ ${eventoSelecionado.preco}` : 'Gratuito'}</p>
                 <p><strong>Status:</strong> ${eventoSelecionado.aprovado ? '✅ Aprovado' : eventoSelecionado.rejeitado ? '❌ Rejeitado' : '⏳ Pendente'}</p>
                 ${eventoSelecionado.motivo_rejeicao ? `<p><strong>Motivo da Rejeição:</strong> ${eventoSelecionado.motivo_rejeicao}</p>` : ''}
+                <div class="evento-delete-section">
+                    <button id="btn-delete-evento-modal" class="btn-danger full-width" onclick="excluirEvento()">Excluir este evento</button>
+                </div>
             `;
 
             document.getElementById('modal-evento').classList.add('active');
@@ -385,11 +398,39 @@
             window.location.href = `editar-evento.html?id=${eventoSelecionado._id}`;
         }
 
-        function excluirEvento() {
+        async function excluirEvento() {
             if (!eventoSelecionado) return;
-            if (confirm('Tem certeza que deseja excluir este evento?')) {
-                // Implementar lógica de exclusão
-                alert('Função de exclusão em desenvolvimento');
+            if (!confirm('Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.')) {
+                return;
+            }
+
+            const token = localStorage.getItem('eventhub-token');
+            if (!token) {
+                window.showNotification('Você precisa estar logado para excluir o evento.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/eventos/${eventoSelecionado._id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => null);
+                    const message = errorData?.erro || errorData?.mensagem || 'Erro ao excluir evento.';
+                    window.showNotification(message, 'error');
+                    return;
+                }
+
+                window.showNotification('Evento excluído com sucesso!', 'success');
+                fecharModalEvento();
+                carregarEventosAdmin();
+            } catch (error) {
+                console.error('Erro ao excluir o evento:', error);
+                window.showNotification('Erro ao excluir o evento. Tente novamente.', 'error');
             }
         }
 

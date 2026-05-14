@@ -378,11 +378,22 @@ const CIDADES_POR_ESTADO = {
     "RS": ["Porto Alegre", "Caxias do Sul", "Pelotas"]
 };
 
-window.obterCidades = function(siglaEstado) {
-    console.log("Buscando cidades (Fallback) para:", siglaEstado);
-    // Retorna a lista local se a API do IBGE falhar
-    return CIDADES_POR_ESTADO[siglaEstado] || ["Outra"];
-};
+if (typeof window.obterCidades !== 'function') {
+    window.obterCidades = function(siglaEstado) {
+        console.log("Buscando cidades (Fallback) para:", siglaEstado);
+        return CIDADES_POR_ESTADO[siglaEstado] || ["Outra"];
+    };
+} else {
+    const originalObterCidades = window.obterCidades;
+    window.obterCidades = function(siglaEstado) {
+        const cidades = originalObterCidades(siglaEstado);
+        if (Array.isArray(cidades) && cidades.length > 0) {
+            return cidades;
+        }
+        console.log("Usando fallback de cidades para:", siglaEstado);
+        return CIDADES_POR_ESTADO[siglaEstado] || ["Outra"];
+    };
+}
 
 // Inicializa o perfil automaticamente
 document.addEventListener('DOMContentLoaded', () => {

@@ -99,6 +99,41 @@
 
     <div id="icone-perfil" title="Meu Perfil" onclick="irParaPerfil()" style="cursor: pointer;"></div>
 
+    <!-- Modal de edição de perfil administrativo -->
+    <div id="modal-editar" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; display: none; align-items: center; justify-content: center;">
+        <div style="background: var(--bg-secondary); border: 2px solid var(--cor-principal); border-radius: 12px; padding: 32px; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; position: relative;">
+            <button type="button" onclick="fecharModalEditar()" style="position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; min-width: 36px; min-height: 36px; padding: 0; line-height: 1; font-size: 20px; background: rgba(var(--cor-principal-rgb), 0.16); border: 1px solid var(--cor-principal); border-radius: 50%; color: var(--cor-principal); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;" class="btn btn-icon">✕</button>
+            <h2 style="margin-top: 0; color: var(--text-primary, #fff);">Editar Perfil</h2>
+            <form id="form-editar" style="display: grid; gap: 16px;">
+                <label style="display: grid;">
+                    Nome
+                    <input type="text" id="editar-nome" style="padding: 12px; border: 1px solid var(--cor-principal); border-radius: 4px; background: var(--bg-primary); color: var(--text-color); margin-top: 6px;" required>
+                </label>
+                <label style="display: grid;">
+                    Email
+                    <input type="email" id="editar-email" style="padding: 12px; border: 1px solid var(--cor-principal); border-radius: 4px; background: var(--bg-primary); color: var(--text-color); margin-top: 6px;" required>
+                </label>
+                <label style="display: grid;">
+                    Estado
+                    <select id="editar-estado" style="padding: 12px; border: 1px solid var(--cor-principal); border-radius: 4px; background: var(--bg-primary); color: var(--text-color); margin-top: 6px;" required>
+                        <option value="">Selecione um estado</option>
+                    </select>
+                </label>
+                <label style="display: grid;">
+                    Cidade
+                    <select id="editar-cidade" style="padding: 12px; border: 1px solid var(--cor-principal); border-radius: 4px; background: var(--bg-primary); color: var(--text-color); margin-top: 6px;" required>
+                        <option value="">Selecione primeiro um estado</option>
+                    </select>
+                </label>
+                <div id="editar-preferencias-container" style="display: grid;"></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+                    <button type="button" onclick="fecharModalEditar()" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <style>
         .admin-profile {
             max-width: 900px;
@@ -271,6 +306,8 @@
     </style>
 
     <script src="global.js"></script>
+    <script src="cidades-brasil.js?v=20260514"></script>
+    <script src="categorias.js?v=20260514"></script>
     <script>
         const API_URL = window.API_URL;
 
@@ -285,8 +322,54 @@
             navLinks.classList.toggle('active');
         }
 
+        let usuarioAtualAdmin = null;
+
+        function getUsuarioId(usuario) {
+            if (!usuario) {
+                try {
+                    const usuarioStorage = JSON.parse(localStorage.getItem('eventhub-usuario') || 'null');
+                    return usuarioStorage?.id || usuarioStorage?._id || '';
+                } catch {
+                    return '';
+                }
+            }
+
+            const userIdRaw = usuario.id || usuario._id || '';
+            if (userIdRaw && typeof userIdRaw === 'object' && typeof userIdRaw.toString === 'function') {
+                return userIdRaw.toString();
+            }
+
+            return String(userIdRaw || '');
+        }
+
+        function normalizarTexto(texto) {
+            return String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+        }
+
+        function obterSiglaEstado(valorEstado) {
+            const texto = normalizarTexto(valorEstado);
+            if (!texto) return '';
+
+            const estados = obterEstados();
+            const encontrado = estados.find(estado => {
+                return normalizarTexto(estado.sigla) === texto || normalizarTexto(estado.nome) === texto;
+            });
+            return encontrado ? encontrado.sigla : '';
+        }
+
+        function selecionarOpcaoPorTexto(selectElement, textoBuscado) {
+            if (!selectElement || !textoBuscado) return;
+            const textoNormalizado = normalizarTexto(textoBuscado);
+            for (const option of Array.from(selectElement.options)) {
+                if (normalizarTexto(option.value) === textoNormalizado || normalizarTexto(option.textContent) === textoNormalizado) {
+                    selectElement.value = option.value;
+                    return;
+                }
+            }
+        }
+
         function editarPerfil() {
-            alert('Funcionalidade de edição de perfil em desenvolvimento');
+            abrirModalEditar();
         }
 
         async function carregarDadosAdmin() {
@@ -303,15 +386,38 @@
                 document.getElementById('admin-nome').textContent = usuario.nome || 'Administrador';
                 document.getElementById('admin-email').textContent = usuario.email || 'email@example.com';
 
-                // Carregar estatísticas
-                const statsResponse = await fetch(`${API_URL}/admin/stats`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                // Carregar estatísticas reais do backend
+                const [eventosResponse, mensagensResponse] = await Promise.all([
+                    fetch(`${API_URL}/admin/eventos`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch(`${API_URL}/admin/mensagens`, { headers: { 'Authorization': `Bearer ${token}` } })
+                ]);
 
-                if (statsResponse.ok) {
-                    const stats = await statsResponse.json();
-                    document.getElementById('stat-pendentes').textContent = stats.eventosPendentes || stats.pendentesAprovacao || 0;
-                    document.getElementById('stat-mensagens').textContent = stats.respostasPendentes || stats.mensagensRecebidas || 0;
+                let fallbackStats = null;
+                if (!eventosResponse.ok || !mensagensResponse.ok) {
+                    const statsResponse = await fetch(`${API_URL}/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (statsResponse.ok) {
+                        fallbackStats = await statsResponse.json();
+                    }
+                }
+
+                if (eventosResponse.ok) {
+                    const eventos = await eventosResponse.json();
+                    document.getElementById('stat-pendentes').textContent = Array.isArray(eventos) ? eventos.length : 0;
+                } else if (fallbackStats) {
+                    document.getElementById('stat-pendentes').textContent = Number(fallbackStats.eventosPendentes || 0);
+                } else {
+                    console.warn('Erro ao carregar eventos pendentes:', eventosResponse.status);
+                    document.getElementById('stat-pendentes').textContent = '0';
+                }
+
+                if (mensagensResponse.ok) {
+                    const mensagens = await mensagensResponse.json();
+                    document.getElementById('stat-mensagens').textContent = Array.isArray(mensagens) ? mensagens.length : 0;
+                } else if (fallbackStats) {
+                    document.getElementById('stat-mensagens').textContent = Number(fallbackStats.respostasPendentes || fallbackStats.totalMensagens || 0);
+                } else {
+                    console.warn('Erro ao carregar mensagens:', mensagensResponse.status);
+                    document.getElementById('stat-mensagens').textContent = '0';
                 }
 
                 // Formato de datas
@@ -325,7 +431,208 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', carregarDadosAdmin);
+        function abrirModalEditar() {
+            const token = localStorage.getItem('eventhub-token');
+            const usuario = JSON.parse(localStorage.getItem('eventhub-usuario') || '{}');
+
+            if (!token || usuario.cargo !== 'adm') {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            usuarioAtualAdmin = usuario;
+            document.getElementById('editar-nome').value = usuarioAtualAdmin.nome || '';
+            document.getElementById('editar-email').value = usuarioAtualAdmin.email || '';
+
+            preencherEstadosEditar();
+            const estadoSelecionado = obterSiglaEstado(usuarioAtualAdmin.estado || '');
+            const estadoSelect = document.getElementById('editar-estado');
+            estadoSelect.value = estadoSelecionado || '';
+            if (!estadoSelecionado && usuarioAtualAdmin.estado) {
+                selecionarOpcaoPorTexto(estadoSelect, usuarioAtualAdmin.estado);
+            }
+
+            const estadoAtual = estadoSelect.value;
+            if (estadoAtual) {
+                atualizarCidadesEditar(estadoAtual);
+                setTimeout(() => {
+                    selecionarOpcaoPorTexto(document.getElementById('editar-cidade'), usuarioAtualAdmin.cidade || '');
+                }, 10);
+            }
+
+            preencherPreferenciasEditar();
+            document.getElementById('modal-editar').style.display = 'flex';
+        }
+
+        function preencherPreferenciasEditar() {
+            const container = document.getElementById('editar-preferencias-container');
+            if (!container) return;
+
+            let preferenciasAtuais = [];
+            if (usuarioAtualAdmin?.preferencias) {
+                if (typeof usuarioAtualAdmin.preferencias === 'string') {
+                    try {
+                        preferenciasAtuais = JSON.parse(usuarioAtualAdmin.preferencias);
+                    } catch {
+                        preferenciasAtuais = [];
+                    }
+                } else if (Array.isArray(usuarioAtualAdmin.preferencias)) {
+                    preferenciasAtuais = usuarioAtualAdmin.preferencias;
+                }
+            }
+
+            container.innerHTML = '';
+            const categoriasDiv = document.createElement('div');
+            categoriasDiv.style.cssText = 'display: block;';
+
+            const subcategoriaLabel = document.createElement('label');
+            subcategoriaLabel.textContent = 'Preferências de Categorias:';
+            subcategoriaLabel.style.cssText = 'display: block; margin-bottom: 8px; color: #aaa; font-size: 12px; text-transform: uppercase;';
+
+            const subcategoriaContainer = document.createElement('div');
+            subcategoriaContainer.id = 'editar-preferencia-subcategorias';
+
+            categoriasDiv.appendChild(subcategoriaLabel);
+            categoriasDiv.appendChild(subcategoriaContainer);
+            container.appendChild(categoriasDiv);
+
+            if (typeof inicializarSeletorCategorias === 'function') {
+                inicializarSeletorCategorias('editar-preferencia-subcategorias', preferenciasAtuais);
+            }
+        }
+
+        function preencherEstadosEditar() {
+            const select = document.getElementById('editar-estado');
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+
+            const estados = obterEstados();
+            estados.forEach(estado => {
+                const option = document.createElement('option');
+                option.value = estado.sigla;
+                option.textContent = estado.nome;
+                select.appendChild(option);
+            });
+
+            select.onchange = (e) => {
+                atualizarCidadesEditar(e.target.value);
+            };
+        }
+
+        function atualizarCidadesEditar(estado) {
+            const select = document.getElementById('editar-cidade');
+            select.innerHTML = '<option value="">Selecione uma cidade</option>';
+
+            if (!estado) {
+                select.disabled = true;
+                return;
+            }
+
+            const cidades = obterCidades(estado);
+            cidades.forEach(cidade => {
+                const option = document.createElement('option');
+                option.value = cidade;
+                option.textContent = cidade;
+                select.appendChild(option);
+            });
+
+            select.disabled = false;
+        }
+
+        async function salvarAlteracoes(event) {
+            event.preventDefault();
+
+            const token = localStorage.getItem('eventhub-token');
+            if (!token) {
+                window.showNotification('Você precisa estar logado para editar o perfil.', 'error');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const nome = document.getElementById('editar-nome').value.trim();
+            const email = document.getElementById('editar-email').value.trim();
+            const estado = document.getElementById('editar-estado').value;
+            const cidade = document.getElementById('editar-cidade').value;
+
+            if (!nome || !email || !estado || !cidade) {
+                window.showNotification('Por favor, preencha todos os campos obrigatórios.', 'error');
+                return;
+            }
+
+            const checkboxesSelecionados = document.querySelectorAll('input[name^="subcat-"]:checked');
+            const preferencias = Array.from(checkboxesSelecionados).map(cb => cb.value);
+
+            const dadosAtualizados = {
+                nome,
+                email,
+                estado,
+                cidade,
+                preferencias
+            };
+
+            try {
+                const usuarioId = getUsuarioId(usuarioAtualAdmin);
+                if (!usuarioId) {
+                    throw new Error('ID do usuário não encontrado. Recarregue a página.');
+                }
+
+                const resposta = await fetch(`${API_URL}/usuario/${usuarioId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(dadosAtualizados)
+                });
+
+                if (tratarErroAutenticacao(resposta)) return;
+
+                if (!resposta.ok) {
+                    const data = await resposta.json().catch(() => null);
+                    const mensagem = data?.erro || data?.mensagem || 'Erro ao atualizar perfil.';
+                    throw new Error(mensagem);
+                }
+
+                const usuarioAtualizado = await resposta.json();
+                usuarioAtualAdmin = usuarioAtualizado;
+                localStorage.setItem('eventhub-usuario', JSON.stringify(usuarioAtualizado));
+                fecharModalEditar();
+                carregarDadosAdmin();
+                window.showNotification('Perfil atualizado com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao salvar alterações:', error);
+                window.showNotification(error.message || 'Erro ao atualizar perfil.', 'error');
+            }
+        }
+
+        function fecharModalEditar() {
+            const modal = document.getElementById('modal-editar');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function tratarErroAutenticacao(response) {
+            if (response && (response.status === 401 || response.status === 403)) {
+                localStorage.removeItem('eventhub-token');
+                localStorage.removeItem('eventhub-usuario');
+                window.showNotification('Sessão inválida. Faça login novamente.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 800);
+                return true;
+            }
+            return false;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            carregarDadosAdmin();
+            preencherEstadosEditar();
+
+            const form = document.getElementById('form-editar');
+            if (form) {
+                form.addEventListener('submit', salvarAlteracoes);
+            }
+        });
     </script>
 </body>
 </html>

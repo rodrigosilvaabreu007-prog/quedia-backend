@@ -420,6 +420,24 @@ router.get('/admin/mensagens', verificarAdmin, async (req, res) => {
     }
 });
 
+// 11.2. ROTA GET: ESTATÍSTICAS DE ADMIN (COMPATIBILIDADE)
+router.get('/admin/stats', verificarAdmin, async (req, res) => {
+    try {
+        const eventosPendentes = await require('./models/eventos').EventoModel.countDocuments({ status: 'pendente' });
+        const mensagens = await Mensagem.find({}).sort({ respondida: 1, criadoEm: -1 });
+        const respostasPendentes = Array.isArray(mensagens) ? mensagens.filter(msg => !msg.respondida).length : 0;
+
+        return res.json({
+            eventosPendentes,
+            respostasPendentes,
+            totalMensagens: Array.isArray(mensagens) ? mensagens.length : 0
+        });
+    } catch (err) {
+        console.error('Erro na rota GET /admin/stats:', err.message);
+        return res.status(500).json({ erro: 'Erro ao buscar estatísticas de admin.', detalhe: err.message });
+    }
+});
+
 // 11.1. ROTA POST: RESPONDER MENSAGEM (ADMIN)
 router.post('/admin/mensagens/:id/responder', verificarAdmin, async (req, res) => {
     try {

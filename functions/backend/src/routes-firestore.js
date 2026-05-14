@@ -280,4 +280,31 @@ router.post('/admin/eventos/:id/rejeitar', verificarToken, verificarAdmin, async
   }
 });
 
+router.get('/admin/mensagens', verificarToken, verificarAdmin, async (req, res) => {
+  try {
+    const mensagens = await dbFirestore.listarMensagens();
+    return res.json(mensagens);
+  } catch (err) {
+    console.error('Erro na rota GET /admin/mensagens:', err.message);
+    return res.status(500).json({ erro: 'Erro ao buscar mensagens pendentes.', detalhe: err.message });
+  }
+});
+
+router.get('/admin/stats', verificarToken, verificarAdmin, async (req, res) => {
+  try {
+    const eventosPendentes = await dbFirestore.listarEventosPendentes();
+    const mensagens = await dbFirestore.listarMensagens();
+    const respostasPendentes = Array.isArray(mensagens) ? mensagens.filter(msg => !msg.respondida).length : 0;
+
+    return res.json({
+      eventosPendentes: Array.isArray(eventosPendentes) ? eventosPendentes.length : eventosPendentes,
+      respostasPendentes,
+      totalMensagens: Array.isArray(mensagens) ? mensagens.length : 0
+    });
+  } catch (err) {
+    console.error('Erro na rota GET /admin/stats:', err.message);
+    return res.status(500).json({ erro: 'Erro ao buscar estatísticas de admin.', detalhe: err.message });
+  }
+});
+
 module.exports = router;
