@@ -439,10 +439,10 @@ window.abrirPrevia = async function(evento, imgResolvida) {
         modalHeader.style.width = '100%';
     }
     if (modalImg) {
-        modalImg.style.width = '100%';
-        modalImg.style.marginRight = '0';
+        modalImg.style.width = 'calc(100% + 8px)';
+        modalImg.style.marginRight = '-8px';
         modalImg.style.height = 'auto';
-        modalImg.style.maxWidth = '100%';
+        modalImg.style.maxWidth = 'none';
         modalImg.style.maxHeight = `${imageMaxHeight}px`;
     }
     if (modalBody) {

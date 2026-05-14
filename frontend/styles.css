@@ -2725,7 +2725,7 @@ header {
 #event-modal .modal-header-img {
   width: auto;
   height: auto;
-  max-width: 100%;
+  max-width: none;
   max-height: calc(95vh - 140px);
   display: block;
   border-radius: 0;
