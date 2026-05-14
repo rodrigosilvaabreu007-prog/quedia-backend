@@ -422,17 +422,29 @@ window.abrirPrevia = async function(evento, imgResolvida) {
     `;
 
     const modalContent = modal.querySelector('.modal-content');
+    const modalBody = modal.querySelector('.modal-body');
+    const modalPadding = modal.querySelector('.modal-padding');
     const modalImg = modal.querySelector('.modal-header-img');
+    const imageScale = 0.92;
+    const modalWidth = Math.min(viewportWidth, Math.max(width, 380));
+    const imageWidth = Math.round(width * imageScale);
+    const imageHeight = Math.round(height * imageScale);
     if (modalContent) {
-        modalContent.style.width = `${width}px`;
+        modalContent.style.width = `${modalWidth}px`;
         modalContent.style.maxWidth = '95vw';
         modalContent.style.maxHeight = '95vh';
     }
     if (modalImg) {
-        modalImg.style.width = `${width}px`;
+        modalImg.style.width = `${imageWidth}px`;
         modalImg.style.height = 'auto';
         modalImg.style.maxWidth = '100%';
         modalImg.style.maxHeight = `${viewportHeight}px`;
+    }
+    if (modalBody) {
+        modalBody.style.maxHeight = '95vh';
+    }
+    if (modalPadding) {
+        modalPadding.style.maxHeight = `${Math.max(viewportHeight - imageHeight - 20, 140)}px`;
     }
 
     window.currentEventId = eventoId;
