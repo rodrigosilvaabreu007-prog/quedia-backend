@@ -115,125 +115,20 @@ async function enviarCodigoEmail(email, codigo) {
   await transporter.sendMail(mailOptions);
 }
 
-// ============ CONFIGURAÇÃO DE SMS ============
-const SMS_DEMO_MODE = String(process.env.ALLOW_SMS_DEMO || process.env.SMS_DEMO || 'true').toLowerCase() === 'true';
-const SMS_PROVIDER = process.env.SMS_PROVIDER || 'demo'; // 'demo', 'twilio', 'aws-sns'
+configurarEmail();
 
-// Armazenamento de códigos SMS em memória (com expiração)
+// ============ CONFIGURAÇÃO DO SMS (Armazenamento em Memória) ============
 const codigosSMS = {};
 
-function gerarCodigoSMS(telefone) {
-  const codigo = String(Math.floor(100000 + Math.random() * 900000));
-  const dataExpiracao = Date.now() + (15 * 60 * 1000); // 15 minutos
-  
-  codigosSMS[telefone] = {
-    codigo: codigo,
-    dataExpiracao: dataExpiracao,
-    usado: false,
-    tentativas: 0
-  };
-  
-  return codigo;
-}
-
-async function validarCodigoSMS(telefone, codigo) {
-  const dado = codigosSMS[telefone];
-  
-  if (!dado) {
-    return { valido: false, erro: 'Código não encontrado' };
-  }
-  
-  if (dado.usado) {
-    return { valido: false, erro: 'Código já foi utilizado' };
-  }
-  
-  if (Date.now() > dado.dataExpiracao) {
-    delete codigosSMS[telefone];
-    return { valido: false, erro: 'Código expirado' };
-  }
-  
-  if (dado.codigo !== String(codigo).trim()) {
-    dado.tentativas++;
-    if (dado.tentativas >= 3) {
+// Limpar códigos expirados a cada 1 minuto
+setInterval(() => {
+  const agora = Date.now();
+  for (const telefone in codigosSMS) {
+    if (codigosSMS[telefone].dataExpiracao < agora) {
       delete codigosSMS[telefone];
-      return { valido: false, erro: 'Muitas tentativas. Solicite um novo código.' };
     }
-    return { valido: false, erro: 'Código incorreto' };
   }
-  
-  dado.usado = true;
-  return { valido: true };
-}
-
-async function enviarCodigoSMS(telefone, codigo) {
-  const apenasNumeros = telefone.replace(/\D/g, '');
-  
-  if (SMS_PROVIDER === 'twilio') {
-    try {
-      const accountSid = process.env.TWILIO_ACCOUNT_SID;
-      const authToken = process.env.TWILIO_AUTH_TOKEN;
-      const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
-      
-      if (!accountSid || !authToken || !twilioPhone) {
-        console.warn('⚠️ Configuração Twilio incompleta, usando modo demo');
-        return { sucesso: true, demo: true };
-      }
-      
-      const twilio = require('twilio');
-      const client = twilio(accountSid, authToken);
-      
-      const formatado = `+55${apenasNumeros}`;
-      
-      await client.messages.create({
-        body: `Seu código de confirmação é: ${codigo}. Válido por 15 minutos.`,
-        from: twilioPhone,
-        to: formatado
-      });
-      
-      console.log(`📱 SMS enviado para ${formatado}`);
-      return { sucesso: true, demo: false };
-    } catch (err) {
-      console.error('❌ Erro ao enviar SMS via Twilio:', err.message);
-      
-      if (SMS_DEMO_MODE) {
-        console.warn('⚠️ Twilio falhou, usando modo demo');
-        return { sucesso: true, demo: true };
-      }
-      
-      throw err;
-    }
-  } else if (SMS_PROVIDER === 'aws-sns') {
-    try {
-      const AWS = require('aws-sdk');
-      const sns = new AWS.SNS();
-      
-      const formatado = `+55${apenasNumeros}`;
-      
-      await sns.publish({
-        Message: `Seu código de confirmação é: ${codigo}. Válido por 15 minutos.`,
-        PhoneNumber: formatado
-      }).promise();
-      
-      console.log(`📱 SMS enviado para ${formatado} via AWS SNS`);
-      return { sucesso: true, demo: false };
-    } catch (err) {
-      console.error('❌ Erro ao enviar SMS via AWS SNS:', err.message);
-      
-      if (SMS_DEMO_MODE) {
-        console.warn('⚠️ AWS SNS falhou, usando modo demo');
-        return { sucesso: true, demo: true };
-      }
-      
-      throw err;
-    }
-  } else {
-    // Modo demo - apenas log
-    console.log(`📱 [DEMO] SMS seria enviado para +55${apenasNumeros}: ${codigo}`);
-    return { sucesso: true, demo: true };
-  }
-}
-
-configurarEmail();
+}, 60000);
 
 // ============ CONFIGURAÇÃO DO CLOUDINARY ============
 cloudinary.config({
@@ -450,31 +345,26 @@ router.post('/enviar-codigo-sms', async (req, res) => {
     }
 
     // Gerar código
-    const codigo = gerarCodigoSMS(apenasNumeros);
+    const codigo = String(Math.floor(100000 + Math.random() * 900000));
+    const dataExpiracao = Date.now() + (15 * 60 * 1000);
+    
+    codigosSMS[apenasNumeros] = {
+      codigo: codigo,
+      dataExpiracao: dataExpiracao,
+      usado: false,
+      tentativas: 0
+    };
 
-    try {
-      const resultado = await enviarCodigoSMS(apenasNumeros, codigo);
-      
-      console.log(`📱 Código SMS gerado para ${apenasNumeros}: ${codigo}`);
-      
-      return res.status(200).json({
-        mensagem: resultado.demo ? 'Código gerado em modo demo' : 'Código enviado por SMS',
-        telefone_mascarado: `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 7)}-****`,
-        codigo_demo: resultado.demo ? codigo : undefined
-      });
-    } catch (err) {
-      console.warn(`⚠️ Erro ao enviar SMS, mas código gerado: ${codigo}`, err.message);
-      
-      if (SMS_DEMO_MODE) {
-        return res.status(200).json({
-          mensagem: 'Não foi possível enviar SMS. Modo demo ativado.',
-          codigo_demo: codigo,
-          telefone_mascarado: `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 7)}-****`
-        });
-      }
-
-      return res.status(500).json({ erro: 'Não foi possível enviar o código por SMS. Tente novamente mais tarde.' });
-    }
+    console.log(`📱 Código SMS gerado para ${apenasNumeros}: ${codigo}`);
+    
+    // Retornar com demo code if enabled
+    const SMS_DEMO = String(process.env.ALLOW_SMS_DEMO || process.env.SMS_DEMO || 'true').toLowerCase() === 'true';
+    
+    return res.status(200).json({
+      mensagem: SMS_DEMO ? 'Código gerado em modo demo' : 'Código enviado por SMS',
+      telefone_mascarado: `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 7)}-****`,
+      codigo_demo: SMS_DEMO ? codigo : undefined
+    });
   } catch (err) {
     console.error('❌ Erro ao enviar código SMS:', err.message);
     res.status(500).json({ erro: 'Erro ao enviar código SMS', detalhes: err.message });
@@ -491,13 +381,32 @@ router.post('/validar-codigo-sms', async (req, res) => {
     }
 
     const apenasNumeros = telefone.replace(/\D/g, '');
-
-    // Validar código
-    const resultado = await validarCodigoSMS(apenasNumeros, codigo);
+    const dado = codigosSMS[apenasNumeros];
     
-    if (!resultado.valido) {
-      return res.status(400).json({ erro: resultado.erro });
+    if (!dado) {
+      return res.status(400).json({ erro: 'Código não encontrado' });
     }
+    
+    if (dado.usado) {
+      return res.status(400).json({ erro: 'Código já foi utilizado' });
+    }
+    
+    if (Date.now() > dado.dataExpiracao) {
+      delete codigosSMS[apenasNumeros];
+      return res.status(400).json({ erro: 'Código expirado' });
+    }
+    
+    if (dado.codigo !== String(codigo).trim()) {
+      dado.tentativas++;
+      if (dado.tentativas >= 3) {
+        delete codigosSMS[apenasNumeros];
+        return res.status(400).json({ erro: 'Muitas tentativas. Solicite um novo código.' });
+      }
+      return res.status(400).json({ erro: 'Código incorreto', tentativas_restantes: 3 - dado.tentativas });
+    }
+    
+    dado.usado = true;
+    console.log(`✅ Código SMS validado para ${apenasNumeros}`);
 
     res.status(200).json({ 
       mensagem: 'Telefone confirmado com sucesso!',
@@ -509,6 +418,8 @@ router.post('/validar-codigo-sms', async (req, res) => {
     res.status(500).json({ erro: 'Erro ao validar código SMS', detalhes: err.message });
   }
 });
+
+
 
 // Cadastro
 router.post('/cadastro', async (req, res) => {
@@ -1077,124 +988,6 @@ router.delete('/usuarios/:id', verificarToken, async (req, res) => {
   } catch (err) {
     console.error('Erro na rota DELETE /usuarios/:id:', err.message);
     return res.status(500).json({ erro: 'Erro ao deletar conta', detalhes: err.message });
-  }
-});
-
-// ============ SMS ============
-
-// Armazenamento temporário de códigos SMS (em memória)
-const codigosSMS = {};
-
-// Limpar códigos expirados a cada 1 minuto
-setInterval(() => {
-  const agora = Date.now();
-  for (const telefone in codigosSMS) {
-    if (codigosSMS[telefone].dataExpiracao < agora) {
-      delete codigosSMS[telefone];
-    }
-  }
-}, 60000);
-
-// POST: Enviar código SMS
-router.post('/enviar-codigo-sms', async (req, res) => {
-  try {
-    const { telefone } = req.body;
-
-    if (!telefone) {
-      return res.status(400).json({ erro: 'Telefone é obrigatório' });
-    }
-
-    // Validar formato brasileiros (apenas números)
-    const apenasNumeros = telefone.replace(/\D/g, '');
-    if (apenasNumeros.length !== 11) {
-      return res.status(400).json({ erro: 'Telefone deve ter 11 dígitos' });
-    }
-
-    // Gerar código de 6 dígitos
-    const codigo = String(Math.floor(100000 + Math.random() * 900000));
-
-    // Armazenar código com expiração em 15 minutos
-    const agora = Date.now();
-    codigosSMS[apenasNumeros] = {
-      codigo,
-      dataExpiracao: agora + (15 * 60 * 1000), // 15 minutos
-      usado: false,
-      tentativas: 0
-    };
-
-    console.log(`📱 Código SMS gerado para ${apenasNumeros}: ${codigo}`);
-
-    // Retornar resposta
-    const SMS_DEMO = String(process.env.ALLOW_SMS_DEMO || process.env.SMS_DEMO || 'true').toLowerCase() === 'true';
-    if (SMS_DEMO) {
-      return res.json({
-        mensagem: 'Código enviado (modo demo)',
-        codigo_demo: codigo,
-        telefone_mascarado: `+55 ${apenasNumeros.slice(0,2)} ${apenasNumeros.slice(2,7)}-${apenasNumeros.slice(7)}`
-      });
-    }
-
-    res.json({
-      mensagem: 'Código SMS enviado com sucesso!',
-      telefone_mascarado: `+55 ${apenasNumeros.slice(0,2)} ${apenasNumeros.slice(2,7)}-${apenasNumeros.slice(7)}`
-    });
-  } catch (err) {
-    console.error('❌ Erro ao enviar código SMS:', err.message);
-    res.status(500).json({ erro: 'Erro ao enviar código SMS', detalhes: err.message });
-  }
-});
-
-// POST: Validar código SMS
-router.post('/validar-codigo-sms', async (req, res) => {
-  try {
-    const { telefone, codigo } = req.body;
-
-    if (!telefone || !codigo) {
-      return res.status(400).json({ erro: 'Telefone e código são obrigatórios' });
-    }
-
-    const apenasNumeros = telefone.replace(/\D/g, '');
-
-    // Verificar se código existe
-    const dadosArmazenados = codigosSMS[apenasNumeros];
-    if (!dadosArmazenados) {
-      return res.status(400).json({ erro: 'Nenhum código foi enviado para este telefone' });
-    }
-
-    // Verificar se expirou
-    if (dadosArmazenados.dataExpiracao < Date.now()) {
-      delete codigosSMS[apenasNumeros];
-      return res.status(400).json({ erro: 'Código expirou' });
-    }
-
-    // Verificar tentativas (máx 3)
-    if (dadosArmazenados.tentativas >= 3) {
-      delete codigosSMS[apenasNumeros];
-      return res.status(400).json({ erro: 'Muitas tentativas. Solicite um novo código.' });
-    }
-
-    // Validar código
-    if (dadosArmazenados.codigo !== codigo) {
-      dadosArmazenados.tentativas++;
-      const tentativasRestantes = 3 - dadosArmazenados.tentativas;
-      return res.status(400).json({ 
-        erro: 'Código incorreto',
-        tentativas_restantes: tentativasRestantes
-      });
-    }
-
-    // Código correto!
-    dadosArmazenados.usado = true;
-    console.log(`✅ Código SMS validado para ${apenasNumeros}`);
-
-    res.json({
-      mensagem: 'Código SMS validado com sucesso!',
-      validado: true,
-      telefone: `+55${apenasNumeros}`
-    });
-  } catch (err) {
-    console.error('❌ Erro ao validar código SMS:', err.message);
-    res.status(500).json({ erro: 'Erro ao validar código SMS', detalhes: err.message });
   }
 });
 
