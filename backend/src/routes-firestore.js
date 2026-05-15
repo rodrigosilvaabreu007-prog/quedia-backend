@@ -514,6 +514,10 @@ router.post('/eventos', verificarToken, uploadEventImages, async (req, res) => {
       }
     });
 
+    // Verificar se o usuário é admin - se for, evento vai direto para aprovado
+    const isAdmin = req.tipo && String(req.tipo).toLowerCase() === 'adm';
+    const statusEvento = isAdmin ? 'aprovado' : 'pendente';
+
     const id = await dbFirestore.cadastrarEvento({
       nome,
       descricao,
@@ -533,10 +537,15 @@ router.post('/eventos', verificarToken, uploadEventImages, async (req, res) => {
       subcategorias,
       imagem: urlsImagens.length > 0 ? urlsImagens[0] : null,
       imagens: urlsImagens,
-      datas: datasRecebidas
+      datas: datasRecebidas,
+      status: statusEvento
     });
 
-    res.status(201).json({ mensagem: 'Evento cadastrado com sucesso!', id });
+    const mensagem = isAdmin ? 
+      'Evento cadastrado e publicado com sucesso!' : 
+      'Evento cadastrado! Aguardando aprovação do administrador.';
+    
+    res.status(201).json({ mensagem, id, status: statusEvento });
   } catch (err) {
     console.error('❌ Erro ao cadastrar evento:', err.message);
     res.status(400).json({ erro: 'Erro ao cadastrar evento', detalhes: err.message });
