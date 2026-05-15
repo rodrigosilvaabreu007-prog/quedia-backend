@@ -1,12 +1,85 @@
-// ✅ NOVO SISTEMA DE CADASTRO COM VERIFICAÇÃO DE EMAIL
+// ✅ NOVO SISTEMA DE CADASTRO COM VERIFICAÇÃO DE EMAIL + SMS
 
+// ============ FIREBASE SMS SETUP ============
+let confirmationResult = null;
+
+// Carregar Firebase SDK dinamicamente
+async function setupFirebase() {
+  try {
+    if (window.firebase) {
+      console.log('✅ Firebase já carregado');
+      return;
+    }
+
+    // Importar Firebase
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js');
+    const { getAuth, RecaptchaVerifier, signInWithPhoneNumber } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js');
+    
+    window.firebase = { initializeApp, getAuth, RecaptchaVerifier, signInWithPhoneNumber };
+    console.log('✅ Firebase SDK carregado');
+  } catch (err) {
+    console.warn('⚠️ Erro ao carregar Firebase SDK:', err.message);
+    console.log('Continuando com SMS backend apenas...');
+  }
+}
+
+async function setupRecaptchaFirebase() {
+  try {
+    if (!window.firebase) {
+      console.warn('⚠️ Firebase não carregado para reCAPTCHA');
+      return false;
+    }
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAAFUAkXoeD1v52vdnLftdBcJ67KMXc3QQ",
+      authDomain: "quedia-bd2fb.firebaseapp.com",
+      projectId: "quedia-bd2fb",
+      storageBucket: "quedia-bd2fb.firebasestorage.app",
+      messagingSenderId: "71335996069",
+      appId: "1:71335996069:web:ccac46471636450355bb4c"
+    };
+
+    const app = window.firebase.initializeApp(firebaseConfig);
+    const auth = window.firebase.getAuth(app);
+    auth.languageCode = 'pt-BR';
+    window.firebaseAuth = auth;
+
+    const container = document.getElementById('recaptcha-container');
+    if (!container) {
+      console.warn('⚠️ Container reCAPTCHA não encontrado');
+      return false;
+    }
+
+    window.recaptchaVerifier = new window.firebase.RecaptchaVerifier(auth, 'recaptcha-container', {
+      size: 'invisible',
+      callback: () => {
+        console.log('✅ reCAPTCHA verificado');
+      },
+      'error-callback': () => {
+        console.warn('⚠️ Erro no reCAPTCHA');
+        window.recaptchaVerifier = null;
+      }
+    });
+
+    console.log('✅ reCAPTCHA Firebase configurado');
+    return true;
+  } catch (err) {
+    console.warn('⚠️ Erro ao setup reCAPTCHA:', err.message);
+    return false;
+  }
+}
+
+// ============ ESTADO GLOBAL ============
 // Estado global do cadastro
 let estadoCadastro = {
   emailConfirmado: false,
   emailValidado: '',
   codigoEnviado: false,
   tentativasValidacao: 0,
-  maxTentativas: 3
+  maxTentativas: 3,
+  telefonePara: '',
+  codigoSMSEnviado: false,
+  dadosCadastro: {}
 };
 
 // ============ FUNÇÕES AUXILIARES ============
@@ -35,29 +108,46 @@ function ocultarMensagem(elementoId) {
 
 function irParaPasso(numero) {
   // Ocultar todos os passos
-  document.getElementById('passo1').classList.remove('active');
-  document.getElementById('passo2').classList.remove('active');
+  document.getElementById('passo1')?.classList.remove('active');
+  document.getElementById('passo2')?.classList.remove('active');
+  document.getElementById('passo3')?.classList.remove('active');
   
   // Mostrar passo desejado
-  document.getElementById(`passo${numero}`).classList.add('active');
+  const passoAtual = document.getElementById(`passo${numero}`);
+  if (passoAtual) passoAtual.classList.add('active');
   
   // Atualizar indicador visual
-  document.getElementById('step1-circle').classList.remove('completed');
-  document.getElementById('step2-circle').classList.remove('active');
-  document.getElementById('step-line').classList.remove('completed');
+  document.getElementById('step1-circle')?.classList.remove('completed', 'active');
+  document.getElementById('step2-circle')?.classList.remove('completed', 'active');
+  document.getElementById('step3-circle')?.classList.remove('active');
+  document.getElementById('step-line-1')?.classList.remove('completed');
+  document.getElementById('step-line-2')?.classList.remove('completed');
   
   if (numero === 1) {
-    document.getElementById('step1-circle').classList.add('active');
-  } else {
-    document.getElementById('step1-circle').classList.add('completed');
-    document.getElementById('step2-circle').classList.add('active');
-    document.getElementById('step-line').classList.add('completed');
+    document.getElementById('step1-circle')?.classList.add('active');
+  } else if (numero === 2) {
+    document.getElementById('step1-circle')?.classList.add('completed');
+    document.getElementById('step-line-1')?.classList.add('completed');
+    document.getElementById('step2-circle')?.classList.add('active');
+  } else if (numero === 3) {
+    document.getElementById('step1-circle')?.classList.add('completed');
+    document.getElementById('step2-circle')?.classList.add('completed');
+    document.getElementById('step-line-1')?.classList.add('completed');
+    document.getElementById('step-line-2')?.classList.add('completed');
+    document.getElementById('step3-circle')?.classList.add('active');
   }
+
+  window.scrollTo(0, 0);
 }
 
 // ============ PASSO 1: VERIFICAÇÃO DE EMAIL ============
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Setup Firebase
+  setupFirebase().then(() => {
+    setupRecaptchaFirebase();
+  });
+
   const emailForm = document.getElementById('email-form');
   
   if (emailForm) {
@@ -98,6 +188,19 @@ document.addEventListener('DOMContentLoaded', () => {
     ocultarMensagem('passo2-status');
   });
 
+  // Botão para voltar ao passo 2
+  document.getElementById('voltar-dados')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    estadoCadastro.codigoSMSEnviado = false;
+    const codigoSMSInput = document.getElementById('codigo-sms');
+    if (codigoSMSInput) {
+      codigoSMSInput.value = '';
+      codigoSMSInput.disabled = false;
+    }
+    irParaPasso(2);
+    ocultarMensagem('passo3-status');
+  });
+
   // Validação automática do código quando digita 6 dígitos
   const codigoInputField = document.getElementById('codigo-input');
   if (codigoInputField) {
@@ -116,7 +219,38 @@ document.addEventListener('DOMContentLoaded', () => {
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      await completarCadastro();
+      await irParaPasso3();
+    });
+  }
+
+  // Form SMS
+  const formularioSMS = document.getElementById('formulario-sms');
+  if (formularioSMS) {
+    formularioSMS.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await finalizarCadastroComSMS();
+    });
+  }
+
+  // Reenviar SMS
+  document.getElementById('reenviar-sms-link')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    await enviarCodigoSMS(estadoCadastro.telefonePara);
+  });
+
+  // Formatação de telefone
+  const telefoneInput = document.querySelector('input[name="telefone"]');
+  if (telefoneInput) {
+    telefoneInput.addEventListener('input', (e) => {
+      const apenasNumeros = e.target.value.replace(/\D/g, '');
+      
+      if (apenasNumeros.length === 11) {
+        e.target.value = apenasNumeros.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+      } else if (apenasNumeros.length > 7) {
+        e.target.value = apenasNumeros.replace(/^(\d{2})(\d{5})(\d{0,4})$/, '($1) $2-$3').replace(/-$/, '');
+      } else if (apenasNumeros.length > 2) {
+        e.target.value = apenasNumeros.replace(/^(\d{2})(\d{0,5})$/, '($1) $2');
+      }
     });
   }
 });
@@ -251,6 +385,238 @@ async function validarCodigoEmailAutomatico() {
     mostrarMensagem('passo2-status', 
       '❌ Erro ao validar código. Tente novamente.', 
       'error');
+  }
+}
+
+// ============ PASSO 3: SMS ============
+
+async function enviarCodigoSMS(telefone) {
+  try {
+    const apenasNumeros = telefone.replace(/\D/g, '');
+    
+    console.log('📱 Enviando código SMS para:', apenasNumeros);
+    mostrarMensagem('passo3-status', '⏳ Enviando SMS...', 'info');
+
+    const resposta = await fetch(`${window.API_URL}/enviar-codigo-sms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telefone: apenasNumeros })
+    });
+
+    const dados = await resposta.json();
+
+    if (resposta.ok) {
+      estadoCadastro.codigoSMSEnviado = true;
+      if (dados.codigo_demo) {
+        mostrarMensagem('passo3-status', `✅ SMS enviado! (Demo: ${dados.codigo_demo})`, 'info');
+      } else {
+        mostrarMensagem('passo3-status', '✅ Código SMS enviado!', 'success');
+      }
+      return true;
+    } else {
+      mostrarMensagem('passo3-status', `❌ ${dados.erro || 'Erro ao enviar SMS'}`, 'error');
+      return false;
+    }
+  } catch (err) {
+    console.error('Erro ao enviar SMS:', err);
+    mostrarMensagem('passo3-status', '❌ Erro ao enviar SMS. Tente novamente.', 'error');
+    return false;
+  }
+}
+
+async function irParaPasso3() {
+  const form = document.getElementById('cadastro-form');
+  const btnSubmit = form.querySelector('button[type="submit"]');
+  
+  // Feedback visual
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = '⏳ Processando...';
+  }
+
+  try {
+    // Verificar se email foi confirmado
+    if (!estadoCadastro.emailConfirmado) {
+      mostrarMensagem('passo2-status', 
+        '❌ Você deve confirmar seu email primeiro.', 
+        'error');
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Cadastrar';
+      }
+      return;
+    }
+
+    const nome = document.querySelector('input[name="nome"]').value.trim();
+    const telefoneInput = document.querySelector('input[name="telefone"]').value.trim();
+    const senha = document.getElementById('senha').value;
+    const confirmarSenha = document.getElementById('confirmar-senha').value;
+    const estado = document.getElementById('estado').value;
+    const cidade = document.getElementById('cidade').value;
+
+    // Validações
+    if (!nome) {
+      mostrarMensagem('passo2-status', '❌ Nome é obrigatório.', 'error');
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Cadastrar';
+      }
+      return;
+    }
+
+    if (!telefoneInput) {
+      mostrarMensagem('passo2-status', '❌ Telefone é obrigatório.', 'error');
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Cadastrar';
+      }
+      return;
+    }
+
+    // Validar telefone
+    const apenasNumerosTel = telefoneInput.replace(/\D/g, '');
+    if (apenasNumerosTel.length !== 11) {
+      mostrarMensagem('passo2-status', '❌ Telefone inválido (11 dígitos obrigatório).', 'error');
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Cadastrar';
+      }
+      return;
+    }
+
+    if (senha !== confirmarSenha) {
+      mostrarMensagem('passo2-status', '❌ As senhas não coincidem.', 'error');
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Cadastrar';
+      }
+      return;
+    }
+
+    if (senha.length < 6) {
+      mostrarMensagem('passo2-status', '❌ Senha deve ter no mínimo 6 caracteres.', 'error');
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Cadastrar';
+      }
+      return;
+    }
+
+    // Guardar dados para o passo 3
+    estadoCadastro.telefonePara = apenasNumerosTel;
+    estadoCadastro.dadosCadastro = {
+      nome,
+      email: estadoCadastro.emailValidado,
+      telefone: apenasNumerosTel,
+      senha,
+      estado,
+      cidade
+    };
+
+    // Atualizar display do telefone
+    const telefoneMascarado = `(${apenasNumerosTel.slice(0,2)}) ${apenasNumerosTel.slice(2,7)}-${apenasNumerosTel.slice(7)}`;
+    document.getElementById('telefone-display').textContent = telefoneMascarado;
+
+    // Ir para passo 3
+    irParaPasso(3);
+
+    // Enviar SMS
+    await enviarCodigoSMS(apenasNumerosTel);
+
+  } catch (err) {
+    console.error('Erro:', err);
+    mostrarMensagem('passo2-status', '❌ Erro ao processar. Tente novamente.', 'error');
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = 'Cadastrar';
+    }
+  }
+}
+
+async function finalizarCadastroComSMS() {
+  const codigoSMSInput = document.getElementById('codigo-sms');
+  const codigoSMS = codigoSMSInput.value.trim();
+  const btnFinalizar = document.getElementById('btn-finalizar');
+
+  if (!codigoSMS || codigoSMS.length !== 6 || isNaN(codigoSMS)) {
+    mostrarMensagem('passo3-status', '❌ Código deve ter 6 dígitos.', 'error');
+    return;
+  }
+
+  if (btnFinalizar) {
+    btnFinalizar.disabled = true;
+    btnFinalizar.textContent = '⏳ Finalizando...';
+  }
+
+  try {
+    // Validar SMS com backend
+    console.log('🔐 Validando código SMS...');
+    const respostaValidacao = await fetch(`${window.API_URL}/validar-codigo-sms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        telefone: estadoCadastro.telefonePara,
+        codigo: codigoSMS
+      })
+    });
+
+    const dadosValidacao = await respostaValidacao.json();
+
+    if (!respostaValidacao.ok) {
+      mostrarMensagem('passo3-status', `❌ ${dadosValidacao.erro || 'Código inválido'}`, 'error');
+      if (btnFinalizar) {
+        btnFinalizar.disabled = false;
+        btnFinalizar.textContent = 'Finalizar Cadastro';
+      }
+      return;
+    }
+
+    // SMS validado! Completar cadastro
+    mostrarMensagem('passo3-status', '✅ SMS validado!', 'success');
+
+    const dadosCadastro = {
+      nome: estadoCadastro.dadosCadastro.nome,
+      email: estadoCadastro.dadosCadastro.email,
+      telefone: estadoCadastro.dadosCadastro.telefone,
+      senha: estadoCadastro.dadosCadastro.senha,
+      estado: estadoCadastro.dadosCadastro.estado || 'Não informado',
+      cidade: estadoCadastro.dadosCadastro.cidade || 'Não informado',
+      telefone_verificado: true,
+      sms_codigo: codigoSMS
+    };
+
+    console.log('📤 Enviando cadastro final...', dadosCadastro);
+
+    const resposta = await fetch(`${window.API_URL}/cadastro`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dadosCadastro)
+    });
+
+    const resultado = await resposta.json();
+
+    if (resposta.ok) {
+      mostrarMensagem('passo3-status', '✅ Cadastro finalizado com sucesso!', 'success');
+      console.log('✅ Usuário criado:', resultado);
+      
+      setTimeout(() => {
+        localStorage.setItem('usuario', JSON.stringify(resultado.usuario || { email: dadosCadastro.email }));
+        window.location.href = 'login.html';
+      }, 2000);
+    } else {
+      mostrarMensagem('passo3-status', `❌ ${resultado.erro || 'Erro ao finalizar cadastro'}`, 'error');
+      if (btnFinalizar) {
+        btnFinalizar.disabled = false;
+        btnFinalizar.textContent = 'Finalizar Cadastro';
+      }
+    }
+  } catch (err) {
+    console.error('Erro:', err);
+    mostrarMensagem('passo3-status', `❌ Erro ao finalizar: ${err.message}`, 'error');
+    if (btnFinalizar) {
+      btnFinalizar.disabled = false;
+      btnFinalizar.textContent = 'Finalizar Cadastro';
+    }
   }
 }
 

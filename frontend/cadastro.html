@@ -254,8 +254,10 @@
 
       <div class="step-indicator">
         <div class="step-circle active" id="step1-circle">1</div>
-        <div class="step-line" id="step-line"></div>
+        <div class="step-line" id="step-line-1"></div>
         <div class="step-circle" id="step2-circle">2</div>
+        <div class="step-line" id="step-line-2"></div>
+        <div class="step-circle" id="step3-circle">3</div>
       </div>
 
       <div class="card-form cadastro-card">
@@ -306,6 +308,12 @@
               </div>
 
               <div class="form-group">
+                <label>Telefone (com DDD)
+                  <input type="tel" name="telefone" placeholder="(11) 98765-4321" required>
+                </label>
+              </div>
+
+              <div class="form-group">
                 <label>Estado
                   <select name="estado" id="estado" required onchange="atualizarCidades()">
                     <option value="">Selecione um estado</option>
@@ -349,6 +357,35 @@
           </p>
         </div>
 
+        <!-- PASSO 3: Validação SMS -->
+        <div id="passo3" class="cadastro-step">
+          <h2>Validação por SMS</h2>
+          
+          <div id="passo3-status" class="status-message"></div>
+
+          <form id="formulario-sms">
+            <div class="form-section">
+              <p style="text-align: center; margin-bottom: 20px;">Código enviado para o telefone: <strong id="telefone-display">--</strong></p>
+              
+              <div class="form-group">
+                <label>Código SMS (6 dígitos)
+                  <input type="text" id="codigo-sms" name="codigo_sms" placeholder="000000" maxlength="6" inputmode="numeric" required>
+                </label>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-form-submit" id="btn-finalizar">Finalizar Cadastro</button>
+          </form>
+
+          <p class="cadastro-footer">
+            <a href="#" id="voltar-dados">← Voltar para dados cadastro</a>
+          </p>
+          
+          <p class="small-info" style="margin-top: 20px;">
+            Não recebeu o código? <a href="#" id="reenviar-sms-link" style="color: var(--cor-principal); text-decoration: none; font-weight: bold;">Reenviar SMS</a>
+          </p>
+        </div>
+
         <p class="cadastro-footer">
           Já possui uma conta? <a href="login.html">Faça login</a>
         </p>
@@ -360,6 +397,9 @@
     <img id="icone-perfil-img" src="caminho-da-sua-foto.jpg">
   </div>
 
+  <!-- reCAPTCHA Container para Firebase -->
+  <div id="recaptcha-container"></div>
+
   <script src="theme.js?v=5"></script>
   
   <script src="global.js?v=5"></script>
@@ -368,6 +408,11 @@
   <script src="categorias.js?v=5"></script>
   <script src="cadastro.js?v=5"></script>
   <script src="hamburger-menu.js?v=5"></script>
+
+          <p class="cadastro-footer">
+            <a href="#" id="voltar-email">← Voltar para verificação de email</a>
+          </p>
+        </div>
 </body>
 </html>
 
