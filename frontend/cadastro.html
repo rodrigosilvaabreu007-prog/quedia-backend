@@ -254,8 +254,10 @@
 
       <div class="step-indicator">
         <div class="step-circle active" id="step1-circle">1</div>
-        <div class="step-line" id="step-line"></div>
+        <div class="step-line" id="step-line-1"></div>
         <div class="step-circle" id="step2-circle">2</div>
+        <div class="step-line" id="step-line-2"></div>
+        <div class="step-circle" id="step3-circle">3</div>
       </div>
 
       <div class="card-form cadastro-card">
@@ -277,15 +279,22 @@
           </form>
         </div>
 
-        <!-- PASSO 2: Validação de Código + Dados Cadastro -->
+        <!-- PASSO 2: Validação de Email + Dados Cadastro -->
         <div id="passo2" class="cadastro-step">
-          <h2>Complete seu Cadastro</h2>
+          <h2>Complete seus Dados</h2>
 
           <form id="cadastro-form">
             <div class="form-section">
               <div class="form-group">
                 <label>Nome
-                  <input type="text" name="nome" required>
+                  <input type="text" name="nome" id="nome-input" required>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label>Telefone (com WhatsApp)
+                  <input type="tel" name="telefone" id="telefone-input" placeholder="(11) 99999-9999" required>
+                  <small id="telefone-erro" style="color: #ff6b6b; display: none;"></small>
                 </label>
               </div>
 
@@ -331,7 +340,7 @@
             <div id="passo2-status" class="status-message"></div>
 
             <div class="form-section">
-              <h3>Código de confirmação</h3>
+              <h3>Código de confirmação do email</h3>
               <div class="form-group">
                 <label>
                   <input type="text" id="codigo-input" name="codigo" placeholder="000000" maxlength="6" inputmode="numeric">
@@ -340,12 +349,40 @@
               </div>
             </div>
 
-            <button type="submit" class="btn-form-submit" id="btn-cadastrar">Cadastrar</button>
-            <p id="mensagem-cadastro"></p>
+            <button type="button" class="btn-form-submit" id="btn-proximo-sms" onclick="irParaPasso3()">Próximo: Validar Telefone</button>
+            <p id="mensagem-passo2"></p>
           </form>
 
           <p class="cadastro-footer">
             <a href="#" id="voltar-email">← Voltar para verificação de email</a>
+          </p>
+        </div>
+
+        <!-- PASSO 3: Validação de SMS -->
+        <div id="passo3" class="cadastro-step">
+          <h2>Confirme seu Telefone</h2>
+
+          <form id="formulario-sms">
+            <div class="form-section">
+              <p class="small-info">Um código de confirmação foi enviado para <strong id="telefone-display"></strong></p>
+              
+              <div class="form-group">
+                <label>Código de confirmação do SMS
+                  <input type="text" id="codigo-sms" name="codigo_sms" placeholder="000000" maxlength="6" inputmode="numeric" required>
+                  <small id="codigo-sms-erro" style="color: #ff6b6b; display: none;"></small>
+                </label>
+              </div>
+
+              <p class="small-info" id="reenviar-sms-info">Não recebeu o código? <a href="#" id="reenviar-sms-link">Reenviar SMS</a></p>
+            </div>
+
+            <div id="passo3-status" class="status-message"></div>
+
+            <button type="submit" class="btn-form-submit" id="btn-finalizar">Finalizar Cadastro</button>
+          </form>
+
+          <p class="cadastro-footer">
+            <a href="#" id="voltar-dados">← Voltar para editar dados</a>
           </p>
         </div>
 
