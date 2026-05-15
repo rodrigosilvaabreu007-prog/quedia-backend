@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastrar Evento - Admin | QueDia</title>
+  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="theme.css?v=5">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <a href="admin-inicio.html">QueDia</a>
+      </div>
+      <div class="nav-links">
+        <a href="admin-inicio.html">Início</a>
+        <a href="admin-evento-cadastro.html" class="active">Cadastrar Evento</a>
+        <a href="admin-eventos.html">Aprovações</a>
+        <a href="admin-contato.html">Contato</a>
+      </div>
+      <div class="hamburger-menu" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <main>
+      <form id="cadastro-evento" class="card-form" novalidate>
+        <h1 style="font-size:2rem; color: var(--cor-principal); margin-bottom: 18px;">Cadastrar Evento</h1>
+        <p style="color: var(--text-secondary, #999); margin-bottom: 22px">Preencha os dados abaixo para publicar seu evento. Como administrador, o evento será publicado instantaneamente.</p>
+
+        <label>Nome do evento <input type="text" id="nome" required></label>
+        <label>Descrição <textarea id="descricao" required></textarea></label>
+        <label>Organizador <input type="text" id="organizador" required></label>
+
+        <div class="form-section" id="datas-container">
+          <h3>Datas e horários</h3>
+          <div id="datas-list">
+            <div class="schedule-row" data-index="0">
+              <label>Data <input type="date" class="data-item" required></label>
+              <label>Início <input type="time" class="horario-inicio-item" required></label>
+              <label>Fim (opcional) <input type="time" class="horario-fim-item"></label>
+              <button type="button" class="btn-remover-data" onclick="removerLinhaData(this)" style="display:none;">Remover</button>
+            </div>
+          </div>
+          <button type="button" id="btn-adicionar-data" class="btn-adicionar-data">+ Adicionar outra data</button>
+        </div>
+
+        <div class="form-grid">
+          <label>Estado
+            <select id="evento-estado" required onchange="window.atualizarCidades()"></select>
+          </label>
+          <label>Cidade
+            <select id="evento-cidade" required disabled><option value="">Selecione o estado</option></select>
+          </label>
+        </div>
+
+        <label>Endereço / Local <input type="text" id="endereco" required></label>
+        <div id="geo-status" style="font-size: 0.9rem; color: var(--text-secondary, #ccc); margin-bottom: 8px;">Clique no mapa para marcar o local exato do evento.</div>
+
+        <div id="mapa-evento" class="mapa-evento"></div>
+        <p id="warning-mapa" class="warning-text"></p>
+        <div class="coordenadas-container">
+          <label>Latitude <input type="text" id="latitude" placeholder="-23.564" readonly required></label>
+          <label>Longitude <input type="text" id="longitude" placeholder="-46.654" readonly required></label>
+        </div>
+
+        <label>Categorias</label>
+        <div id="categorias-evento" class="categorias-grid"></div>
+        <p id="warning-categorias" class="warning-text"></p>
+
+        <fieldset class="form-section">
+          <legend>Entrada</legend>
+          <div class="rads-wrap">
+            <label class="radio-item"><input type="radio" name="gratuito" id="gratuito-sim" checked onchange="window.togglePreco()"> Gratuito</label>
+            <label class="radio-item"><input type="radio" name="gratuito" id="gratuito-nao" onchange="window.togglePreco()"> Pago</label>
+          </div>
+          <div id="container-preco" class="preco-container" style="display: none; margin-top: 10px;">
+            <input type="number" id="preco" placeholder="Preço R$" step="0.01" value="0">
+          </div>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <legend>Imagem de capa (obrigatória)</legend>
+          <label class="file-label" for="imagem-capa">📷 Selecionar imagem de capa</label>
+          <input type="file" id="imagem-capa" accept="image/*" required onchange="window.mostrarPreviewCapa()">
+          <div id="preview-capa" class="preview-imagens"></div>
+          <p id="warning-capa" class="warning-text"></p>
+        </fieldset>
+
+        <fieldset class="form-section">
+          <legend>Imagens do evento (opcional)</legend>
+          <label class="file-label" for="imagens-evento">🖼️ Selecionar imagens do evento</label>
+          <input type="file" id="imagens-evento" accept="image/*" multiple onchange="window.mostrarPreviewImagens()">
+          <div id="preview-imagens" class="preview-imagens"></div>
+        </fieldset>
+
+        <button type="submit" id="btn-submit">🚀 PUBLICAR EVENTO</button>
+      </form>
+      <div id="mensagem-evento" style="margin-top: 20px; text-align: center; font-weight: bold;"></div>
+    </main>
+  </div>
+
+  <div id="icone-perfil" title="Meu Perfil" onclick="irParaPerfil()" style="cursor: pointer; text-decoration: none;">
+    <img id="icone-perfil-img" src="caminho-da-sua-foto.jpg">
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="theme.js?v=5"></script>
+  <script src="global.js?v=5"></script>
+  <script src="categorias.js?v=5"></script>
+  <script src="event-form-admin.js?v=5"></script>
+  <script src="hamburger-menu.js?v=5"></script>
+</body>
+</html>

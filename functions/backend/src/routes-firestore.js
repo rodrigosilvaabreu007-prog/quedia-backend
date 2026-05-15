@@ -136,7 +136,7 @@ router.get('/eventos', async (req, res) => {
 // Criar evento
 router.post('/eventos', verificarToken, async (req, res) => {
   try {
-    const { nome, descricao, estado, cidade, endereco, data, horario, horario_fim, gratuito, preco, categoria, subcategorias, imagem, organizador, datas } = req.body;
+    const { nome, descricao, estado, cidade, endereco, data, horario, horario_fim, gratuito, preco, categoria, subcategorias, imagem, organizador, datas, auto_aprovado } = req.body;
     if (!nome || !descricao || !cidade || !categoria) {
       return res.status(400).json({ erro: 'Campos obrigatórios faltando' });
     }
@@ -151,6 +151,12 @@ router.post('/eventos', verificarToken, async (req, res) => {
     }
     if (!Array.isArray(datasRecebidas) || datasRecebidas.length === 0) {
       datasRecebidas = [{ data: data || '', horario_inicio: horario || '', horario_fim: horario_fim || '' }];
+    }
+
+    // Definir status: se admin e auto_aprovado=true, aprovar automaticamente
+    let statusEvento = 'pendente';
+    if (req.tipo && String(req.tipo).toLowerCase() === 'adm' && (auto_aprovado === 'true' || auto_aprovado === true)) {
+      statusEvento = 'aprovado';
     }
 
     const id = await dbFirestore.cadastrarEvento({
@@ -169,10 +175,14 @@ router.post('/eventos', verificarToken, async (req, res) => {
       categoria,
       subcategorias,
       imagem,
-      datas: datasRecebidas
+      datas: datasRecebidas,
+      status: statusEvento
     });
 
-    res.status(201).json({ mensagem: 'Evento cadastrado com sucesso!', id });
+    const mensagem = statusEvento === 'aprovado' 
+      ? 'Evento publicado instantaneamente com sucesso!' 
+      : 'Evento cadastrado com sucesso!';
+    res.status(201).json({ mensagem, id });
   } catch (err) {
     console.error('❌ Erro ao cadastrar evento:', err.message);
     res.status(400).json({ erro: 'Erro ao cadastrar evento', detalhes: err.message });
