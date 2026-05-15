@@ -732,8 +732,11 @@ router.put('/usuario/:id', verificarToken, async (req, res) => {
       return res.status(403).json({ erro: 'Você não tem permissão para atualizar esta conta' });
     }
 
+    const updateData = { nome, estado, cidade, preferencias };
+    if (typeof email !== 'undefined') updateData.email = email;
+
     // Atualizar usuário
-    await dbFirestore.atualizarUsuario(id, { nome, email, estado, cidade, preferencias });
+    await dbFirestore.atualizarUsuario(id, updateData);
     
     // Obter usuário atualizado
     const usuarioAtualizado = await dbFirestore.obterUsuario(id);
@@ -766,8 +769,11 @@ router.put('/usuarios/:id', verificarToken, async (req, res) => {
       return res.status(403).json({ erro: 'Você não tem permissão para atualizar esta conta' });
     }
 
+    const updateData = { nome, estado, cidade, preferencias };
+    if (typeof email !== 'undefined') updateData.email = email;
+
     // Atualizar usuário
-    await dbFirestore.atualizarUsuario(id, { nome, email, estado, cidade, preferencias });
+    await dbFirestore.atualizarUsuario(id, updateData);
     
     // Obter usuário atualizado
     const usuarioAtualizado = await dbFirestore.obterUsuario(id);
@@ -796,6 +802,72 @@ router.get('/admin/stats', verificarToken, verificarAdmin, async (req, res) => {
   } catch (err) {
     console.error('Erro na rota GET /admin/stats:', err.message);
     return res.status(500).json({ erro: 'Erro ao buscar estatísticas de admin.', detalhe: err.message });
+  }
+});
+
+// ============ DELETAR CONTA DO USUÁRIO ============
+router.delete('/usuario/:id', verificarToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!id) {
+      return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+    }
+
+    // Verificar se o usuário está tentando deletar sua própria conta
+    const tokenUserId = String(req.usuario_id || '');
+    const paramUserId = String(id);
+    
+    if (tokenUserId !== paramUserId) {
+      return res.status(403).json({ erro: 'Você não tem permissão para deletar esta conta' });
+    }
+
+    // Verificar se usuário existe
+    const usuario = await dbFirestore.obterUsuario(id);
+    if (!usuario) {
+      return res.status(404).json({ erro: 'Usuário não encontrado' });
+    }
+
+    // Deletar usuário e seus dados associados
+    await dbFirestore.deletarUsuario(id);
+
+    return res.json({ mensagem: 'Conta deletada com sucesso!' });
+  } catch (err) {
+    console.error('Erro na rota DELETE /usuario/:id:', err.message);
+    return res.status(500).json({ erro: 'Erro ao deletar conta', detalhes: err.message });
+  }
+});
+
+// Rota DELETE: Deletar usuário (alias para /usuario/:id)
+router.delete('/usuarios/:id', verificarToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!id) {
+      return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+    }
+
+    // Verificar se o usuário está tentando deletar sua própria conta
+    const tokenUserId = String(req.usuario_id || '');
+    const paramUserId = String(id);
+    
+    if (tokenUserId !== paramUserId) {
+      return res.status(403).json({ erro: 'Você não tem permissão para deletar esta conta' });
+    }
+
+    // Verificar se usuário existe
+    const usuario = await dbFirestore.obterUsuario(id);
+    if (!usuario) {
+      return res.status(404).json({ erro: 'Usuário não encontrado' });
+    }
+
+    // Deletar usuário e seus dados associados
+    await dbFirestore.deletarUsuario(id);
+
+    return res.json({ mensagem: 'Conta deletada com sucesso!' });
+  } catch (err) {
+    console.error('Erro na rota DELETE /usuarios/:id:', err.message);
+    return res.status(500).json({ erro: 'Erro ao deletar conta', detalhes: err.message });
   }
 });
 

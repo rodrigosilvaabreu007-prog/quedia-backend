@@ -159,8 +159,13 @@ async function obterUsuario(id) {
 
 async function atualizarUsuario(id, dados) {
   try {
+    // Filtrar undefined para evitar erros do Firestore
+    const dadosFiltrados = Object.fromEntries(
+      Object.entries(dados).filter(([_, value]) => value !== undefined)
+    );
+    
     await db.collection('usuarios').doc(id).update({
-      ...dados,
+      ...dadosFiltrados,
       atualizado_em: admin.firestore.FieldValue.serverTimestamp()
     });
     return true;
