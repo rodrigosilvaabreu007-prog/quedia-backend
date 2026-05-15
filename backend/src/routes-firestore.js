@@ -115,6 +115,124 @@ async function enviarCodigoEmail(email, codigo) {
   await transporter.sendMail(mailOptions);
 }
 
+// ============ CONFIGURAÇÃO DE SMS ============
+const SMS_DEMO_MODE = String(process.env.ALLOW_SMS_DEMO || process.env.SMS_DEMO || 'true').toLowerCase() === 'true';
+const SMS_PROVIDER = process.env.SMS_PROVIDER || 'demo'; // 'demo', 'twilio', 'aws-sns'
+
+// Armazenamento de códigos SMS em memória (com expiração)
+const codigosSMS = {};
+
+function gerarCodigoSMS(telefone) {
+  const codigo = String(Math.floor(100000 + Math.random() * 900000));
+  const dataExpiracao = Date.now() + (15 * 60 * 1000); // 15 minutos
+  
+  codigosSMS[telefone] = {
+    codigo: codigo,
+    dataExpiracao: dataExpiracao,
+    usado: false,
+    tentativas: 0
+  };
+  
+  return codigo;
+}
+
+async function validarCodigoSMS(telefone, codigo) {
+  const dado = codigosSMS[telefone];
+  
+  if (!dado) {
+    return { valido: false, erro: 'Código não encontrado' };
+  }
+  
+  if (dado.usado) {
+    return { valido: false, erro: 'Código já foi utilizado' };
+  }
+  
+  if (Date.now() > dado.dataExpiracao) {
+    delete codigosSMS[telefone];
+    return { valido: false, erro: 'Código expirado' };
+  }
+  
+  if (dado.codigo !== String(codigo).trim()) {
+    dado.tentativas++;
+    if (dado.tentativas >= 3) {
+      delete codigosSMS[telefone];
+      return { valido: false, erro: 'Muitas tentativas. Solicite um novo código.' };
+    }
+    return { valido: false, erro: 'Código incorreto' };
+  }
+  
+  dado.usado = true;
+  return { valido: true };
+}
+
+async function enviarCodigoSMS(telefone, codigo) {
+  const apenasNumeros = telefone.replace(/\D/g, '');
+  
+  if (SMS_PROVIDER === 'twilio') {
+    try {
+      const accountSid = process.env.TWILIO_ACCOUNT_SID;
+      const authToken = process.env.TWILIO_AUTH_TOKEN;
+      const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
+      
+      if (!accountSid || !authToken || !twilioPhone) {
+        console.warn('⚠️ Configuração Twilio incompleta, usando modo demo');
+        return { sucesso: true, demo: true };
+      }
+      
+      const twilio = require('twilio');
+      const client = twilio(accountSid, authToken);
+      
+      const formatado = `+55${apenasNumeros}`;
+      
+      await client.messages.create({
+        body: `Seu código de confirmação é: ${codigo}. Válido por 15 minutos.`,
+        from: twilioPhone,
+        to: formatado
+      });
+      
+      console.log(`📱 SMS enviado para ${formatado}`);
+      return { sucesso: true, demo: false };
+    } catch (err) {
+      console.error('❌ Erro ao enviar SMS via Twilio:', err.message);
+      
+      if (SMS_DEMO_MODE) {
+        console.warn('⚠️ Twilio falhou, usando modo demo');
+        return { sucesso: true, demo: true };
+      }
+      
+      throw err;
+    }
+  } else if (SMS_PROVIDER === 'aws-sns') {
+    try {
+      const AWS = require('aws-sdk');
+      const sns = new AWS.SNS();
+      
+      const formatado = `+55${apenasNumeros}`;
+      
+      await sns.publish({
+        Message: `Seu código de confirmação é: ${codigo}. Válido por 15 minutos.`,
+        PhoneNumber: formatado
+      }).promise();
+      
+      console.log(`📱 SMS enviado para ${formatado} via AWS SNS`);
+      return { sucesso: true, demo: false };
+    } catch (err) {
+      console.error('❌ Erro ao enviar SMS via AWS SNS:', err.message);
+      
+      if (SMS_DEMO_MODE) {
+        console.warn('⚠️ AWS SNS falhou, usando modo demo');
+        return { sucesso: true, demo: true };
+      }
+      
+      throw err;
+    }
+  } else {
+    // Modo demo - apenas log
+    console.log(`📱 [DEMO] SMS seria enviado para +55${apenasNumeros}: ${codigo}`);
+    return { sucesso: true, demo: true };
+  }
+}
+
 configurarEmail();
 
 // ============ CONFIGURAÇÃO DO CLOUDINARY ============
@@ -315,14 +433,95 @@ router.post('/validar-codigo', async (req, res) => {
   }
 });
 
+// ✅ NOVO: Enviar código SMS
+router.post('/enviar-codigo-sms', async (req, res) => {
+  try {
+    const { telefone } = req.body;
+
+    if (!telefone) {
+      return res.status(400).json({ erro: 'Telefone é obrigatório' });
+    }
+
+    const apenasNumeros = telefone.replace(/\D/g, '');
+    
+    // Validar telefone
+    if (apenasNumeros.length !== 11) {
+      return res.status(400).json({ erro: 'Telefone inválido' });
+    }
+
+    // Gerar código
+    const codigo = gerarCodigoSMS(apenasNumeros);
+
+    try {
+      const resultado = await enviarCodigoSMS(apenasNumeros, codigo);
+      
+      console.log(`📱 Código SMS gerado para ${apenasNumeros}: ${codigo}`);
+      
+      return res.status(200).json({
+        mensagem: resultado.demo ? 'Código gerado em modo demo' : 'Código enviado por SMS',
+        telefone_mascarado: `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 7)}-****`,
+        codigo_demo: resultado.demo ? codigo : undefined
+      });
+    } catch (err) {
+      console.warn(`⚠️ Erro ao enviar SMS, mas código gerado: ${codigo}`, err.message);
+      
+      if (SMS_DEMO_MODE) {
+        return res.status(200).json({
+          mensagem: 'Não foi possível enviar SMS. Modo demo ativado.',
+          codigo_demo: codigo,
+          telefone_mascarado: `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 7)}-****`
+        });
+      }
+
+      return res.status(500).json({ erro: 'Não foi possível enviar o código por SMS. Tente novamente mais tarde.' });
+    }
+  } catch (err) {
+    console.error('❌ Erro ao enviar código SMS:', err.message);
+    res.status(500).json({ erro: 'Erro ao enviar código SMS', detalhes: err.message });
+  }
+});
+
+// ✅ NOVO: Validar código SMS
+router.post('/validar-codigo-sms', async (req, res) => {
+  try {
+    const { telefone, codigo } = req.body;
+    
+    if (!telefone || !codigo) {
+      return res.status(400).json({ erro: 'Telefone e código são obrigatórios' });
+    }
+
+    const apenasNumeros = telefone.replace(/\D/g, '');
+
+    // Validar código
+    const resultado = await validarCodigoSMS(apenasNumeros, codigo);
+    
+    if (!resultado.valido) {
+      return res.status(400).json({ erro: resultado.erro });
+    }
+
+    res.status(200).json({ 
+      mensagem: 'Telefone confirmado com sucesso!',
+      confirmado: true
+    });
+
+  } catch (err) {
+    console.error('❌ Erro ao validar código SMS:', err.message);
+    res.status(500).json({ erro: 'Erro ao validar código SMS', detalhes: err.message });
+  }
+});
+
 // Cadastro
 router.post('/cadastro', async (req, res) => {
   try {
     console.log('📝 Cadastro recebido:', { email: req.body.email, nome: req.body.nome });
-    const { nome, email, senha, estado, cidade, preferencias } = req.body;
+    const { nome, email, senha, estado, cidade, preferencias, telefone } = req.body;
 
     if (!nome || !email || !senha) {
       return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
+    }
+
+    if (!telefone) {
+      return res.status(400).json({ erro: 'Telefone é obrigatório' });
     }
 
     const emailConfirmado = await dbFirestore.verificarEmailConfirmado(email);
@@ -339,6 +538,7 @@ router.post('/cadastro', async (req, res) => {
       nome,
       email,
       senha: senhaCriptografada,
+      telefone: telefone,
       estado: estado || 'Não informado',
       cidade: cidade || 'Não informado',
       preferencias,
