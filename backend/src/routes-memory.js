@@ -158,6 +158,88 @@ router.get('/verificar-email', (req, res) => {
   }
 })();
 
+// ============ ARMAZENAMENTO DE CÓDIGOS DE CONFIRMAÇÃO (Em memória) ============
+const codigosConfirmacao = {};
+
+function gerarCodigoConfirmacao(email) {
+  const codigo = String(Math.floor(100000 + Math.random() * 900000));
+  const dataExpiracao = Date.now() + (15 * 60 * 1000); // 15 minutos
+  codigosConfirmacao[email] = { codigo, dataExpiracao, usado: false };
+  return codigo;
+}
+
+async function validarCodigoConfirmacaoMemory(email, codigo) {
+  const dado = codigosConfirmacao[email];
+  if (!dado) return false;
+  if (dado.usado) return false;
+  if (Date.now() > dado.dataExpiracao) {
+    delete codigosConfirmacao[email];
+    return false;
+  }
+  if (dado.codigo !== String(codigo).trim()) return false;
+  dado.usado = true;
+  return true;
+}
+
+function verificarEmailConfirmadoMemory(email) {
+  const dado = codigosConfirmacao[email];
+  return dado && dado.usado && Date.now() <= dado.dataExpiracao;
+}
+
+// ============ ROTA: ENVIAR CÓDIGO DE CONFIRMAÇÃO ============
+router.post('/enviar-codigo', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ erro: 'Email é obrigatório' });
+    }
+
+    // Verificar se email já está cadastrado
+    if (db.usuarios.some(u => u.email === email.toLowerCase())) {
+      return res.status(400).json({ erro: 'Este email já está cadastrado' });
+    }
+
+    const codigo = gerarCodigoConfirmacao(email.toLowerCase());
+    
+    console.log(`📧 Código gerado para ${email}: ${codigo} (modo memória - sem envio real)`);
+    
+    res.status(200).json({
+      mensagem: 'Código gerado com sucesso!',
+      codigo_demo: codigo,
+      email_mascarado: email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+    });
+  } catch (err) {
+    console.error('❌ Erro ao enviar código:', err.message);
+    res.status(500).json({ erro: 'Erro ao enviar código', detalhes: err.message });
+  }
+});
+
+// ============ ROTA: VALIDAR CÓDIGO DE CONFIRMAÇÃO ============
+router.post('/validar-codigo', async (req, res) => {
+  try {
+    const { email, codigo } = req.body;
+    
+    if (!email || !codigo) {
+      return res.status(400).json({ erro: 'Email e código são obrigatórios' });
+    }
+
+    const codigoValido = await validarCodigoConfirmacaoMemory(email.toLowerCase(), codigo);
+    
+    if (!codigoValido) {
+      return res.status(400).json({ erro: 'Código inválido ou expirado' });
+    }
+
+    res.status(200).json({ 
+      mensagem: 'Email confirmado com sucesso!',
+      confirmado: true
+    });
+  } catch (err) {
+    console.error('❌ Erro ao validar código:', err.message);
+    res.status(500).json({ erro: 'Erro ao validar código', detalhes: err.message });
+  }
+});
+
 // Rota de cadastro
 router.post('/cadastro', async (req, res) => {
   try {
@@ -166,8 +248,17 @@ router.post('/cadastro', async (req, res) => {
     if (!nome || !email || !senha) {
       return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
     }
+    
+    // Verificar se email foi confirmado
+    if (!verificarEmailConfirmadoMemory(email.toLowerCase())) {
+      return res.status(400).json({
+        erro: 'Email não confirmado. Por favor, confirme seu email com o código enviado.',
+        codigoNaoConfirmado: true
+      });
+    }
+    
     // Verifica se usuário já existe
-    if (db.usuarios.some(u => u.email === email)) {
+    if (db.usuarios.some(u => u.email === email.toLowerCase())) {
       console.log('❌ Email já cadastrado:', email);
       return res.status(400).json({ erro: 'Email já cadastrado' });
     }
@@ -175,7 +266,7 @@ router.post('/cadastro', async (req, res) => {
     const novoUsuario = {
       id: db.usuarios.length + 1,
       nome,
-      email,
+      email: email.toLowerCase(),
       senha: senhaCriptografada,
       estado: estado || 'Não informado',
       cidade: cidade || 'Não informado',

@@ -224,12 +224,103 @@ router.delete('/eventos/:id', async (req, res) => {
     }
 });
 
+// ============ ARMAZENAMENTO DE CÓDIGOS DE CONFIRMAÇÃO (Em memória) ============
+const codigosConfirmacao = {};
+
+function gerarCodigoConfirmacao(email) {
+  const codigo = String(Math.floor(100000 + Math.random() * 900000));
+  const dataExpiracao = Date.now() + (15 * 60 * 1000); // 15 minutos
+  codigosConfirmacao[email] = { codigo, dataExpiracao, usado: false };
+  return codigo;
+}
+
+async function validarCodigoConfirmacaoMongo(email, codigo) {
+  const dado = codigosConfirmacao[email];
+  if (!dado) return false;
+  if (dado.usado) return false;
+  if (Date.now() > dado.dataExpiracao) {
+    delete codigosConfirmacao[email];
+    return false;
+  }
+  if (dado.codigo !== String(codigo).trim()) return false;
+  dado.usado = true;
+  return true;
+}
+
+function verificarEmailConfirmadoMongo(email) {
+  const dado = codigosConfirmacao[email];
+  return dado && dado.usado && Date.now() <= dado.dataExpiracao;
+}
+
+// ============ ROTA: ENVIAR CÓDIGO DE CONFIRMAÇÃO ============
+router.post('/enviar-codigo', async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ erro: 'Email é obrigatório' });
+    }
+
+    // Verificar se email já está cadastrado
+    const usuarioExistente = await Usuario.findOne({ email: email.toLowerCase() });
+    if (usuarioExistente) {
+      return res.status(400).json({ erro: 'Este email já está cadastrado' });
+    }
+
+    const codigo = gerarCodigoConfirmacao(email.toLowerCase());
+    
+    console.log(`📧 Código gerado para ${email}: ${codigo} (modo MongoDB)`);
+    
+    res.status(200).json({
+      mensagem: 'Código gerado com sucesso!',
+      codigo_demo: codigo,
+      email_mascarado: email.replace(/(.{2})(.*)(@.*)/, '$1***$3')
+    });
+  } catch (err) {
+    console.error('❌ Erro ao enviar código:', err.message);
+    res.status(500).json({ erro: 'Erro ao enviar código', detalhes: err.message });
+  }
+});
+
+// ============ ROTA: VALIDAR CÓDIGO DE CONFIRMAÇÃO ============
+router.post('/validar-codigo', async (req, res) => {
+  try {
+    const { email, codigo } = req.body;
+    
+    if (!email || !codigo) {
+      return res.status(400).json({ erro: 'Email e código são obrigatórios' });
+    }
+
+    const codigoValido = await validarCodigoConfirmacaoMongo(email.toLowerCase(), codigo);
+    
+    if (!codigoValido) {
+      return res.status(400).json({ erro: 'Código inválido ou expirado' });
+    }
+
+    res.status(200).json({ 
+      mensagem: 'Email confirmado com sucesso!',
+      confirmado: true
+    });
+  } catch (err) {
+    console.error('❌ Erro ao validar código:', err.message);
+    res.status(500).json({ erro: 'Erro ao validar código', detalhes: err.message });
+  }
+});
+
 // 6. ROTA POST: CADASTRO DE USUÁRIO
 router.post('/cadastro', async (req, res) => {
     try {
         const { nome, email, senha, estado, cidade, preferencias } = req.body;
         if (!nome || !email || !senha) {
             return res.status(400).json({ erro: 'Nome, email e senha são obrigatórios' });
+        }
+
+        // Verificar se email foi confirmado
+        if (!verificarEmailConfirmadoMongo(email.toLowerCase())) {
+            return res.status(400).json({
+                erro: 'Email não confirmado. Por favor, confirme seu email com o código enviado.',
+                codigoNaoConfirmado: true
+            });
         }
 
         const id = await registrarUsuario({ nome, email, senha, estado, cidade, preferencias });
@@ -488,9 +579,10 @@ router.put('/usuario/:id', verificarToken, async (req, res) => {
             return res.status(403).json({ erro: 'Você não tem permissão para atualizar esta conta' });
         }
 
-        // Aqui você precisa implementar a função atualizarUsuario
-        // Por enquanto, vou usar uma implementação simples
-        const usuarioAtualizado = await atualizarUsuario(id, { nome, email, estado, cidade, preferencias });
+        const updateData = { nome, estado, cidade, preferencias };
+        if (typeof email !== 'undefined') updateData.email = email;
+
+        const usuarioAtualizado = await atualizarUsuario(id, updateData);
         if (!usuarioAtualizado) {
             return res.status(404).json({ erro: 'Usuário não encontrado' });
         }
@@ -511,6 +603,8 @@ router.put('/usuarios/:id', verificarToken, async (req, res) => {
             return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
         }
 
+        // Verificar se o usuário está tentando atualizar sua própria conta
+        // Converter para string para comparar (ObjectId vs string da URL)
         const tokenUserId = String(req.usuario?.id?.toString ? req.usuario.id.toString() : req.usuario?.id || '');
         const paramUserId = String(id);
         
@@ -518,7 +612,10 @@ router.put('/usuarios/:id', verificarToken, async (req, res) => {
             return res.status(403).json({ erro: 'Você não tem permissão para atualizar esta conta' });
         }
 
-        const usuarioAtualizado = await atualizarUsuario(id, { nome, email, estado, cidade, preferencias });
+        const updateData = { nome, estado, cidade, preferencias };
+        if (typeof email !== 'undefined') updateData.email = email;
+
+        const usuarioAtualizado = await atualizarUsuario(id, updateData);
         if (!usuarioAtualizado) {
             return res.status(404).json({ erro: 'Usuário não encontrado' });
         }
